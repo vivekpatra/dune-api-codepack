@@ -1,0 +1,429 @@
+﻿<?xml version="1.0"?>
+<doc>
+<assembly>
+<name>
+DuneAPICodePack
+</name>
+</assembly>
+<members>
+<member name="P:DuneAPICodePack.Dune.Communicator.Communicator.Timeout">
+	<summary>
+ Get or set the amount of seconds before a timeout is reached.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.GetStatus">
+	<summary>
+ Gets the player status.
+ </summary>
+	<remarks></remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.ToggleMute">
+	<summary>
+ Toggles the muted status.
+ </summary>
+	<remarks>Mimics the remote control button, but you'll get more detailed player feedback.</remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.MutePlayer">
+	<summary>
+ Attempts to mute the player.
+ </summary>
+	<remarks></remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.UnmutePlayer">
+	<summary>
+ Attempts to unmute the player.
+ </summary>
+	<remarks></remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.SetKeyframe(DuneAPICodePack.Dune.Communicator.Communicator.Keyframe)">
+	<summary>
+ Allows to navigate to the next/previous key frame.
+ </summary>
+	<param name="Direction"></param>
+	<remarks>Can only be used when the playback is paused; is supported for DVD and MKV only.</remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.SetZoom(DuneAPICodePack.Dune.Communicator.Communicator.Zoom)">
+	<summary>
+ Use this to set a preset zoom mode.
+ </summary>
+	<param name="Mode"></param>
+	<remarks></remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.SetZoom(System.Boolean)">
+	<summary>
+ Use this to return to fullscreen. 
+ </summary>
+	<param name="Fullscreen">Only use 'true' here, look at the overloads for other zoom options (where fullscreen=false is implied).</param>
+	<remarks>Setting this to false without supplying other parameters won't work. Look at the overloads for more zoom options.</remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.SetZoom(DuneAPICodePack.Dune.Communicator.Communicator.Zoom,System.Int32,System.Int32,System.Int32,System.Int32)">
+	<summary>
+ Use this to set a custom zoom mode.
+ </summary>
+	<param name="Mode">Preset zoom mode.</param>
+	<param name="X">Padding between the left side of the screen and the video.</param>
+	<param name="Y">Padding between the top side of the screen and the video.</param>
+	<param name="Width">The video width.</param>
+	<param name="Height">The video height.</param>
+	<remarks>All values are in pixels.</remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.DoCommand(System.String)">
+	<summary>
+ Executes the supplied command and gets the command results.
+ </summary>
+	<param name="URL"></param>
+	<remarks></remarks>
+</member><member name="M:DuneAPICodePack.Dune.Dune.#ctor">
+	<summary>
+ Default constructor.
+ </summary>
+	<remarks>Should never be used</remarks>
+</member><member name="M:DuneAPICodePack.Dune.Dune.#ctor(DuneAPICodePack.Dune.Dune.Models,System.String,System.Int32)">
+	<summary>
+	</summary>
+	<param name="Address">The target Address (IP or hostname)</param>
+	<param name="Port">The port that should be used.</param>
+	<remarks></remarks>
+</member><member name="M:DuneAPICodePack.Dune.Dune.Connect(DuneAPICodePack.Dune.Dune.Models,System.String)">
+	<summary>
+ Constructs a new Dune object, configured to connect to the supplied Address on port 80.
+ </summary>
+	<param name="Address">IP or hostname.</param>
+	<returns>Fully configured Dune object.</returns>
+	<remarks></remarks>
+</member><member name="M:DuneAPICodePack.Dune.Dune.Connect(DuneAPICodePack.Dune.Dune.Models,System.String,System.Int32)">
+	<summary>
+ Constructs a new Dune object, configured to connect to the supplied Address on the supplied port number.
+ </summary>
+	<param name="Address">IP or hostname.</param>
+	<param name="Port">Port number.</param>
+	<returns>Fully configured Dune object.</returns>
+	<remarks>The port number should only be changed if used in conjunction with port forwarding.</remarks>
+</member><member name="M:DuneAPICodePack.Dune.Dune.Reconnect">
+	<summary>
+ If the connection was lost or suspended, use this to reconnect the Dune object.
+ </summary>
+	<remarks>Will throw an exception if a connection is still active.</remarks>
+</member><member name="M:DuneAPICodePack.Dune.Dune.Disconnect">
+	<summary>
+ Suspends the connection.
+ </summary>
+	<remarks>This method is the same one that is used for internal processing when connection is lost.</remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.IP">
+	<summary>
+ Gets the Dune's IP.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Port">
+	<summary>
+ Gets the port number that is used.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Hostname">
+	<summary>
+ Gets the Dune's hostname.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Command_Status">
+	<summary>
+ Gets the last command status.
+ </summary>
+	<value></value>
+	<returns>"ok" or "failed"</returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Error_Kind">
+	<summary>
+ Gets the last error's error kind.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks>This value remains until a new error occurs. Use the 'ErrorOccurred' property to check if an error occurred.</remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Error_Description">
+	<summary>
+ Gets the last error's error description.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks>This value remains until a new error occurs. Use the 'ErrorOccurred' property to check if an error occurred.</remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Protocol_Version">
+	<summary>
+ Holds the Dune IP Protocol version.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Player_State">
+	<summary>
+ Gets the player state.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Playback_Speed">
+	<summary>
+ Gets the playback speed (in human readable format).
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Playback_Duration">
+	<summary>
+ Gets the playback duration in seconds.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.IsContinuous">
+	<summary>
+ Use this to check for continuous streams.
+ </summary>
+	<value></value>
+	<returns>True if the currently playing file is a continuous stream.</returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Playback_Position">
+	<summary>
+ Gets the playback position in seconds.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Playback_Time_Left">
+	<summary>
+ Gets the playback time left in seconds.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Playback_Is_Buffering">
+	<summary>
+ Use this to see if the player is buffering.
+ </summary>
+	<value></value>
+	<returns>True if the player is buffering, false if not.</returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Connected">
+	<summary>
+ Use this to find out if there is an active connection.
+ </summary>
+	<value></value>
+	<returns>True if there is a connection, false if not.</returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.ErrorOccurred">
+	<summary>
+ Use this to see if the last command returned an error.
+ </summary>
+	<value></value>
+	<returns>True if an error occurred, false if not.</returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Last_Playback_Request">
+	<summary>
+ Gets the path/URL from the last playback request
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Playback_Volume">
+	<summary>
+ Gets the player volume.
+ </summary>
+	<value></value>
+	<returns>Value between 0 and 150.</returns>
+	<remarks>You can only set the volume above 100 by holding the volume up button on the remote control.</remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Muted">
+	<summary>
+ Gets the mute state.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Audio_Track">
+	<summary>
+ Gets the current language track number.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Audio_Track_list">
+	<summary>
+ Gets a dictionary type list of all current language tracks in tracknumber=language style.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Video_Fullscreen">
+	<summary>
+ Gets the fullscreen state.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Video_X">
+	<summary>
+ Gets the horizontal position of the video.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Video_Y">
+	<summary>
+ Gets the vertical position of the video.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Video_Width">
+	<summary>
+ Gets the width of the video.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Video_Height">
+	<summary>
+ Gets the height of the video.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Total_Display_Width">
+	<summary>
+ Gets the available display width.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Total_Display_Height">
+	<summary>
+ Gets the available display height.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Video_Enabled">
+	<summary>
+ Gets the video enabled state.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Video_Zoom">
+	<summary>
+ Gets the zoom state.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.DVD_Menu">
+	<summary>
+ Gets whether a DVD-menu is currently shown.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Communicator">
+	<summary>
+ Use this to interact with the current Dune.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks>You can declare additional communicator objects if you somehow require multiple communicators for the same Dune.</remarks>
+</member><member name="P:DuneAPICodePack.Dune.Dune.Remote">
+	<summary>
+ Use this to emulate remote control button presses.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks>You can declare additional standard remote objects if you somehow require multiple remote controls for the same Dune.</remarks>
+</member><member name="M:DuneAPICodePack.Dune.Dune._timer_Elapsed(System.Object,System.Timers.ElapsedEventArgs)">
+	<summary>
+ Runs every second to refresh the ping.
+ </summary>
+	<param name="sender"></param>
+	<param name="e"></param>
+	<remarks></remarks>
+</member><member name="M:DuneAPICodePack.Dune.Dune.ping_pingCompleted(System.Object,System.Net.NetworkInformation.PingCompletedEventArgs)">
+	<summary>
+ Runs when the ping has completed.
+ </summary>
+	<param name="sender"></param>
+	<param name="e"></param>
+	<remarks>If the ping was successfull, the status properties will be updated.</remarks>
+</member><member name="M:DuneAPICodePack.Dune.Dune.LostConnection">
+	<summary>
+ Used for internal processing of failed pings.
+ </summary>
+	<remarks></remarks>
+</member><member name="M:DuneAPICodePack.Dune.Dune.RaiseUpdate">
+	<summary>
+ Used for internal processing of updated properties.
+ </summary>
+	<remarks></remarks>
+</member><member name="E:DuneAPICodePack.Dune.Dune.StatusUpdated">
+	<summary>
+ Raised when a command has completed.
+ </summary>
+	<remarks></remarks>
+</member><member name="T:DuneAPICodePack.Dune.Dune">
+	<summary>
+ Represents an object that is configured to communicate with a specified Dune.
+ </summary>
+	<remarks>Use the shared 'connect' function to create a new Dune object.</remarks>
+</member><member name="P:DuneAPICodePack.Dune.Communicator.StandardRemote.RemoteType">
+	<summary>
+ Gets or sets the remote type.
+ </summary>
+	<value></value>
+	<returns></returns>
+	<remarks></remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.StandardRemote.Push(System.String)">
+	<summary>
+ Sends the button command.
+ </summary>
+	<param name="Code">IR code in hex format.</param>
+	<remarks></remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.StandardRemote.Mute">
+	<summary>
+ The mute button on the standard remote control.
+ </summary>
+	<remarks>For the advanced mute command, see 'MutePlayer'.</remarks>
+</member><member name="P:DuneAPICodePack.My.Resources.Resources.ResourceManager">
+	<summary>
+  Returns the cached ResourceManager instance used by this class.
+</summary>
+</member><member name="P:DuneAPICodePack.My.Resources.Resources.Culture">
+	<summary>
+  Overrides the current thread's CurrentUICulture property for all
+  resource lookups using this strongly typed resource class.
+</summary>
+</member><member name="T:DuneAPICodePack.My.Resources.Resources">
+	<summary>
+  A strongly-typed resource class, for looking up localized strings, etc.
+</summary>
+</member><member name="P:DuneAPICodePack.Dune.Communicator.PlaybackOptions.Speed">
+	<summary>
+ Used for internal command processing.
+ </summary>
+	<value></value>
+	<returns>Playback speed (0 = paused, 256 = normal)</returns>
+	<remarks> Only use the 'Paused' property to change this.</remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.MediaURL.MakeURL_NFS(System.String,System.String)">
+	<summary>
+	</summary>
+	<param name="Host">Can be IP-address or DNS-name of NFS server.</param>
+	<param name="Path">File path.</param>
+	<returns></returns>
+	<remarks>Path syntax: /folder/name[/file.ext]</remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.MediaURL.MakeURL_NFS(System.String,System.String,System.String)">
+	<summary>
+	</summary>
+	<param name="Host">Can be IP-address or DNS-name of NFS server.</param>
+	<param name="ExportPath">Optional. When omitted, the player tries to 
+ automatically deduce it from the specified "path" (by analyzing all NFS-exports of the NFS-server).
+ For better performance and correct working, it is recommended to always explicitly specify "export-path".
+ </param>
+	<param name="Path">File path.</param>
+	<returns></returns>
+	<remarks>(export) path syntax: /folder/name[/file.ext]</remarks>
+</member>
+</members>
+</doc>
