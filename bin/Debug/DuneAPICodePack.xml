@@ -6,7 +6,18 @@ DuneAPICodePack
 </name>
 </assembly>
 <members>
-<member name="P:DuneAPICodePack.Dune.Communicator.Communicator.Timeout">
+<member name="M:DuneAPICodePack.Dune.Communicator.Communicator.#ctor(DuneAPICodePack.Dune.Dune)">
+	<summary>
+ Constructor that attaches a Dune object to the communicator object.
+ </summary>
+	<param name="Dune"></param>
+	<remarks></remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.#ctor">
+	<summary>
+ Private default constructor to prevent orphan objects.
+ </summary>
+	<remarks></remarks>
+</member><member name="P:DuneAPICodePack.Dune.Communicator.Communicator.Timeout">
 	<summary>
  Get or set the amount of seconds before a timeout is reached.
  </summary>
@@ -33,39 +44,85 @@ DuneAPICodePack
  Attempts to unmute the player.
  </summary>
 	<remarks></remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.SetVolume(System.Int32)">
+	<summary>
+ Sets the volume.
+ </summary>
+	<param name="Volume">value from 0 to 100.</param>
+	<remarks></remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.SetPosition(System.Int32)">
+	<summary>
+ Sets the playback position.
+ </summary>
+	<param name="Position">Position in seconds.</param>
+	<remarks></remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.SetBlackScreen(System.Boolean)">
+	<summary>
+ Enables or disables the black screen during playback.
+ </summary>
+	<param name="Enabled"></param>
+	<remarks></remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.SetOSD(System.Boolean)">
+	<summary>
+ Hides or unhides the OSD during playback.
+ </summary>
+	<param name="Enabled"></param>
+	<remarks></remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.SetSpeed(DuneAPICodePack.Dune.Communicator.Communicator.Speeds)">
+	<summary>
+ Sets the playback speed.
+ </summary>
+	<param name="Speed"></param>
+	<remarks></remarks>
 </member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.SetKeyframe(DuneAPICodePack.Dune.Communicator.Communicator.Keyframe)">
 	<summary>
  Allows to navigate to the next/previous key frame.
  </summary>
 	<param name="Direction"></param>
 	<remarks>Can only be used when the playback is paused; is supported for DVD and MKV only.</remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.SetRepeat(System.Boolean)">
+	<summary>
+ Sets the action on finish to exit or repeat playback.
+ </summary>
+	<param name="Repeat"></param>
+	<remarks></remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.SetVideo(System.Boolean)">
+	<summary>
+ Enables or disables video output during playback.
+ </summary>
+	<param name="Enabled"></param>
+	<remarks></remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.SetZoom">
+	<summary>
+ Removes any and all zoom effects. Look at the overloads for more zoom options.
+ </summary>
+	<remarks></remarks>
 </member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.SetZoom(DuneAPICodePack.Dune.Communicator.Communicator.Zoom)">
 	<summary>
- Use this to set a preset zoom mode.
+ Sets the zoom mode to one of the presets.
  </summary>
 	<param name="Mode"></param>
 	<remarks></remarks>
-</member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.SetZoom(System.Boolean)">
-	<summary>
- Use this to return to fullscreen. 
- </summary>
-	<param name="Fullscreen">Only use 'true' here, look at the overloads for other zoom options (where fullscreen=false is implied).</param>
-	<remarks>Setting this to false without supplying other parameters won't work. Look at the overloads for more zoom options.</remarks>
-</member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.SetZoom(DuneAPICodePack.Dune.Communicator.Communicator.Zoom,System.Int32,System.Int32,System.Int32,System.Int32)">
+</member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.SetZoom(System.Int32,System.Int32,System.Int32,System.Int32)">
 	<summary>
  Use this to set a custom zoom mode.
  </summary>
-	<param name="Mode">Preset zoom mode.</param>
 	<param name="X">Padding between the left side of the screen and the video.</param>
 	<param name="Y">Padding between the top side of the screen and the video.</param>
 	<param name="Width">The video width.</param>
 	<param name="Height">The video height.</param>
 	<remarks>All values are in pixels.</remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.SetPlayerState(DuneAPICodePack.Dune.Communicator.Communicator.PlayerStates)">
+	<summary>
+ Sets the player state.
+ </summary>
+	<param name="State"></param>
+	<remarks></remarks>
 </member><member name="M:DuneAPICodePack.Dune.Communicator.Communicator.DoCommand(System.String)">
 	<summary>
  Executes the supplied command and gets the command results.
  </summary>
-	<param name="URL"></param>
+	<param name="commandURL"></param>
 	<remarks></remarks>
 </member><member name="M:DuneAPICodePack.Dune.Dune.#ctor">
 	<summary>
@@ -368,9 +425,20 @@ DuneAPICodePack
  Represents an object that is configured to communicate with a specified Dune.
  </summary>
 	<remarks>Use the shared 'connect' function to create a new Dune object.</remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.StandardRemote.#ctor(DuneAPICodePack.Dune.Dune)">
+	<summary>
+ Constructor that attaches a Dune object to the standardremote object.
+ </summary>
+	<param name="Dune"></param>
+	<remarks></remarks>
+</member><member name="M:DuneAPICodePack.Dune.Communicator.StandardRemote.#ctor">
+	<summary>
+ Private default constructor to prevent orphan objects.
+ </summary>
+	<remarks></remarks>
 </member><member name="P:DuneAPICodePack.Dune.Communicator.StandardRemote.RemoteType">
 	<summary>
- Gets or sets the remote type.
+ Gets or sets the remote type. I don't know if the "Old remote" setting actually works with the IP control API.
  </summary>
 	<value></value>
 	<returns></returns>
@@ -381,11 +449,6 @@ DuneAPICodePack
  </summary>
 	<param name="Code">IR code in hex format.</param>
 	<remarks></remarks>
-</member><member name="M:DuneAPICodePack.Dune.Communicator.StandardRemote.Mute">
-	<summary>
- The mute button on the standard remote control.
- </summary>
-	<remarks>For the advanced mute command, see 'MutePlayer'.</remarks>
 </member><member name="P:DuneAPICodePack.My.Resources.Resources.ResourceManager">
 	<summary>
   Returns the cached ResourceManager instance used by this class.

@@ -1,10 +1,22 @@
 ﻿Namespace Dune.Communicator
     Public Class StandardRemote
-        Private Dune As Dune
-        Private strRemoteCode As String = "BF00"
+        Private _dune As Dune
+        Private _remoteCode As String = "BF00" 'defaults to "new" remotes.
 
-        Public Sub New(ByVal Dune As Dune)
-            Me.Dune = Dune
+        ''' <summary>
+        ''' Constructor that attaches a Dune object to the standardremote object.
+        ''' </summary>
+        ''' <param name="Dune"></param>
+        ''' <remarks></remarks>
+        Public Sub New(ByVal dune As Dune)
+            _dune = dune
+        End Sub
+
+        ''' <summary>
+        ''' Private default constructor to prevent orphan objects.
+        ''' </summary>
+        ''' <remarks></remarks>
+        Private Sub New()
         End Sub
 
         Public Enum Remote
@@ -13,14 +25,14 @@
         End Enum
 
         ''' <summary>
-        ''' Gets or sets the remote type.
+        ''' Gets or sets the remote type. I don't know if the "Old remote" setting actually works with the IP control API.
         ''' </summary>
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Property RemoteType As Remote
             Get
-                Select Case strRemoteCode
+                Select Case _remoteCode
                     Case "BE01"
                         Return Remote.Old
                     Case Else
@@ -30,9 +42,9 @@
             Set(ByVal value As Remote)
                 Select Case value.ToString.ToLower
                     Case "old"
-                        strRemoteCode = "BE01"
+                        _remoteCode = "BE01"
                     Case Else
-                        strRemoteCode = "BF00"
+                        _remoteCode = "BF00"
                 End Select
             End Set
         End Property
@@ -43,9 +55,9 @@
         ''' </summary>
         ''' <param name="Code">IR code in hex format.</param>
         ''' <remarks></remarks>
-        Private Sub Push(ByVal Code As String)
-            Dim strURL As String = String.Format("http://{0}:{1}/cgi-bin/do?cmd=ir_code&ir_code={2}{3}&timeout={4}", Dune.IP, Dune.Port, Code, strRemoteCode, Dune.Communicator.Timeout)
-            Dune.Communicator.DoCommand(strURL)
+        Private Sub Push(ByVal code As String)
+            Dim commandURL As String = String.Format("http://{0}:{1}/cgi-bin/do?cmd=ir_code&ir_code={2}{3}&timeout={4}", _dune.IP, _dune.Port, code, _remoteCode, _dune.Communicator.Timeout)
+            _dune.Communicator.DoCommand(commandURL)
         End Sub
 
         Public Sub Power()
@@ -56,10 +68,6 @@
             Push("EF10")
         End Sub
 
-        ''' <summary>
-        ''' The mute button on the standard remote control.
-        ''' </summary>
-        ''' <remarks>For the advanced mute command, see 'MutePlayer'.</remarks>
         Public Sub Mute()
             Push("B946")
         End Sub

@@ -1,45 +1,45 @@
 ﻿Namespace Dune.Communicator
     Public Class PlaybackOptions
         Private _playbackSpeed As Integer
-        Private intPosition As Integer
-        Private blnBlackScreen As Boolean
-        Private blnHideOSD As Boolean
-        Private blnRepeat As Boolean
+        Private _position As Integer
+        Private _blackScreen As Boolean
+        Private _hideOSD As Boolean
+        Private _repeat As Boolean
 
         Public Sub New()
             Me.New(False, 0, False, False, False)
         End Sub
 
-        Public Sub New(ByVal Paused As Boolean)
+        Public Sub New(ByVal paused As Boolean)
             Me.New(Paused, 0, False, False, False)
         End Sub
 
-        Public Sub New(ByVal Paused As Boolean, ByVal Position As Integer)
-            Me.New(Paused, Position, False, False, False)
+        Public Sub New(ByVal paused As Boolean, ByVal position As Integer)
+            Me.New(paused, position, False, False, False)
         End Sub
 
-        Public Sub New(ByVal Paused As Boolean, ByVal Position As Integer, ByVal BlackScreen As Boolean)
-            Me.New(Paused, Position, BlackScreen, False, False)
+        Public Sub New(ByVal paused As Boolean, ByVal position As Integer, ByVal blackScreen As Boolean)
+            Me.New(paused, position, blackScreen, False, False)
         End Sub
 
-        Public Sub New(ByVal Paused As Boolean, ByVal Position As Integer, ByVal BlackScreen As Boolean, ByVal HideOSD As Boolean)
-            Me.New(Paused, Position, BlackScreen, HideOSD, False)
+        Public Sub New(ByVal paused As Boolean, ByVal position As Integer, ByVal blackScreen As Boolean, ByVal hideOSD As Boolean)
+            Me.New(paused, position, blackScreen, hideOSD, False)
         End Sub
 
-        Public Sub New(ByVal Paused As Boolean, ByVal Position As Integer, ByVal BlackScreen As Boolean, ByVal HideOSD As Boolean, ByVal Repeat As Boolean)
-            If Paused = True Then
+        Public Sub New(ByVal paused As Boolean, ByVal position As Integer, ByVal BlacblackScreenkScreen As Boolean, ByVal hideOSD As Boolean, ByVal repeat As Boolean)
+            If paused = True Then
                 _playbackSpeed = 0
             Else
                 _playbackSpeed = 256
             End If
 
-            intPosition = Position
+            _position = position
 
-            blnBlackScreen = BlackScreen
+            _blackScreen = BlackScreen
 
-            blnHideOSD = HideOSD
+            _hideOSD = hideOSD
 
-            blnRepeat = Repeat
+            _repeat = repeat
         End Sub
 
         Public Property Paused As Boolean
@@ -57,37 +57,37 @@
 
         Public Property Position As Integer
             Get
-                Return intPosition
+                Return _position
             End Get
             Set(value As Integer)
-                intPosition = value
+                _position = value
             End Set
         End Property
 
         Public Property BlackScreen As Boolean
             Get
-                Return blnBlackScreen
+                Return _blackScreen
             End Get
             Set(value As Boolean)
-                blnBlackScreen = value
+                _blackScreen = value
             End Set
         End Property
 
         Public Property HideOSD As Boolean
             Get
-                Return blnHideOSD
+                Return _hideOSD
             End Get
             Set(value As Boolean)
-                blnHideOSD = value
+                _hideOSD = value
             End Set
         End Property
 
         Public Property Repeat As Boolean
             Get
-                Return blnRepeat
+                Return _repeat
             End Get
             Set(value As Boolean)
-                blnRepeat = value
+                _repeat = value
             End Set
         End Property
 
