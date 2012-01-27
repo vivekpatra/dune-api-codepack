@@ -6,7 +6,7 @@ Imports System.Text
 Namespace Dune.Communicator
     Public Class Communicator
         Private _dune As Dune
-        Private intTimeoutSeconds As Integer = 20
+        Private _timeout As Integer = 20
 
         Public Sub New(ByVal Dune As Dune)
             _dune = Dune
@@ -20,10 +20,10 @@ Namespace Dune.Communicator
         ''' <remarks></remarks>
         Public Property Timeout As Integer
             Get
-                Return intTimeoutSeconds
+                Return _timeout
             End Get
             Set(ByVal value As Integer)
-                intTimeoutSeconds = value
+                _timeout = value
             End Set
         End Property
 
@@ -89,7 +89,7 @@ Namespace Dune.Communicator
             strCommandBuilder.AppendFormat("&black_screen={0}", Math.Abs(CInt(Options.BlackScreen)))
             strCommandBuilder.AppendFormat("&hide_osd={0}", Math.Abs(CInt(Options.HideOSD)))
             strCommandBuilder.AppendFormat("&action_on_finish={0}", strActionOnFinish)
-            strCommandBuilder.AppendFormat("&timeout={0}", Me.intTimeoutSeconds)
+            strCommandBuilder.AppendFormat("&timeout={0}", _timeout)
 
             DoCommand(strCommandBuilder.ToString)
 
@@ -118,7 +118,7 @@ Namespace Dune.Communicator
             Dim strURL As String = String.Format("http://{0}:{1}/cgi-bin/do?cmd=set_playback_state&mute=1&timeout=", _
                                                  _dune.IP, _
                                                  _dune.Port, _
-                                                 intTimeoutSeconds)
+                                                 _timeout)
             DoCommand(strURL)
         End Sub
 
@@ -130,7 +130,7 @@ Namespace Dune.Communicator
             Dim strURL As String = String.Format("http://{0}:{1}/cgi-bin/do?cmd=set_playback_state&mute=0&timeout={2}", _
                                                  _dune.IP, _
                                                  _dune.Port, _
-                                                 intTimeoutSeconds)
+                                                 _timeout)
             DoCommand(strURL)
         End Sub
 
@@ -147,21 +147,21 @@ Namespace Dune.Communicator
 
 #Region "Position"
         Public Sub SetPosition(ByVal Position As Integer)
-            Dim strURL As String = String.Format("http://{0}:{1}/cgi-bin/do?cmd=set_playback_state&position={2}&timeout={3}", _dune.IP, _dune.Port, Position, intTimeoutSeconds)
+            Dim strURL As String = String.Format("http://{0}:{1}/cgi-bin/do?cmd=set_playback_state&position={2}&timeout={3}", _dune.IP, _dune.Port, Position, _timeout)
             DoCommand(strURL)
         End Sub
 #End Region 'Position
 
 #Region "Black Screen"
         Public Sub SetBlackScreen(ByVal Enabled As Boolean)
-            Dim strURL As String = String.Format("http://{0}:{1}/cgi-bin/do?cmd=set_playback_state&black_screen={2}&timeout={3}", _dune.IP, _dune.Port, Math.Abs(CInt(Enabled)), intTimeoutSeconds)
+            Dim strURL As String = String.Format("http://{0}:{1}/cgi-bin/do?cmd=set_playback_state&black_screen={2}&timeout={3}", _dune.IP, _dune.Port, Math.Abs(CInt(Enabled)), _timeout)
             DoCommand(strURL)
         End Sub
 #End Region 'Black Screen
 
 #Region "OSD"
         Public Sub SetOSD(ByVal Enabled As Boolean)
-            Dim strURL As String = String.Format("http://{0}:{1}/cgi-bin/do?cmd=set_playback_state&hide_osd={2}&timeout={3}", _dune.IP, _dune.Port, Math.Abs(CInt(Enabled)), intTimeoutSeconds)
+            Dim strURL As String = String.Format("http://{0}:{1}/cgi-bin/do?cmd=set_playback_state&hide_osd={2}&timeout={3}", _dune.IP, _dune.Port, Math.Abs(CInt(Enabled)), _timeout)
             DoCommand(strURL)
         End Sub
 #End Region 'OSD
@@ -184,7 +184,7 @@ Namespace Dune.Communicator
         End Enum
 
         Public Sub SetSpeed(ByVal Speed As Speeds)
-            Dim strURL As String = String.Format("http://{0}:{1}/cgi-bin/do?cmd=set_playback_state&speed={2}&timeout={3}", _dune.IP, _dune.Port, CInt(Speed), intTimeoutSeconds)
+            Dim strURL As String = String.Format("http://{0}:{1}/cgi-bin/do?cmd=set_playback_state&speed={2}&timeout={3}", _dune.IP, _dune.Port, CInt(Speed), _timeout)
             DoCommand(strURL)
         End Sub
 #End Region 'Speed
@@ -201,7 +201,7 @@ Namespace Dune.Communicator
         ''' <param name="Direction"></param>
         ''' <remarks>Can only be used when the playback is paused; is supported for DVD and MKV only.</remarks>
         Public Sub SetKeyframe(ByVal Direction As Keyframe)
-            Dim strURL As String = String.Format("http://{0}:{1}/cgi-bin/do?cmd=set_playback_state&skip_frames={2}&timeout={3}", _dune.IP, _dune.Port, CInt(Direction), intTimeoutSeconds)
+            Dim strURL As String = String.Format("http://{0}:{1}/cgi-bin/do?cmd=set_playback_state&skip_frames={2}&timeout={3}", _dune.IP, _dune.Port, CInt(Direction), _timeout)
             DoCommand(strURL)
         End Sub
 #End Region 'Key frames
@@ -214,14 +214,14 @@ Namespace Dune.Communicator
             Else
                 strActionOnFinish = "exit"
             End If
-            Dim strURL As String = String.Format("http://{0}:{1}/cgi-bin/do?cmd=set_playback_state&action_on_finish={2}&timeout={3}", _dune.IP, _dune.Port, strActionOnFinish, intTimeoutSeconds)
+            Dim strURL As String = String.Format("http://{0}:{1}/cgi-bin/do?cmd=set_playback_state&action_on_finish={2}&timeout={3}", _dune.IP, _dune.Port, strActionOnFinish, _timeout)
             DoCommand(strURL)
         End Sub
 #End Region 'Action on finish
 
 #Region "Video"
         Public Sub SetVideo(ByVal Enabled As Boolean)
-            Dim strURL As String = String.Format("http://{0}:{1}/cgi-bin/do?cmd=set_playback_state&video_enabled={2}&timeout={3}", _dune.IP, _dune.Port, Math.Abs(CInt(Enabled)), intTimeoutSeconds)
+            Dim strURL As String = String.Format("http://{0}:{1}/cgi-bin/do?cmd=set_playback_state&video_enabled={2}&timeout={3}", _dune.IP, _dune.Port, Math.Abs(CInt(Enabled)), _timeout)
             DoCommand(strURL)
         End Sub
 #End Region 'Video
@@ -247,7 +247,7 @@ Namespace Dune.Communicator
                                                  _dune.IP, _
                                                  _dune.Port, _
                                                  [Enum].GetName(GetType(Zoom), Mode).ToLower, _
-                                                 intTimeoutSeconds)
+                                                 _timeout)
 
             DoCommand(strURL)
         End Sub
@@ -262,7 +262,7 @@ Namespace Dune.Communicator
                                                  _dune.IP, _
                                                  _dune.Port, _
                                                  Math.Abs(CInt(Fullscreen)), _
-                                                 intTimeoutSeconds)
+                                                 _timeout)
             DoCommand(strURL)
         End Sub
 
@@ -283,7 +283,7 @@ Namespace Dune.Communicator
                                                  Y, _
                                                  Width, _
                                                  Height, _
-                                                 intTimeoutSeconds)
+                                                 _timeout)
             DoCommand(strURL)
         End Sub
 #End Region 'Zoom
@@ -300,7 +300,7 @@ Namespace Dune.Communicator
 
         Public Sub SetPlayerState(ByVal State As PlayerStates)
             Dim strCMD As String = State.ToString.ToLower
-            Dim strURL As String = String.Format("http://{0}:{1}/cgi-bin/do?cmd={2}&timeout={3}", _dune.IP, _dune.Port, strCMD, intTimeoutSeconds)
+            Dim strURL As String = String.Format("http://{0}:{1}/cgi-bin/do?cmd={2}&timeout={3}", _dune.IP, _dune.Port, strCMD, _timeout)
             DoCommand(strURL)
         End Sub
 #End Region 'Player State
