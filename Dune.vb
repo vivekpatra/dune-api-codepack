@@ -40,6 +40,7 @@
         ' Program information
         Friend _connected As Boolean
         Friend _error As Boolean
+        Friend _lastCommand As String
         Friend _lastRequest As String
         Friend _isContinious As Boolean
         Private WithEvents _communicator As Communicator.Communicator
@@ -383,12 +384,23 @@
         End Property
 
         ''' <summary>
+        ''' Gets the last command.
+        ''' </summary>
+        ''' <value></value>
+        ''' <returns></returns>
+        ''' <remarks></remarks>
+        ReadOnly Property LastPlaybackCommand As String
+            Get
+                Return _lastCommand
+            End Get
+        End Property
+        ''' <summary>
         ''' Gets the path/URL from the last playback request
         ''' </summary>
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        ReadOnly Property Last_Playback_Request As String
+        ReadOnly Property LastPlaybackRequest As String
             Get
                 Return _lastRequest
             End Get
@@ -627,9 +639,14 @@
                         Call LostConnection()
                     Else
                         _ping = reply.RoundtripTime
+                        RaisePropertyChanged("Ping")
+
                         If Not Me._connected Then
                             Me._commandStatus = "connected"
+                            RaisePropertyChanged("Command_Status")
+
                             Me._connected = True
+                            RaisePropertyChanged("Connected")
                         End If
                         Communicator.GetStatus()
                     End If
@@ -643,6 +660,8 @@
         ''' <remarks></remarks>
         Private Sub LostConnection()
             _ping = -1
+            RaisePropertyChanged("Ping")
+
             Me._error = True
             Me._errorKind = "connection error"
             Me._errorDescription = "destination unreachable."

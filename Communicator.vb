@@ -95,7 +95,7 @@ Namespace Dune.Communicator
 
             Dim commandBuilder As New StringBuilder
             commandBuilder.AppendFormat("http://{0}:{1}/cgi-bin/do?cmd={2}", _dune.IP, _dune.Port, playbackType)
-            commandBuilder.AppendFormat("&mediacommandURL={0}", mediaURL)
+            commandBuilder.AppendFormat("&media_url={0}", mediaURL)
             commandBuilder.AppendFormat("&speed={0}", options.Speed)
             commandBuilder.AppendFormat("&position={0}", options.Position)
             commandBuilder.AppendFormat("&black_screen={0}", Math.Abs(CInt(options.BlackScreen)))
@@ -103,6 +103,8 @@ Namespace Dune.Communicator
             commandBuilder.AppendFormat("&action_on_finish={0}", actionOnFinish)
             commandBuilder.AppendFormat("&timeout={0}", _timeout)
 
+            _dune._lastRequest = mediaURL
+            _dune._lastCommand = commandBuilder.ToString
             DoCommand(commandBuilder.ToString)
 
         End Sub
