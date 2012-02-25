@@ -696,6 +696,9 @@
             If Not _connected Then
                 builder.AppendFormat("Error: {0}{1}", Error_Kind, Environment.NewLine)
                 builder.AppendFormat("Description: {0}{1}", Error_Description, Environment.NewLine)
+                builder.AppendLine()
+                builder.Append("Reconnecting")
+                Reconnect()
             Else
                 builder.AppendFormat("Host name: {0}{1}", Hostname, Environment.NewLine)
                 builder.AppendFormat("IP address: {0}{1}", IP, Environment.NewLine)
@@ -707,35 +710,46 @@
                     builder.AppendFormat("Error: {0}{1}", Error_Kind, Environment.NewLine)
                     builder.AppendFormat("Description: {0}{1}", Error_Description, Environment.NewLine)
                 End If
-                builder.AppendFormat("Playback speed: {0}{1}", Playback_Speed, Environment.NewLine)
-                builder.AppendFormat("Playback position: {0}{1}", TimeSpan.FromSeconds(Playback_Position).ToString, Environment.NewLine)
-                builder.AppendFormat("Playback duration: {0}{1}", TimeSpan.FromSeconds(Playback_Duration).ToString, Environment.NewLine)
-                builder.AppendFormat("Playback time left: {0}{1}", TimeSpan.FromSeconds(Playback_Time_Left).ToString, Environment.NewLine)
-                builder.AppendFormat("Buffering: {0}{1}", Playback_Is_Buffering, Environment.NewLine)
-                'builder.AppendFormat("Volume: {0}{1}", Volume, Environment.NewLine)
-                builder.AppendFormat("Mute: {0}{1}", Muted, Environment.NewLine)
-                builder.AppendFormat("Language track: {0}{1}", Audio_Track, Environment.NewLine)
-                builder.AppendFormat("Available language tracks: {0}{1}", Audio_Track_list.Count, Environment.NewLine)
-                If Audio_Track_list.Count > 0 Then
-                    For Each language As KeyValuePair(Of SByte, String) In Audio_Track_list
-                        builder.AppendFormat("Language track #{0}: {1}{2}", language.Key, language.Value, Environment.NewLine)
-                    Next
+                builder.AppendFormat("Media URL: {0}{1}", LastPlaybackRequest, Environment.NewLine)
+                If Playback_Speed <> "N/A" Then
+                    builder.AppendFormat("Playback speed: {0}{1}", Playback_Speed, Environment.NewLine)
+                    builder.AppendFormat("Playback position: {0}{1}", TimeSpan.FromSeconds(Playback_Position).ToString, Environment.NewLine)
+                    builder.AppendFormat("Playback duration: {0}{1}", TimeSpan.FromSeconds(Playback_Duration).ToString, Environment.NewLine)
+                    builder.AppendFormat("Playback time left: {0}{1}", TimeSpan.FromSeconds(Playback_Time_Left).ToString, Environment.NewLine)
+                    builder.AppendFormat("Buffering: {0}{1}", Playback_Is_Buffering, Environment.NewLine)
+                    If Protocol_Version >= 2 Then
+                        builder.AppendFormat("Volume: {0}{1}", Playback_Volume, Environment.NewLine)
+                        builder.AppendFormat("Mute: {0}{1}", Muted, Environment.NewLine)
+                        If Audio_Track > -1 Then
+                            builder.AppendFormat("Language track: {0}{1}", Audio_Track, Environment.NewLine)
+                        End If
+                        If Audio_Track_list.Count > 0 Then
+                            builder.AppendFormat("Available language tracks: {0}{1}", Audio_Track_list.Count, Environment.NewLine)
+
+                            For Each language As KeyValuePair(Of SByte, String) In Audio_Track_list
+                                If String.IsNullOrWhiteSpace(language.Value) Then
+                                    builder.AppendFormat("Language track #{0,5}: {1}{2}", language.Key, "undefined", Environment.NewLine)
+                                Else
+                                    builder.AppendFormat("Language track #{0,5}: {1}{2}", language.Key, language.Value, Environment.NewLine)
+
+                                End If
+                            Next
+                        End If
+                        If Video_X > -1 And Video_Y > -1 Then
+                            builder.AppendFormat("Video X: {0}{1}", Video_X, Environment.NewLine)
+                            builder.AppendFormat("Video Y: {0}{1}", Video_Y, Environment.NewLine)
+                        End If
+                        If Video_Width = -1 Or Video_Height = -1 Then
+                            builder.AppendFormat("Video resolution: fullscreen{2}", Video_Width, Video_Height, Environment.NewLine)
+                        Else
+                            builder.AppendFormat("Video resolution: {0}x{1}{2}", Video_Width, Video_Height, Environment.NewLine)
+                        End If
+                        builder.AppendFormat("Display resolution: {0}x{1}{2}", Total_Display_Width, Total_Display_Height, Environment.NewLine)
+                        builder.AppendFormat("Zoom: {0}{1}", Video_Zoom, Environment.NewLine)
+                    End If
                 End If
-                builder.AppendFormat("Video X: {0}{1}", Video_X, Environment.NewLine)
-                builder.AppendFormat("Video Y: {0}{1}", Video_Y, Environment.NewLine)
-                If Video_Width = -1 Or Video_Height = -1 Then
-                    builder.AppendFormat("Video resolution: fullscreen{2}", Video_Width, Video_Height, Environment.NewLine)
-                Else
-                    builder.AppendFormat("Video resolution: {0}x{1}{2}", Video_Width, Video_Height, Environment.NewLine)
-                End If
-                builder.AppendFormat("Display resolution: {0}x{1}{2}", Total_Display_Width, Total_Display_Height, Environment.NewLine)
-                builder.AppendFormat("Zoom: {0}{1}", Video_Zoom, Environment.NewLine)
-
-
-
-
             End If
-            Return builder.ToString
+                Return builder.ToString
         End Function
 
         Public Sub RaisePropertyChanged(ByVal info As String)

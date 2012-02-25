@@ -68,7 +68,7 @@ Namespace Dune.Communicator
             '===============
             '=check options=
             '===============
-            Select Case Type
+            Select Case type
                 Case Communicator.PlaybackType.File
                     playbackType = "start_file_playback"
                 Case Communicator.PlaybackType.DVD
@@ -81,9 +81,11 @@ Namespace Dune.Communicator
 
             If String.IsNullOrWhiteSpace(MediaURL) Then
                 Throw New ArgumentException("Media URL cannot be empty.", "MediaURL")
+            Else
+                mediaURL = DuneAPICodePack.Dune.Communicator.MediaURL.FormatURL(_dune, mediaURL)
             End If
 
-            If Options.Repeat = False Then
+            If options.Repeat = False Then
                 actionOnFinish = "exit"
             Else
                 actionOnFinish = "restart_playback"
@@ -95,7 +97,7 @@ Namespace Dune.Communicator
 
             Dim commandBuilder As New StringBuilder
             commandBuilder.AppendFormat("http://{0}:{1}/cgi-bin/do?cmd={2}", _dune.IP, _dune.Port, playbackType)
-            commandBuilder.AppendFormat("&media_url={0}", mediaURL)
+            commandBuilder.AppendFormat("&media_url={0}", MediaURL)
             commandBuilder.AppendFormat("&speed={0}", options.Speed)
             commandBuilder.AppendFormat("&position={0}", options.Position)
             commandBuilder.AppendFormat("&black_screen={0}", Math.Abs(CInt(options.BlackScreen)))
@@ -103,7 +105,7 @@ Namespace Dune.Communicator
             commandBuilder.AppendFormat("&action_on_finish={0}", actionOnFinish)
             commandBuilder.AppendFormat("&timeout={0}", _timeout)
 
-            _dune._lastRequest = mediaURL
+            _dune._lastRequest = MediaURL
             _dune._lastCommand = commandBuilder.ToString
             DoCommand(commandBuilder.ToString)
 
