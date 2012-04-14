@@ -46,8 +46,10 @@
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -64,9 +66,29 @@
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Communicator.vb" />
-    <Compile Include="Dune.vb" />
-    <Compile Include="MediaURL.vb" />
+    <Compile Include="ApiWrappers\DuneCommands\DuneCommand.vb" />
+    <Compile Include="ApiWrappers\DuneCommands\CommandException.vb" />
+    <Compile Include="ApiWrappers\DuneCommands\CommandResult.vb" />
+    <Compile Include="ApiWrappers\DuneCommands\DvdNavigationCommand.vb" />
+    <Compile Include="ApiWrappers\DuneCommands\GetStatusCommand.vb" />
+    <Compile Include="ApiWrappers\DuneCommands\RemoteControlCommand.vb" />
+    <Compile Include="ApiWrappers\DuneCommands\SetKeyframeCommand.vb" />
+    <Compile Include="ApiWrappers\DuneCommands\SetPlaybackStateCommand.vb" />
+    <Compile Include="ApiWrappers\DuneCommands\SetPlayerStateCommand.vb" />
+    <Compile Include="ApiWrappers\DuneCommands\SetVideoOutputCommand.vb" />
+    <Compile Include="ApiWrappers\FirmwareInfo.vb" />
+    <Compile Include="ApiWrappers\InfraredCodeAttribute.vb" />
+    <Compile Include="ApiWrappers\Interfaces\IRemoteControl.vb" />
+    <Compile Include="HttpHeader\HttpHeader.vb" />
+    <Compile Include="ApiWrappers\PlaybackSpeed.vb" />
+    <Compile Include="ApiWrappers\PlaybackType.vb" />
+    <Compile Include="ApiWrappers\Interfaces\IProtocolVersion1.vb" />
+    <Compile Include="ApiWrappers\Interfaces\IProtocolVersion2.vb" />
+    <Compile Include="ApiWrappers\DuneCommands\StartPlaybackCommand.vb" />
+    <Compile Include="ApiWrappers\RemoteControl.vb" />
+    <Compile Include="ApiWrappers\Zoom.vb" />
+    <Compile Include="NativeMethods\NetworkShares.vb" />
+    <Compile Include="ApiWrappers\UrlConverter.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -82,8 +104,9 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="PlaybackOptions.vb" />
-    <Compile Include="StandardRemote.vb" />
+    <Compile Include="NativeMethods\NativeMethods.vb" />
+    <Compile Include="NativeMethods\NetworkDriveInfo.vb" />
+    <Compile Include="Dune.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="My Project\Resources.resx">

@@ -1,188 +1,142 @@
-﻿Namespace Dune
+﻿Imports System.Net
+Imports System.Net.Sockets
+Imports System.ComponentModel
+Imports DuneAPICodePack.Dune.ApiWrappers
+Imports System.Globalization
+Imports System.Timers
+Imports System.Threading.Tasks
+
+Namespace Dune
+
     ''' <summary>
-    ''' Represents an object that is configured to communicate with a specified Dune.
+    ''' This class represents a Dune player on the network and exposes several methods and properties to interact with it.
     ''' </summary>
-    ''' <remarks>Use the shared 'connect' function to create a new Dune object.</remarks>
     Public Class Dune
-        Implements System.ComponentModel.INotifyPropertyChanged
+        Implements INotifyPropertyChanged
+        Implements IProtocolVersion1
+        Implements IProtocolVersion2
 
-        ' Network settings
-        Private _IP As String
-        Private _port As Integer
+#Region "Private Fields"
+
+        ' Custom fields
+        Private _shares As List(Of NetworkDriveInfo)
+        Private _model As String
+
+
+        ' Connection details
+        Private _tcpClient As TcpClient
+
+        Private _endpoint As IPEndPoint
         Private _hostname As String
+        Private _macAddress As String
+        Private _timeout As UInteger
+
+        Private WithEvents _updateTimer As Timer ' Responsible for status updates
 
 
-        ' Dune infomation
-        Friend _commandStatus As String
-        Friend _errorKind As String
-        Friend _errorDescription As String
-        Friend _protocolVersion As Byte
-        Friend _playerState As String
-        Friend _playbackSpeed As Integer
-        Friend _playbackDuration As Integer
-        Friend _playbackPosition As Integer
-        Friend _playbackIsBuffering As Boolean
-        Friend _volume As Byte
-        Friend _playbackMute As Boolean
-        Friend _audioTrack As SByte
-        Friend _fullscreen As Boolean
-        Friend _videoX As Short
-        Friend _videoY As Short
-        Friend _videoWidth As Short
-        Friend _videoHeight As Short
-        Friend _totalDisplayWidth As Short
-        Friend _totalDisplayHeight As Short
-        Friend _videoEnabled As Boolean
-        Friend _videoZoom As String
-        Friend _audioTracks As New SortedDictionary(Of SByte, String)
-        Friend _DVDMenu As Boolean
+        ' Protocol version 1 and up
+        Private _remoteControl As RemoteControl
 
-        ' Program information
-        Friend _connected As Boolean
-        Friend _error As Boolean
-        Friend _lastCommand As String
-        Friend _lastRequest As String
-        Friend _isContinious As Boolean
-        Private WithEvents _communicator As Communicator.Communicator
-        Private _remote As Communicator.StandardRemote
-        Private _ping As Short
-        Private _model As Models
+        Private _commandStatus As String
+        Private _error As CommandException
+        Private _protocolVersion As Byte
+        Private _playerState As String
+        Private _playbackSpeed As PlaybackSpeed
+        Private _playbackDuration As TimeSpan
+        Private _playbackPosition As TimeSpan
+        Private _playbackTimeLeft As TimeSpan
+        Private _playbackIsBuffering As Boolean
+        Private _playbackDvdMenu As Boolean
 
-        Private WithEvents _timer As New Timers.Timer
+        ' Protocol version 2 and up
+        Private _playbackVolume As Byte?
+        Private _playbackMute As Boolean?
+        Private _audioTrack As SByte?
+        Private _videoFullscreen As Boolean?
+        Private _videoX As Short?
+        Private _videoY As Short?
+        Private _videoWidth As Short?
+        Private _videoHeight As Short?
+        Private _totalDisplayWidth As Short?
+        Private _totalDisplayHeight As Short?
+        Private _videoEnabled As Boolean?
+        Private _videoZoom As String
+        Private _audioTracks As SortedDictionary(Of Byte, CultureInfo)
 
-        ''' <summary>
-        ''' Default constructor.
-        ''' </summary>
-        ''' <remarks>Should never be used</remarks>
-        Private Sub New()
+#End Region ' Private Fields
+
+#Region "Constructors"
+
+        Public Sub New(ByVal address As String)
+            Me.New(address, 80)
         End Sub
 
-        ''' <summary>
-        ''' 
-        ''' </summary>
-        ''' <param name="Address">The target Address (IP or hostname)</param>
-        ''' <param name="Port">The port that should be used.</param>
-        ''' <remarks></remarks>
-        Private Sub New(ByVal model As Models, ByVal address As String, ByVal port As Integer)
-            _model = model
-
-            Dim host As System.Net.IPHostEntry = System.Net.Dns.GetHostEntry(address)
-
-            _error = False
-            _port = port
-            If host.AddressList.Length > 0 Then
-                _IP = host.AddressList.GetValue(0).ToString
-            Else
-                _IP = address
-            End If
-            _hostname = host.HostName
-
-            _communicator = New Communicator.Communicator(Me)
-            _remote = New Communicator.StandardRemote(Me)
-
-            '====================
-            '= get player status=
-            '====================
-            _communicator.GetStatus()
-            If _error = True Then ' host is not a Dune or does not have firmware with IP control.
-                Throw New System.Net.Sockets.SocketException(System.Net.Sockets.SocketError.ProtocolNotSupported)
-            End If
-            RaiseEvent StatusUpdated()
+        Public Sub New(ByVal address As IPAddress)
+            Me.New(address, 80)
         End Sub
 
-        ''' <summary>
-        ''' Constructs a new Dune object, configured to connect to the supplied Address on port 80.
-        ''' </summary>
-        ''' <param name="Address">IP or hostname.</param>
-        ''' <returns>Fully configured Dune object.</returns>
-        ''' <remarks></remarks>
-        Public Shared Function Connect(ByVal model As Models, ByVal address As String)
-            Return Connect(model, address, 80)
-        End Function
-
-        ''' <summary>
-        ''' Constructs a new Dune object, configured to connect to the supplied Address on the supplied port number.
-        ''' </summary>
-        ''' <param name="Address">IP or hostname.</param>
-        ''' <param name="Port">Port number.</param>
-        ''' <returns>Fully configured Dune object.</returns>
-        ''' <remarks>The port number should only be changed if used in conjunction with port forwarding.</remarks>
-        Public Shared Function Connect(ByVal model As Models, ByVal address As String, ByVal port As Integer)
-            If String.IsNullOrWhiteSpace(address) Then
-                Throw New ArgumentNullException("address", "Address cannot be an empty string.")
-            End If
-
-            Dim dune As New Dune(model, address, port)
-
-            '================================
-            '= start updating player status =
-            '================================
-            dune._timer.Interval = 1000
-            dune._timer.Start()
-            Return dune
-        End Function
-
-        ''' <summary>
-        ''' If the connection was lost or suspended, use this to reconnect the Dune object.
-        ''' </summary>
-        ''' <remarks>Will throw an exception if a connection is still active.</remarks>
-        Public Sub Reconnect()
-            If Not _connected Then
-                _commandStatus = "reconnecting"
-                _timer.Start()
-                RaiseEvent StatusUpdated()
-            Else
-                Throw New InvalidOperationException("Connection is still active.")
-            End If
+        Public Sub New(ByVal address As IPHostEntry)
+            Me.New(address, 80)
         End Sub
 
-        ''' <summary>
-        ''' Suspends the connection.
-        ''' </summary>
-        ''' <remarks>This method is the same one that is used for internal processing when connection is lost.</remarks>
-        Public Sub Disconnect()
-            If _timer.Enabled Then
-                _timer.Enabled = False
-                _connected = False
-                _commandStatus = "disconnected"
-                RaiseEvent StatusUpdated()
-                RaiseEvent Disconnected()
-            End If
+        Public Sub New(ByVal address As String, ByVal port As Integer)
+            Dim host As IPHostEntry = Dns.GetHostEntry(address)
+            _endpoint = New IPEndPoint(host.AddressList.FirstOrDefault, port)
+            _hostname = host.HostName.Split(".").FirstOrDefault
+            Try
+                VerifyService(_endpoint)
+            Catch ex As SocketException
+                Throw ex
+            End Try
         End Sub
 
-        Public Event Disconnected()
+        Public Sub New(ByVal address As IPAddress, ByVal port As Integer)
+            Dim host As IPHostEntry = Dns.GetHostEntry(address)
+            _endpoint = New IPEndPoint(host.AddressList.FirstOrDefault, port)
+            _hostname = host.HostName.Split(".").FirstOrDefault
+            Try
+                VerifyService(_endpoint)
+            Catch ex As SocketException
+                Throw ex
+            End Try
+        End Sub
 
-#Region "Properties"
+        Public Sub New(ByVal address As IPHostEntry, ByVal port As Integer)
+            _endpoint = New IPEndPoint(address.AddressList.FirstOrDefault, port)
+            _hostname = address.HostName.Split(".").FirstOrDefault
+            Try
+                VerifyService(_endpoint)
+            Catch ex As SocketException
+                Throw ex
+            End Try
+        End Sub
+
+#End Region ' Constructors
+
+#Region "App Properties"
+
         ''' <summary>
-        ''' Gets the Dune's IP.
+        ''' Gets the IP address of the device.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        Public ReadOnly Property IP As String
+        Public ReadOnly Property Address As IPAddress
             Get
-                Return _IP
+                Return _endpoint.Address
             End Get
         End Property
 
+
         ''' <summary>
-        ''' Gets the port number that is used.
+        ''' Gets the port number used to connect to the service.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
         Public ReadOnly Property Port As Integer
             Get
-                Return _port
+                Return _endpoint.Port
             End Get
         End Property
 
         ''' <summary>
-        ''' Gets the Dune's hostname.
+        ''' Gets the hostname of the device.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
         Public ReadOnly Property Hostname As String
             Get
                 Return _hostname
@@ -190,591 +144,906 @@
         End Property
 
         ''' <summary>
-        ''' Gets the last command status.
+        ''' Gets the physical (a.k.a. MAC) address.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns>"ok" or "failed"</returns>
-        ''' <remarks></remarks>
-        ReadOnly Property Command_Status As String
+        Public ReadOnly Property PhysicalAdress As String
+            Get
+                If _macAddress = Nothing Then
+                    _macAddress = NativeMethods.GetMacAddress(Address)
+                End If
+                Return _macAddress
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Gets an instance of the RemoteControl class.
+        ''' </summary>
+        Public ReadOnly Property RemoteControl As RemoteControl
+            Get
+                If _remoteControl Is Nothing Then
+                    _remoteControl = New RemoteControl(Me)
+                End If
+                Return _remoteControl
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Gets a list of network shares made available by the player's SMB server.
+        ''' </summary>
+        Public ReadOnly Property NetworkShares As List(Of NetworkDriveInfo)
+            Get
+                If _shares Is Nothing Then
+                    _shares = New NetworkShares(Me.Hostname).Shares
+                End If
+                Return _shares
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Gets the player's model. See remarks.
+        ''' </summary>
+        ''' <remarks>
+        ''' This feature requires parsing a useragent string and is not yet implemented.
+        ''' </remarks>
+        Public ReadOnly Property Model As String
+            Get
+                'Throw New NotImplementedException("Retrieving player model is on my todo list.")
+                If _model Is Nothing Then
+                    ' TODO: implement product id stuff
+                    _model = "Unknown"
+                End If
+                Return _model
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Checks whether the connection is still active.
+        ''' </summary>
+        ''' <returns>True if there is a connection; otherwise false.</returns>
+        Public ReadOnly Property Connected As Boolean
+            Get
+                Return _tcpClient.Connected
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Gets the playback time left.
+        ''' </summary>
+        ''' <remarks>Can be a negative value if the current playback is a livestream.</remarks>
+        Public ReadOnly Property PlaybackTimeLeft As TimeSpan
+            Get
+                Return PlaybackDuration - PlaybackPosition
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Gets the amount of seconds before a command returns with a timeout.
+        ''' </summary>
+        ''' <value>A positive value bigger than 1</value>
+        ''' <remarks>The default value is 20 seconds.</remarks>
+        Public Property Timeout As UInteger
+            Get
+                If _timeout = Nothing Then
+                    _timeout = 20
+                End If
+                Return _timeout
+            End Get
+            Set(value As UInteger)
+                If value > 0 And Not _timeout.Equals(value) Then
+                    _timeout = value
+                    RaisePropertyChanged(Timeout)
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets or sets the interval (in miliseconds) between status updates.
+        ''' </summary>
+        ''' <remarks>Setting this property to 0 will disable automatic status updates.</remarks>
+        Public Property Interval As Double
+            Get
+                If _updateTimer Is Nothing Then
+                    Return 0
+                Else
+                    Return _updateTimer.Interval
+                End If
+            End Get
+            Set(value As Double)
+                If value = 0 Then
+                    _updateTimer.Stop()
+                    _updateTimer = Nothing
+                Else
+                    If _updateTimer Is Nothing Then
+                        _updateTimer = New Timer()
+                        AddHandler _updateTimer.Elapsed, AddressOf _updateTimer_elapsed
+                        _updateTimer.Start()
+                    End If
+                    _updateTimer.Interval = value
+                End If
+            End Set
+        End Property
+
+#End Region ' App Properties
+
+#Region "App methods"
+
+        ''' <summary>
+        ''' Verifies the target address as a valid device and starts the status update timer.
+        ''' </summary>
+        Private Sub VerifyService(ByVal endpoint As IPEndPoint)
+            _tcpClient = New TcpClient()
+            _tcpClient.Connect(endpoint)
+
+            Me.GetStatus()
+
+            CommandStatusUpdate = "Connected"
+
+            If _updateTimer Is Nothing Then
+                Interval = 500
+            End If
+        End Sub
+
+        <DebuggerStepThrough()>
+        Private Sub _updateTimer_elapsed(sender As Object, e As System.Timers.ElapsedEventArgs)
+            If Connected Then
+                Try
+                    UpdateValues(Me.GetStatus)
+                Catch ex As WebException
+                    CommandStatusUpdate = "Connection error"
+                End Try
+            Else
+                Interval = 0
+                CommandStatusUpdate = "Lost connection"
+            End If
+        End Sub
+
+        ''' <summary>
+        ''' Updates the player status properties.
+        ''' </summary>
+        Private Sub UpdateValues(ByVal commandResult As CommandResult)
+            With commandResult
+                If Not String.IsNullOrWhiteSpace(commandResult.CommandStatus) Then
+                    CommandStatusUpdate = .CommandStatus
+                End If
+
+                If .Error IsNot Nothing Then
+                    ErrorUpdate = .Error
+                Else
+                    ErrorUpdate = Nothing
+                End If
+
+                ProtocolVersionUpdate = .ProtocolVersion
+
+                PlayerStateUpdate = .PlayerState
+
+                PlaybackSpeedUpdate = .PlaybackSpeed
+
+                PlaybackDurationUpdate = .PlaybackDuration
+
+                PlaybackPositionUpdate = .PlaybackPosition
+
+                PlaybackIsBufferingUpdate = .PlaybackIsBuffering
+
+                PlaybackDvdMenuUpdate = .PlaybackDvdMenu
+
+                If .ProtocolVersion > 1 Then
+                    VideoEnabledUpdate = .VideoEnabled
+
+                    VideoZoomUpdate = .VideoZoom
+
+                    VideoFullscreenUpdate = .VideoFullscreen
+
+                    VideoXUpdate = .VideoX
+
+                    VideoYUpdate = .VideoY
+
+                    VideoWidthUpdate = .VideoWidth
+
+                    VideoHeightUpdate = .VideoHeight
+
+                    VideoTotalDisplayWidthUpdate = .VideoTotalDisplayWidth
+
+                    VideoTotalDisplayHeightUpdate = .VideoTotalDisplayHeight
+
+                    PlaybackVolumeUpdate = .PlaybackVolume
+
+                    PlaybackMuteUpdate = .PlaybackMute
+
+                    AudioTracksUpdate = .AudioTracks
+
+                    AudioTrackUpdate = .AudioTrack
+
+                End If
+
+            End With
+        End Sub
+
+        ''' <summary>
+        ''' Try to reconnect.
+        ''' </summary>
+        Public Sub Reconnect()
+            If Not Connected Then
+                CommandStatusUpdate = "Reconnecting..."
+                Try
+                    VerifyService(_endpoint)
+                Catch ex As SocketException
+                    CommandStatusUpdate = "failed"
+                End Try
+            End If
+        End Sub
+
+        Protected Sub RaisePropertyChanged(propertyName As String)
+            RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(propertyName))
+        End Sub
+
+        ''' <summary>
+        ''' Clears the command status.
+        ''' </summary>
+        Public Sub ClearStatus()
+            CommandStatusUpdate = String.Empty
+        End Sub
+
+#End Region ' App methods
+
+#Region "Properties v1"
+
+        ''' <summary>
+        ''' Gets the status of the last command.
+        ''' </summary>
+        Public ReadOnly Property CommandStatus As String Implements ApiWrappers.IProtocolVersion1.CommandStatus
             Get
                 Return _commandStatus
             End Get
         End Property
 
         ''' <summary>
-        ''' Gets the last error's error kind.
+        ''' Sets the status of the last command.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks>This value remains until a new error occurs. Use the 'ErrorOccurred' property to check if an error occurred.</remarks>
-        ReadOnly Property Error_Kind As String
-            Get
-                Return _errorKind
-            End Get
-        End Property
-
-
-        ''' <summary>
-        ''' Gets the last error's error description.
-        ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks>This value remains until a new error occurs. Use the 'ErrorOccurred' property to check if an error occurred.</remarks>
-        ReadOnly Property Error_Description As String
-            Get
-                Return _errorDescription
-            End Get
+        Private WriteOnly Property CommandStatusUpdate As String Implements ApiWrappers.IProtocolVersion1.CommandStatusUpdate
+            Set(value As String)
+                If CommandStatus <> value Then
+                    _commandStatus = value
+                    RaisePropertyChanged("CommandStatus")
+                End If
+            End Set
         End Property
 
         ''' <summary>
-        ''' Holds the Dune IP Protocol version.
+        ''' Gets the playback duration.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        ReadOnly Property Protocol_Version As Byte
-            Get
-                Return _protocolVersion
-            End Get
-        End Property
-
-        ''' <summary>
-        ''' Gets the player state.
-        ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        ReadOnly Property Player_State As String
-            Get
-                Return _playerState
-            End Get
-        End Property
-
-        ''' <summary>
-        ''' Gets the playback speed (in human readable format).
-        ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        ReadOnly Property Playback_Speed As String
-            Get
-                Select Case _playbackSpeed
-                    Case "-4096"
-                        Return "rewind (16x)"
-                    Case "-2048"
-                        Return "rewind (8x)"
-                    Case "-1024"
-                        Return "rewind (4x)"
-                    Case "-512"
-                        Return "rewind (2x)"
-                    Case "-256"
-                        Return "rewind"
-                    Case "-64", "1073741760"
-                        Return "slow rewind"
-                    Case "0"
-                        If _connected Then
-                            If _playbackDuration = 0 Then
-                                Return "N/A"
-                            Else
-                                Return "paused"
-                            End If
-                        Else
-                            Return Nothing
-                        End If
-                    Case "64"
-                        Return "slow"
-                    Case "256"
-                        Return "normal"
-                    Case "512"
-                        Return "forward"
-                    Case "1024"
-                        Return "forward (4x)"
-                    Case "2048"
-                        Return "forward (8x)"
-                    Case "4096"
-                        Return "forward (16x)"
-                    Case Else
-                        Return String.Format("unknown ({0})", _playbackSpeed)
-                End Select
-            End Get
-        End Property
-
-        ''' <summary>
-        ''' Gets the playback duration in seconds.
-        ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        ReadOnly Property Playback_Duration As Integer
+        Public ReadOnly Property PlaybackDuration As System.TimeSpan Implements ApiWrappers.IProtocolVersion1.PlaybackDuration
             Get
                 Return _playbackDuration
             End Get
         End Property
 
         ''' <summary>
-        ''' Use this to check for continuous streams.
+        ''' Sets the playback duration.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns>True if the currently playing file is a continuous stream.</returns>
-        ''' <remarks></remarks>
-        ReadOnly Property IsContinuous As Boolean
-            Get
-                Return _isContinious
-            End Get
+        Private WriteOnly Property PlaybackDurationUpdate As System.TimeSpan Implements ApiWrappers.IProtocolVersion1.PlaybackDurationUpdate
+            Set(value As System.TimeSpan)
+                If Not PlaybackDuration.Equals(value) Then
+                    _playbackDuration = value
+                    RaisePropertyChanged("PlaybackDuration")
+                End If
+            End Set
         End Property
 
         ''' <summary>
-        ''' Gets the playback position in seconds.
+        ''' Gets or sets the playback position.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        ReadOnly Property Playback_Position As Integer
+        ''' <exception cref="CommandException">
+        ''' Sets the Error property to a new instance of CommandException if an error occurred.
+        ''' </exception>
+        Public Property PlaybackPosition As System.TimeSpan Implements ApiWrappers.IProtocolVersion1.PlaybackPosition
             Get
                 Return _playbackPosition
             End Get
+            Set(value As System.TimeSpan)
+                Dim command As New SetPlaybackStateCommand(Me)
+                command.Position = value
+                command.Timeout = Timeout
+                Dim result As New CommandResult(command)
+                UpdateValues(result)
+            End Set
         End Property
 
         ''' <summary>
-        ''' Gets the playback time left in seconds.
+        ''' Sets the playback position.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        ReadOnly Property Playback_Time_Left As Integer
+        Private WriteOnly Property PlaybackPositionUpdate As System.TimeSpan Implements ApiWrappers.IProtocolVersion1.PlaybackPositionUpdate
+            Set(value As System.TimeSpan)
+                If Not PlaybackPosition.Equals(value) Then
+                    _playbackPosition = value
+                    RaisePropertyChanged("PlaybackPosition")
+                    RaisePropertyChanged("PlaybackTimeLeft")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets or sets the playback speed.
+        ''' </summary>
+        ''' <exception cref="CommandException">
+        ''' Sets the Error property to a new instance of CommandException if an error occurred.
+        ''' </exception>
+        Public Property PlaybackSpeed As PlaybackSpeed Implements ApiWrappers.IProtocolVersion1.PlaybackSpeed
             Get
-                Return (_playbackDuration - _playbackPosition)
+                Return _playbackSpeed
+            End Get
+            Set(value As PlaybackSpeed)
+                Dim command As New SetPlaybackStateCommand(Me)
+                command.Speed = CInt(value)
+                command.Timeout = Timeout
+                Dim result As New CommandResult(command)
+                UpdateValues(result)
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Sets the playback speed.
+        ''' </summary>
+        Private WriteOnly Property PlaybackSpeedUpdate As Integer Implements ApiWrappers.IProtocolVersion1.PlaybackSpeedUpdate
+            Set(value As Integer)
+                If PlaybackSpeed <> value Then
+                    _playbackSpeed = value
+                    RaisePropertyChanged("PlaybackSpeed")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets the player state.
+        ''' </summary>
+        Public ReadOnly Property PlayerState As String Implements ApiWrappers.IProtocolVersion1.PlayerState
+            Get
+                Return _playerState
             End Get
         End Property
 
         ''' <summary>
-        ''' Use this to see if the player is buffering.
+        ''' Sets the player state.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns>True if the player is buffering, false if not.</returns>
-        ''' <remarks></remarks>
-        ReadOnly Property Playback_Is_Buffering As Boolean
+        Private WriteOnly Property PlayerStateUpdate As String Implements ApiWrappers.IProtocolVersion1.PlayerStateUpdate
+            Set(value As String)
+                Dim properCasedValue As String
+                properCasedValue = StrConv(value.Replace("_", Space(1)), VbStrConv.ProperCase)
+
+                If PlayerState Is Nothing OrElse Not PlayerState.Equals(properCasedValue) Then
+                    _playerState = properCasedValue
+                    RaisePropertyChanged("PlayerState")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets the protocol version number.
+        ''' </summary>
+        Public ReadOnly Property ProtocolVersion As Byte Implements ApiWrappers.IProtocolVersion1.ProtocolVersion
             Get
-                Return _playbackIsBuffering
+                Return _protocolVersion
             End Get
         End Property
 
         ''' <summary>
-        ''' Use this to find out if there is an active connection.
+        ''' Sets the protocol version number.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns>True if there is a connection, false if not.</returns>
-        ''' <remarks></remarks>
-        ReadOnly Property Connected As Boolean
-            Get
-                Return _connected
-            End Get
+        Private WriteOnly Property ProtocolVersionUpdate As Byte Implements ApiWrappers.IProtocolVersion1.ProtocolVersionUpdate
+            Set(value As Byte)
+                If Not ProtocolVersion.Equals(value) Then
+                    _protocolVersion = value
+                    RaisePropertyChanged("ProtocolVersion")
+                End If
+            End Set
         End Property
 
         ''' <summary>
-        ''' Use this to see if the last command returned an error.
+        ''' Gets the error.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns>True if an error occurred, false if not.</returns>
-        ''' <remarks></remarks>
-        ReadOnly Property ErrorOccurred As Boolean
+        ''' <remarks>
+        ''' Errors are a result of commands that:
+        ''' <list type="bullet">
+        ''' <item><description>are not allowed in the current player state</description></item>
+        ''' <item><description>contain invalid values</description></item>
+        ''' <item><description>are not recognised by the service</description></item>
+        ''' </list>
+        ''' </remarks>
+        Public ReadOnly Property [Error] As ApiWrappers.CommandException Implements ApiWrappers.IProtocolVersion1.Error
             Get
                 Return _error
             End Get
         End Property
 
         ''' <summary>
-        ''' Gets the last command.
+        ''' Sets the error.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        ReadOnly Property LastPlaybackCommand As String
-            Get
-                Return _lastCommand
-            End Get
+        Private WriteOnly Property ErrorUpdate As ApiWrappers.CommandException Implements ApiWrappers.IProtocolVersion1.ErrorUpdate
+            Set(value As ApiWrappers.CommandException)
+                If value IsNot Nothing Then
+                    If _error Is Nothing OrElse Not _error.Equals(value) Then
+                        _error = value
+                        RaisePropertyChanged("Error")
+                    End If
+                End If
+            End Set
         End Property
+
         ''' <summary>
-        ''' Gets the path/URL from the last playback request
+        ''' Gets whether a DVD menu is shown.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        ReadOnly Property LastPlaybackRequest As String
+        Public ReadOnly Property PlaybackDvdMenu As Boolean Implements ApiWrappers.IProtocolVersion1.PlaybackDvdMenu
             Get
-                Return _lastRequest
+                Return _playbackDvdMenu
             End Get
         End Property
 
         ''' <summary>
-        ''' Gets the player volume.
+        ''' Sets whether a DVD menu is shown.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns>Value between 0 and 150.</returns>
-        ''' <remarks>You can only set the volume above 100 by holding the volume up button on the remote control.</remarks>
-        Public ReadOnly Property Playback_Volume As Byte
+        Private WriteOnly Property PlaybackDvdMenuUpdate As Boolean Implements ApiWrappers.IProtocolVersion1.PlaybackDvdMenuUpdate
+            Set(value As Boolean)
+                If Not PlaybackDvdMenu.Equals(value) Then
+                    _playbackDvdMenu = value
+                    RaisePropertyChanged("PlaybackDvdMenu")
+                End If
+            End Set
+        End Property
+
+
+        ''' <summary>
+        ''' Gets whether the playback is buffering.
+        ''' </summary>
+        Public ReadOnly Property PlaybackIsBuffering As Boolean Implements ApiWrappers.IProtocolVersion1.PlaybackIsBuffering
             Get
-                Return _volume
+                Return _playbackIsBuffering
             End Get
         End Property
 
         ''' <summary>
-        ''' Gets the mute state.
+        ''' Sets whether the playback is buffering.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        Public ReadOnly Property Muted As Boolean
-            Get
-                Return _playbackMute
-            End Get
+        Private WriteOnly Property PlaybackIsBufferingUpdate As Boolean Implements ApiWrappers.IProtocolVersion1.PlaybackIsBufferingUpdate
+            Set(value As Boolean)
+                If Not PlaybackIsBuffering.Equals(value) Then
+                    _playbackIsBuffering = value
+                    RaisePropertyChanged("PlaybackIsBuffering")
+                End If
+            End Set
         End Property
 
         ''' <summary>
-        ''' Gets the current language track number.
+        ''' Sets whether to show a black screen during playback.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        Public ReadOnly Property Audio_Track As SByte
+        Public WriteOnly Property BlackScreen As Boolean Implements ApiWrappers.IProtocolVersion1.BlackScreen
+            Set(value As Boolean)
+                Dim command As New SetPlaybackStateCommand(Me)
+                command.BlackScreen = value
+                command.Timeout = Timeout
+                Dim result As New CommandResult(command)
+                UpdateValues(result)
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Sets whether to hide the OSD during playback.
+        ''' </summary>
+        Public WriteOnly Property HideOnScreenDisplay As Boolean Implements ApiWrappers.IProtocolVersion1.HideOnScreenDisplay
+            Set(value As Boolean)
+                Dim command As New SetPlaybackStateCommand(Me)
+                command.HideOnScreenDisplay = value
+                command.Timeout = Timeout
+                Dim result As New CommandResult(command)
+                UpdateValues(result)
+            End Set
+        End Property
+
+#End Region ' Properties v1
+
+#Region "Methods v1"
+
+        ''' <summary>
+        ''' Gets the player status and updates all relevant properties.
+        ''' </summary>
+        ''' <returns>New instance of the <seealso cref="CommandResult"/> class.</returns>
+        Public Function GetStatus() As ApiWrappers.CommandResult Implements ApiWrappers.IProtocolVersion1.GetStatus
+            Dim command As New GetStatusCommand(Me)
+            Dim result As New CommandResult(command)
+            UpdateValues(result)
+            Return result
+        End Function
+
+        ''' <summary>
+        ''' Changes playback options (such as volume) to get the desired playback state.
+        ''' </summary>
+        ''' <param name="command">An instance of a <see cref="SetPlaybackStateCommand"/> object that contains the desired parameter values.</param>
+        ''' <returns>New instance of the <seealso cref="CommandResult"/> class.</returns>
+        Public Function SetPlaybackState(ByVal command As ApiWrappers.SetPlaybackStateCommand) As ApiWrappers.CommandResult Implements ApiWrappers.IProtocolVersion1.SetPlaybackState
+            If Not command.Timeout.HasValue Then
+                command.Timeout = Timeout
+            End If
+            Dim result As New CommandResult(command)
+            UpdateValues(result)
+            Return result
+        End Function
+
+        ''' <summary>
+        ''' Sets the player state to 'main screen', 'black screen' or 'standby'.
+        ''' </summary>
+        ''' <param name="command">An instance of a <see cref="SetPlayerStateCommand"/> object that contains the desired player state value.</param>
+        ''' <returns>New instance of the <seealso cref="CommandResult"/> class.</returns>
+        Public Function SetPlayerState(ByVal command As ApiWrappers.SetPlayerStateCommand) As ApiWrappers.CommandResult Implements ApiWrappers.IProtocolVersion1.SetPlayerState
+            If Not command.Timeout.HasValue Then
+                command.Timeout = Timeout
+            End If
+            Dim result As New CommandResult(command)
+            UpdateValues(result)
+            Return result
+        End Function
+
+        ''' <summary>
+        ''' Starts playback.
+        ''' </summary>
+        ''' <param name="command">An instance of a <see cref="StartPlaybackCommand"/> object that contains the desired media URL and playback options.</param>
+        ''' <returns>New instance of the <seealso cref="CommandResult"/> class.</returns>
+        Public Function StartPlayback(ByVal command As ApiWrappers.StartPlaybackCommand) As ApiWrappers.CommandResult Implements ApiWrappers.IProtocolVersion1.StartPlayback
+            If Not command.Timeout.HasValue Then
+                command.Timeout = Timeout
+            End If
+            Dim result As New CommandResult(command)
+            UpdateValues(result)
+            Return result
+        End Function
+
+#End Region ' Methods v1
+
+#Region "Properties v2"
+
+        ''' <summary>
+        ''' Gets or sets the current language track number.
+        ''' </summary>
+        ''' <remarks>Setting this property does nothing if the protocol version is 1.</remarks>
+        Public Property AudioTrack As Byte? Implements ApiWrappers.IProtocolVersion2.AudioTrack
             Get
                 Return _audioTrack
             End Get
+            Set(value As Byte?)
+                If ProtocolVersion >= 2 Then
+                    Dim command As New SetPlaybackStateCommand(Me)
+                    command.AudioTrack = value
+                    command.Timeout = Timeout
+                    Dim result As New CommandResult(command)
+                    UpdateValues(result)
+                End If
+            End Set
         End Property
 
         ''' <summary>
-        ''' Gets a dictionary type list of all current language tracks in tracknumber=language style.
+        ''' Sets the current language track number
         ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        Public ReadOnly Property Audio_Track_list As SortedDictionary(Of SByte, String)
+        Private WriteOnly Property AudioTrackUpdate As Byte? Implements ApiWrappers.IProtocolVersion2.AudioTrackUpdate
+            Set(value As Byte?)
+                If Not AudioTrack.Equals(value) Then
+                    _audioTrack = value
+                    RaisePropertyChanged("AudioTrack")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets whether the video output is fullscreen.
+        ''' </summary>
+        Public ReadOnly Property VideoFullscreen As Boolean? Implements ApiWrappers.IProtocolVersion2.VideoFullscreen
+            Get
+                Return _videoFullscreen
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Sets whether the video output is fullscreen.
+        ''' </summary>
+        Private WriteOnly Property VideoFullscreenUpdate As Boolean? Implements ApiWrappers.IProtocolVersion2.VideoFullscreenUpdate
+            Set(value As Boolean?)
+                If Not VideoFullscreen.Equals(value) Then
+                    _videoFullscreen = value
+                    RaisePropertyChanged("VideoFullscreen")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets the list of available audio tracks for the current playback.
+        ''' </summary>
+        ''' <returns>An instance of a <see cref="SortedDictionary(Of Byte, CultureInfo)" /> object that represents the list of available audio tracks.</returns>
+        Public ReadOnly Property AudioTracks As SortedDictionary(Of Byte, CultureInfo) Implements ApiWrappers.IProtocolVersion2.AudioTracks
             Get
                 Return _audioTracks
             End Get
         End Property
 
         ''' <summary>
-        ''' Gets the fullscreen state.
+        ''' Sets the list of available audio tracks for the current playback.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        Public ReadOnly Property Video_Fullscreen As Boolean
-            Get
-                Return _fullscreen
-            End Get
+        Private WriteOnly Property AudioTracksUpdate As SortedDictionary(Of Byte, CultureInfo) Implements ApiWrappers.IProtocolVersion2.AudioTracksUpdate
+            Set(value As SortedDictionary(Of Byte, CultureInfo))
+                If AudioTracks Is Nothing OrElse Not AudioTracks.Equals(value) Then
+                    _audioTracks = value
+                    RaisePropertyChanged("AudioTracks")
+                End If
+            End Set
         End Property
 
         ''' <summary>
-        ''' Gets the horizontal position of the video.
+        ''' Gets or sets the mute status for the current playback.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        Public ReadOnly Property Video_X As Short
+        ''' <remarks>Setting this property does nothing if the protocol version is 1.</remarks>
+        Public Property PlaybackMute As Boolean? Implements ApiWrappers.IProtocolVersion2.PlaybackMute
             Get
-                Return _videoX
+                Return _playbackMute
             End Get
+            Set(value As Boolean?)
+                If ProtocolVersion >= 2 Then
+                    Dim command As New SetPlaybackStateCommand(Me)
+                    command.Mute = value
+                    command.Timeout = Timeout
+                    Dim result As New CommandResult(command)
+                    UpdateValues(result)
+                End If
+            End Set
         End Property
 
         ''' <summary>
-        ''' Gets the vertical position of the video.
+        ''' Sets the mute status for the current playback.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        Public ReadOnly Property Video_Y As Short
-            Get
-                Return _videoY
-            End Get
+        Private WriteOnly Property PlaybackMuteUpdate As Boolean? Implements ApiWrappers.IProtocolVersion2.PlaybackMuteUpdate
+            Set(value As Boolean?)
+                If Not PlaybackMute.Equals(value) Then
+                    _playbackMute = value
+                    RaisePropertyChanged("PlaybackMute")
+                End If
+            End Set
         End Property
 
         ''' <summary>
-        ''' Gets the width of the video.
+        ''' Gets or sets whether the video output is enabled.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        Public ReadOnly Property Video_Width As Short
+        ''' <remarks>Setting this property does nothing if the protocol version is 1.</remarks>
+        Public Property VideoEnabled As Boolean? Implements ApiWrappers.IProtocolVersion2.VideoEnabled
             Get
-                Return _videoWidth
+                Return _videoEnabled
             End Get
+            Set(value As Boolean?)
+                If ProtocolVersion >= 2 Then
+                    Dim command As New SetPlaybackStateCommand(Me)
+                    command.VideoEnabled = value
+                    command.Timeout = Timeout
+                    Dim result As New CommandResult(command)
+                    UpdateValues(result)
+                End If
+            End Set
         End Property
 
         ''' <summary>
-        ''' Gets the height of the video.
+        ''' Sets whether the video output is enabled.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        Public ReadOnly Property Video_Height As Short
+        Private WriteOnly Property VideoEnabledUpdate As Boolean? Implements ApiWrappers.IProtocolVersion2.VideoEnabledUpdate
+            Set(value As Boolean?)
+                If Not VideoEnabled.Equals(value) Then
+                    _videoEnabled = value
+                    RaisePropertyChanged("VideoEnabled")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets the video display height.
+        ''' </summary>
+        Public ReadOnly Property VideoHeight As UShort? Implements ApiWrappers.IProtocolVersion2.VideoHeight
             Get
                 Return _videoHeight
             End Get
         End Property
 
         ''' <summary>
-        ''' Gets the available display width.
+        ''' Sets the video display height.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        Public ReadOnly Property Total_Display_Width As Short
-            Get
-                Return _totalDisplayWidth
-            End Get
+        Private WriteOnly Property VideoHeightUpdate As UShort? Implements ApiWrappers.IProtocolVersion2.VideoHeightUpdate
+            Set(value As UShort?)
+                If Not VideoHeight.Equals(value) Then
+                    _videoHeight = value
+                    RaisePropertyChanged("VideoHeight")
+                End If
+            End Set
         End Property
 
         ''' <summary>
-        ''' Gets the available display height.
+        ''' Gets the total video display height.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        Public ReadOnly Property Total_Display_Height As Short
+        Public ReadOnly Property VideoTotalDisplayHeight As UShort? Implements ApiWrappers.IProtocolVersion2.VideoTotalDisplayHeight
             Get
                 Return _totalDisplayHeight
             End Get
         End Property
 
         ''' <summary>
-        ''' Gets the video enabled state.
+        ''' Sets the total video display height.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        Public ReadOnly Property Video_Enabled As Boolean
+        Private WriteOnly Property VideoTotalDisplayHeightUpdate As UShort? Implements ApiWrappers.IProtocolVersion2.VideoTotalDisplayHeightUpdate
+            Set(value As UShort?)
+                If Not VideoTotalDisplayHeight.Equals(value) Then
+                    _totalDisplayHeight = value
+                    RaisePropertyChanged("VideoTotalDisplayHeight")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets the total video display width.
+        ''' </summary>
+        Public ReadOnly Property VideoTotalDisplayWidth As UShort? Implements ApiWrappers.IProtocolVersion2.VideoTotalDisplayWidth
             Get
-                Return _videoEnabled
+                Return _totalDisplayWidth
             End Get
         End Property
 
         ''' <summary>
-        ''' Gets the zoom state.
+        ''' Sets the total video display width.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        Public ReadOnly Property Video_Zoom As String
+        Private WriteOnly Property VideoTotalDisplayWidthUpdate As UShort? Implements ApiWrappers.IProtocolVersion2.VideoTotalDisplayWidthUpdate
+            Set(value As UShort?)
+                If Not VideoTotalDisplayWidth.Equals(value) Then
+                    _totalDisplayWidth = value
+                    RaisePropertyChanged("VideoTotalDisplayWidth")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets the video display width.
+        ''' </summary>
+        Public ReadOnly Property VideoWidth As UShort? Implements ApiWrappers.IProtocolVersion2.VideoWidth
+            Get
+                Return _videoWidth
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Sets the video display width.
+        ''' </summary>
+        Private WriteOnly Property VideoWidthUpdate As UShort? Implements ApiWrappers.IProtocolVersion2.VideoWidthUpdate
+            Set(value As UShort?)
+                If Not VideoWidth.Equals(value) Then
+                    _videoWidth = value
+                    RaisePropertyChanged("VideoWidth")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets the video's horizontal position.
+        ''' </summary>
+        Public ReadOnly Property VideoX As UShort? Implements ApiWrappers.IProtocolVersion2.VideoX
+            Get
+                Return _videoX
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Sets the video's horizontal position.
+        ''' </summary>
+        Private WriteOnly Property VideoXUpdate As UShort? Implements ApiWrappers.IProtocolVersion2.VideoXUpdate
+            Set(value As UShort?)
+                If Not VideoX.Equals(value) Then
+                    _videoX = value
+                    RaisePropertyChanged("VideoX")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets the video's vertical position.
+        ''' </summary>
+        Public ReadOnly Property VideoY As UShort? Implements ApiWrappers.IProtocolVersion2.VideoY
+            Get
+                Return _videoY
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Sets the video's vertical position.
+        ''' </summary>
+        Private WriteOnly Property VideoYUpdate As UShort? Implements ApiWrappers.IProtocolVersion2.VideoYUpdate
+            Set(value As UShort?)
+                If Not VideoY.Equals(value) Then
+                    _videoY = value
+                    RaisePropertyChanged("VideoY")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets or sets the playback volume
+        ''' </summary>
+        ''' <value>A positive value between 0 and 100.</value>
+        ''' <remarks>Setting this property does nothing if the protocol version is 1.
+        ''' A maximum volume of 150 can be set using the remote control by holding 'volume up' for longer than usual.</remarks>
+        Public Property PlaybackVolume As Byte? Implements ApiWrappers.IProtocolVersion2.PlaybackVolume
+            Get
+                Return _playbackVolume
+            End Get
+            Set(value As Byte?)
+                If value > 150 Then
+                    value = 100
+                End If
+                If ProtocolVersion >= 2 Then
+                    Dim command As New SetPlaybackStateCommand(Me)
+                    command.Volume = value
+                    command.Timeout = Timeout
+                    Dim result As CommandResult = New CommandResult(command)
+                    UpdateValues(result)
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Sets the playback volume.
+        ''' </summary>
+        Private WriteOnly Property PlaybackVolumeUpdate As Byte? Implements ApiWrappers.IProtocolVersion2.PlaybackVolumeUpdate
+            Set(value As Byte?)
+                If Not PlaybackVolume.Equals(value) Then
+                    _playbackVolume = value
+                    RaisePropertyChanged("PlaybackVolume")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets the video zoom.
+        ''' </summary>
+        Public ReadOnly Property VideoZoom As String Implements ApiWrappers.IProtocolVersion2.VideoZoom
             Get
                 Return _videoZoom
             End Get
         End Property
 
         ''' <summary>
-        ''' Gets whether a DVD-menu is currently shown.
+        ''' Sets the video zoom
         ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        Public ReadOnly Property DVD_Menu As Boolean
-            Get
-                Return _DVDMenu
-            End Get
-        End Property
-
-        Public ReadOnly Property Ping As Short
-            Get
-                Return _ping
-            End Get
-        End Property
-
-        Public ReadOnly Property Model As Models
-            Get
-                Return _model
-            End Get
-        End Property
-#End Region 'Properties
-
-        ''' <summary>
-        ''' Use this to interact with the current Dune.
-        ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks>You can declare additional communicator objects if you somehow require multiple communicators for the same Dune.</remarks>
-        Public ReadOnly Property Communicator As Communicator.Communicator
-            Get
-                Return _communicator
-            End Get
-        End Property
-
-        ''' <summary>
-        ''' Use this to emulate remote control button presses.
-        ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks>You can declare additional standard remote objects if you somehow require multiple remote controls for the same Dune.</remarks>
-        Public ReadOnly Property Remote As Communicator.StandardRemote
-            Get
-                Return _remote
-            End Get
-        End Property
-
-        ''' <summary>
-        ''' Runs every second to refresh the ping.
-        ''' </summary>
-        ''' <param name="sender"></param>
-        ''' <param name="e"></param>
-        ''' <remarks></remarks>
-        Private Sub _timer_Elapsed(sender As Object, e As System.Timers.ElapsedEventArgs) Handles _timer.Elapsed
-            Dim ping As New Net.NetworkInformation.Ping
-            AddHandler ping.PingCompleted, AddressOf ping_pingCompleted
-            ping.SendAsync(Me._hostname, Me.Hostname)
-        End Sub
-
-        ''' <summary>
-        ''' Runs when the ping has completed.
-        ''' </summary>
-        ''' <param name="sender"></param>
-        ''' <param name="e"></param>
-        ''' <remarks>If the ping was successfull, the status properties will be updated.</remarks>
-        Private Sub ping_pingCompleted(ByVal sender As Object, ByVal e As Net.NetworkInformation.PingCompletedEventArgs)
-            If _timer.Enabled Then
-                Dim reply As System.Net.NetworkInformation.PingReply = e.Reply
-                If reply Is Nothing Then
-                    Call LostConnection()
-                Else
-                    If e.Reply.Status = System.Net.NetworkInformation.IPStatus.TimedOut Then
-                        Call LostConnection()
-                    Else
-                        _ping = reply.RoundtripTime
-                        RaisePropertyChanged("Ping")
-
-                        If Not Me._connected Then
-                            Me._commandStatus = "connected"
-                            RaisePropertyChanged("Command_Status")
-
-                            Me._connected = True
-                            RaisePropertyChanged("Connected")
-                        End If
-                        Communicator.GetStatus()
-                    End If
+        Private WriteOnly Property VideoZoomUpdate As String Implements ApiWrappers.IProtocolVersion2.VideoZoomUpdate
+            Set(value As String)
+                If Not VideoZoom = value Then
+                    _videoZoom = value
+                    RaisePropertyChanged("VideoZoom")
                 End If
-            End If
-        End Sub
+            End Set
+        End Property
+
+#End Region 'Properties v2
+
+#Region "Methods v2"
 
         ''' <summary>
-        ''' Used for internal processing of failed pings.
+        ''' Changes how the video output is displayed.
         ''' </summary>
-        ''' <remarks></remarks>
-        Private Sub LostConnection()
-            _ping = -1
-            RaisePropertyChanged("Ping")
-
-            Me._error = True
-            Me._errorKind = "connection error"
-            Me._errorDescription = "destination unreachable."
-            Call Disconnect()
-        End Sub
-
-        ''' <summary>
-        ''' Used for internal processing of updated properties.
-        ''' </summary>
-        ''' <remarks></remarks>
-        Friend Sub RaiseUpdate()
-            RaiseEvent StatusUpdated()
-        End Sub
-
-        ''' <summary>
-        ''' Raised when a command has completed.
-        ''' </summary>
-        ''' <remarks></remarks>
-        Public Event StatusUpdated()
-
-        Public Enum Output
-            Parameters
-        End Enum
-
-        Public Overloads Function ToString() As String
-            Return _hostname
-        End Function
-
-        Public Overloads Function ToString(ByVal Output As Output) As String
-            Dim builder As New System.Text.StringBuilder
-
-            If Not _connected Then
-                builder.AppendFormat("Error: {0}{1}", Error_Kind, Environment.NewLine)
-                builder.AppendFormat("Description: {0}{1}", Error_Description, Environment.NewLine)
-                builder.AppendLine()
-                builder.Append("Reconnecting")
-                Reconnect()
+        Public Function SetVideoOutput(ByVal command As SetVideoOutputCommand) As CommandResult Implements ApiWrappers.IProtocolVersion2.SetVideoOutput
+            If Me.ProtocolVersion >= 2 Then
+                If Not command.Timeout.HasValue Then
+                    command.Timeout = Timeout
+                End If
+                Dim result As New CommandResult(command)
+                UpdateValues(result)
+                Return result
             Else
-                builder.AppendFormat("Host name: {0}{1}", Hostname, Environment.NewLine)
-                builder.AppendFormat("IP address: {0}{1}", IP, Environment.NewLine)
-                builder.AppendFormat("Protocol version: {0}{1}", Protocol_Version, Environment.NewLine)
-                builder.AppendFormat("Ping: {0}{1}", _ping, Environment.NewLine)
-                builder.AppendFormat("Player state: {0}{1}", Player_State, Environment.NewLine)
-                builder.AppendFormat("Last command: {0}{1}", Command_Status, Environment.NewLine)
-                If _error Then
-                    builder.AppendFormat("Error: {0}{1}", Error_Kind, Environment.NewLine)
-                    builder.AppendFormat("Description: {0}{1}", Error_Description, Environment.NewLine)
-                End If
-                builder.AppendFormat("Media URL: {0}{1}", LastPlaybackRequest, Environment.NewLine)
-                If Playback_Speed <> "N/A" Then
-                    builder.AppendFormat("Playback speed: {0}{1}", Playback_Speed, Environment.NewLine)
-                    builder.AppendFormat("Playback position: {0}{1}", TimeSpan.FromSeconds(Playback_Position).ToString, Environment.NewLine)
-                    builder.AppendFormat("Playback duration: {0}{1}", TimeSpan.FromSeconds(Playback_Duration).ToString, Environment.NewLine)
-                    builder.AppendFormat("Playback time left: {0}{1}", TimeSpan.FromSeconds(Playback_Time_Left).ToString, Environment.NewLine)
-                    builder.AppendFormat("Buffering: {0}{1}", Playback_Is_Buffering, Environment.NewLine)
-                    If Protocol_Version >= 2 Then
-                        builder.AppendFormat("Volume: {0}{1}", Playback_Volume, Environment.NewLine)
-                        builder.AppendFormat("Mute: {0}{1}", Muted, Environment.NewLine)
-                        If Audio_Track > -1 Then
-                            builder.AppendFormat("Language track: {0}{1}", Audio_Track, Environment.NewLine)
-                        End If
-                        If Audio_Track_list.Count > 0 Then
-                            builder.AppendFormat("Available language tracks: {0}{1}", Audio_Track_list.Count, Environment.NewLine)
-
-                            For Each language As KeyValuePair(Of SByte, String) In Audio_Track_list
-                                If String.IsNullOrWhiteSpace(language.Value) Then
-                                    builder.AppendFormat("Language track #{0,5}: {1}{2}", language.Key, "undefined", Environment.NewLine)
-                                Else
-                                    builder.AppendFormat("Language track #{0,5}: {1}{2}", language.Key, language.Value, Environment.NewLine)
-
-                                End If
-                            Next
-                        End If
-                        If Video_X > -1 And Video_Y > -1 Then
-                            builder.AppendFormat("Video X: {0}{1}", Video_X, Environment.NewLine)
-                            builder.AppendFormat("Video Y: {0}{1}", Video_Y, Environment.NewLine)
-                        End If
-                        If Video_Width = -1 Or Video_Height = -1 Then
-                            builder.AppendFormat("Video resolution: fullscreen{2}", Video_Width, Video_Height, Environment.NewLine)
-                        Else
-                            builder.AppendFormat("Video resolution: {0}x{1}{2}", Video_Width, Video_Height, Environment.NewLine)
-                        End If
-                        builder.AppendFormat("Display resolution: {0}x{1}{2}", Total_Display_Width, Total_Display_Height, Environment.NewLine)
-                        builder.AppendFormat("Zoom: {0}{1}", Video_Zoom, Environment.NewLine)
-                    End If
-                End If
+                Return Nothing
             End If
-                Return builder.ToString
         End Function
 
-        Public Sub RaisePropertyChanged(ByVal info As String)
-            RaiseEvent PropertyChanged(Me, New System.ComponentModel.PropertyChangedEventArgs(info))
-        End Sub
+#End Region ' Methods v2
+
+        ''' <summary>
+        ''' INotifyPropertyChanged implementation.
+        ''' </summary>
         Public Event PropertyChanged(sender As Object, e As System.ComponentModel.PropertyChangedEventArgs) Implements System.ComponentModel.INotifyPropertyChanged.PropertyChanged
 
-        Public Enum Models
-            Generic
-            TV_101
-            Lite_53D
-            Duo
-            Max
-            Smart_B1
-            Smart_D1
-            Smart_H1
-            Base_3_0
-            Dune_BD_Prime_3_0
-
-            Base_2_0
-            Base
-            Center
-            Dune_BD_Prime
-            Mini
-            Ultra
-        End Enum
     End Class
+
 End Namespace

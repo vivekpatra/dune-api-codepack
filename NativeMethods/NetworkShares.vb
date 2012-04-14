@@ -1,0 +1,31 @@
+﻿Imports DuneAPICodePack.NativeMethods
+
+''' <summary>
+''' A collection of network shares and information about their disk space.
+''' </summary>
+''' <remarks>This type depends on a native method and should be replaced when a managed alternative becomes available.</remarks> 
+Public Class NetworkShares
+
+    Private _shares As List(Of NetworkDriveInfo)
+
+    ''' <param name="host">The target host.</param>
+    Public Sub New(ByVal host As String)
+        Dim shares As ShareCollection = ShareCollection.GetShares(host)
+        _shares = New List(Of NetworkDriveInfo)
+
+        For Each share As Share In shares
+            If share.ShareType = ShareType.Disk Then
+                _shares.Add(New NetworkDriveInfo(share.Root.FullName))
+            End If
+        Next
+    End Sub
+
+    ''' <summary>
+    ''' Gets the list of available shares.
+    ''' </summary>
+    Public ReadOnly Property Shares As List(Of NetworkDriveInfo)
+        Get
+            Return _shares
+        End Get
+    End Property
+End Class
