@@ -1,6 +1,9 @@
 ﻿Imports System.IO
 Imports DuneAPICodePack.Dune.ApiWrappers
 Imports System.Timers
+Imports System.ComponentModel
+Imports System.Collections.ObjectModel
+
 
 Namespace Dune
 
@@ -11,12 +14,15 @@ Namespace Dune
     ''' This class uses a client-side playlist implementation and should be updated when a server-side API becomes available.
     ''' </remarks>
     Public Class Playlist
+        Implements INotifyPropertyChanged
+
         Private _dune As Dune
-        Private _files As List(Of FileInfo)
+        Private _files As ObservableCollection(Of FileInfo)
         Private _position As Integer
         Private _shuffle As Boolean
         Private _repeat As Boolean
         Private _removeLastFile As Boolean
+        Private _random As Random
         Private WithEvents _statusWatchTimer As Timer
 
 #Region "Constructors"
@@ -28,7 +34,8 @@ Namespace Dune
         ''' <param name="dune">The target device.</param>
         Public Sub New(ByVal dune As Dune)
             _dune = dune
-            _files = New List(Of FileInfo)
+            _files = New ObservableCollection(Of FileInfo)
+            _random = New Random
             _statusWatchTimer = New Timer()
         End Sub
 
@@ -36,11 +43,13 @@ Namespace Dune
         ''' Creates a playlist from a list of files.
         ''' </summary>
         ''' <param name="dune">The target device.</param>
-        ''' <param name="files">The list of files to add to the playlist.</param>
-        Public Sub New(ByVal dune As Dune, ByVal files As List(Of FileInfo))
-            _dune = dune
-            _files = files
-            _statusWatchTimer = New Timer(1000)
+        ''' <param name="files">The collection of files to add to the playlist.</param>
+        Public Sub New(ByVal dune As Dune, ByVal files As Collection(Of FileInfo))
+            Me.New(dune)
+
+            For Each file As FileInfo In files
+                _files.Add(file)
+            Next
         End Sub
 
         ''' <summary>
@@ -49,10 +58,10 @@ Namespace Dune
         ''' <param name="dune">The target device.</param>
         ''' <param name="path">Path to a playlist file.</param>
         Public Sub New(ByVal dune As Dune, ByVal path As Uri)
-            _dune = dune
+            Me.New(dune)
+
             ' TODO: implement playlist parsers
             Throw New NotImplementedException("Playlist parsers are not yet implemented.")
-            _statusWatchTimer = New Timer(1000)
         End Sub
 
 #End Region
@@ -60,14 +69,14 @@ Namespace Dune
         ''' <summary>
         ''' Gets the playlist.
         ''' </summary>
-        Public ReadOnly Property Files As List(Of FileInfo)
+        Public ReadOnly Property Files As ObservableCollection(Of FileInfo)
             Get
                 Return _files
             End Get
         End Property
 
         ''' <summary>
-        ''' Gets or sets 0-based index representing the position in the playlist.
+        ''' Gets or sets the 0-based index representing the position in the playlist.
         ''' </summary>
         Public Property Position As Integer
             Get
@@ -83,7 +92,11 @@ Namespace Dune
                 ElseIf value < 0 Then
                     value = 0
                 End If
-                _position = value
+
+                If value <> _position Then
+                    _position = value
+                    RaisePropertyChanged("Position")
+                End If
             End Set
         End Property
 
@@ -95,9 +108,12 @@ Namespace Dune
                 Return _shuffle
             End Get
             Set(value As Boolean)
-                _shuffle = value
-                If value = True Then
-                    Position = _random.Next(0, Files.Count - 1)
+                If value <> _shuffle Then
+                    _shuffle = value
+                    RaisePropertyChanged("Shuffle")
+                    If value = True Then
+                        Position = _random.Next(0, Files.Count - 1)
+                    End If
                 End If
             End Set
         End Property
@@ -111,24 +127,33 @@ Namespace Dune
                 Return _repeat
             End Get
             Set(value As Boolean)
-                _repeat = value
+                If value <> _repeat Then
+                    _repeat = value
+                    RaisePropertyChanged("Repeat")
+                End If
             End Set
         End Property
 
         ''' <summary>
         ''' If enabled, files are removed from the playlist after playback started.
-        ''' This is useful for scheduling playback commands.
+        ''' This is useful if you want to schedule playback commands for single playback.
         ''' </summary>
         Public Property RemoveLastFile As Boolean
             Get
                 Return _removeLastFile
             End Get
             Set(value As Boolean)
-                _removeLastFile = True
+                If value <> _removeLastFile Then
+                    _removeLastFile = value
+                    RaisePropertyChanged("RemoveLastFile")
+                End If
             End Set
         End Property
 
 
+        ''' <summary>
+        ''' Starts the playlist at the current <see cref="Position"/>.
+        ''' </summary>
         Public Sub Start()
             _statusWatchTimer.Stop()
 
@@ -138,7 +163,7 @@ Namespace Dune
             command.Timeout = _dune.Timeout
 
 
-            Select file.Extension.ToLower
+            Select Case file.Extension.ToLower
                 Case ".iso"
                     If file.Length > (8.5 * 1024 ^ 3) Then ' assume it is a bluray disc image
                         command.Type = StartPlaybackCommand.PlaybackType.Bluray
@@ -161,11 +186,17 @@ Namespace Dune
 
         End Sub
 
+        ''' <summary>
+        ''' Stops the playlist.
+        ''' </summary>
         Public Sub [Stop]()
             _statusWatchTimer.Stop()
             Position = 0
         End Sub
 
+        ''' <summary>
+        ''' Starts the next file in the playlist.
+        ''' </summary>
         Public Sub [Next]()
 
             Position += 1
@@ -173,6 +204,9 @@ Namespace Dune
             If Position > -1 Then Start()
         End Sub
 
+        ''' <summary>
+        ''' Starts the previous file in the playlist.
+        ''' </summary>
         Public Sub Previous()
             _statusWatchTimer.Stop()
 
@@ -181,7 +215,6 @@ Namespace Dune
             If Position > -1 Then Start()
         End Sub
 
-        Private _random As New Random
         Private Sub _statusWatchTimer_Elapsed(sender As Object, e As System.Timers.ElapsedEventArgs) Handles _statusWatchTimer.Elapsed
             If _dune.PlaybackPosition = _dune.PlaybackDuration Then
 
@@ -211,6 +244,15 @@ Namespace Dune
 
             End If
         End Sub
+
+        ''' <summary>
+        ''' Helper method for the INotifyPropertyChanged implementation.
+        ''' </summary>
+        Private Sub RaisePropertyChanged(ByVal propertyName As String)
+            RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(propertyName))
+        End Sub
+
+        Public Event PropertyChanged(sender As Object, e As System.ComponentModel.PropertyChangedEventArgs) Implements System.ComponentModel.INotifyPropertyChanged.PropertyChanged
     End Class
 
 End Namespace
