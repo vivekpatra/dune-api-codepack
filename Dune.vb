@@ -21,6 +21,7 @@ Namespace Dune
         ' Custom fields
         Private _shares As List(Of NetworkDriveInfo)
         Private _model As String
+        Private _playlist As Playlist
 
 
         ' Connection details
@@ -260,6 +261,22 @@ Namespace Dune
                     End If
                     _updateTimer.Interval = value
                 End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets or sets the current playlist.
+        ''' </summary>
+        Public Property Playlist As Playlist
+            Get
+                If _playlist Is Nothing Then
+                    _playlist = New Playlist(Me)
+                    _playlist.RemoveLastFile = True
+                End If
+                Return _playlist
+            End Get
+            Set(value As Playlist)
+                _playlist = value
             End Set
         End Property
 
