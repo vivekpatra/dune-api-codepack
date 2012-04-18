@@ -29,19 +29,19 @@ Namespace Dune.ApiWrappers
 
         WriteOnly Property VideoFullscreenUpdate As Boolean?
 
-        ReadOnly Property VideoX As UShort?
+        Property VideoX As UShort?
 
         WriteOnly Property VideoXUpdate As UShort?
 
-        ReadOnly Property VideoY As UShort?
+        Property VideoY As UShort?
 
         WriteOnly Property VideoYUpdate As UShort?
 
-        ReadOnly Property VideoWidth As UShort?
+        Property VideoWidth As UShort?
 
         WriteOnly Property VideoWidthUpdate As UShort?
 
-        ReadOnly Property VideoHeight As UShort?
+        Property VideoHeight As UShort?
 
         WriteOnly Property VideoHeightUpdate As UShort?
 
@@ -57,7 +57,7 @@ Namespace Dune.ApiWrappers
 
         WriteOnly Property VideoEnabledUpdate As Boolean?
 
-        ReadOnly Property VideoZoom As String
+        Property VideoZoom As String
 
         WriteOnly Property VideoZoomUpdate As String
 

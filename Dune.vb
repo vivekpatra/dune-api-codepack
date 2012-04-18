@@ -854,10 +854,17 @@ Namespace Dune
         ''' <summary>
         ''' Gets the video display height.
         ''' </summary>
-        Public ReadOnly Property VideoHeight As UShort? Implements ApiWrappers.IProtocolVersion2.VideoHeight
+        Public Property VideoHeight As UShort? Implements ApiWrappers.IProtocolVersion2.VideoHeight
             Get
                 Return _videoHeight
             End Get
+            Set(value As UShort?)
+                If value.HasValue And ProtocolVersion >= 2 Then
+                    Dim command As New SetVideoOutputCommand(Me, VideoX, VideoY, VideoWidth, value)
+                    Dim result As New CommandResult(command)
+                    UpdateValues(result)
+                End If
+            End Set
         End Property
 
         ''' <summary>
@@ -917,10 +924,17 @@ Namespace Dune
         ''' <summary>
         ''' Gets the video display width.
         ''' </summary>
-        Public ReadOnly Property VideoWidth As UShort? Implements ApiWrappers.IProtocolVersion2.VideoWidth
+        Public Property VideoWidth As UShort? Implements ApiWrappers.IProtocolVersion2.VideoWidth
             Get
                 Return _videoWidth
             End Get
+            Set(value As UShort?)
+                If value.HasValue And ProtocolVersion >= 2 Then
+                    Dim command As New SetVideoOutputCommand(Me, VideoX, VideoY, value, VideoHeight)
+                    Dim result As New CommandResult(command)
+                    UpdateValues(result)
+                End If
+            End Set
         End Property
 
         ''' <summary>
@@ -938,10 +952,17 @@ Namespace Dune
         ''' <summary>
         ''' Gets the video's horizontal position.
         ''' </summary>
-        Public ReadOnly Property VideoX As UShort? Implements ApiWrappers.IProtocolVersion2.VideoX
+        Public Property VideoX As UShort? Implements ApiWrappers.IProtocolVersion2.VideoX
             Get
                 Return _videoX
             End Get
+            Set(value As UShort?)
+                If value.HasValue And ProtocolVersion >= 2 Then
+                    Dim command As New SetVideoOutputCommand(Me, value, VideoY, VideoWidth, VideoHeight)
+                    Dim result As New CommandResult(command)
+                    UpdateValues(result)
+                End If
+            End Set
         End Property
 
         ''' <summary>
@@ -959,10 +980,17 @@ Namespace Dune
         ''' <summary>
         ''' Gets the video's vertical position.
         ''' </summary>
-        Public ReadOnly Property VideoY As UShort? Implements ApiWrappers.IProtocolVersion2.VideoY
+        Public Property VideoY As UShort? Implements ApiWrappers.IProtocolVersion2.VideoY
             Get
                 Return _videoY
             End Get
+            Set(value As UShort?)
+                If value.HasValue And ProtocolVersion >= 2 Then
+                    Dim command As New SetVideoOutputCommand(Me, VideoX, value, VideoWidth, VideoHeight)
+                    Dim result As New CommandResult(command)
+                    UpdateValues(result)
+                End If
+            End Set
         End Property
 
         ''' <summary>
@@ -988,9 +1016,12 @@ Namespace Dune
                 Return _playbackVolume
             End Get
             Set(value As Byte?)
-                If value > 150 Then
+                If Not value.HasValue Then
+                    value = 0
+                ElseIf value > 150 Then
                     value = 100
                 End If
+
                 If ProtocolVersion >= 2 Then
                     Dim command As New SetPlaybackStateCommand(Me)
                     command.Volume = value
@@ -1016,10 +1047,19 @@ Namespace Dune
         ''' <summary>
         ''' Gets the video zoom.
         ''' </summary>
-        Public ReadOnly Property VideoZoom As String Implements ApiWrappers.IProtocolVersion2.VideoZoom
+        Public Property VideoZoom As String Implements ApiWrappers.IProtocolVersion2.VideoZoom
             Get
                 Return _videoZoom
             End Get
+            Set(value As String)
+                Dim z As Zoom = (From zoom As Zoom In [Enum].GetValues(GetType(Zoom))
+                                Where zoom.ToString = value
+                                Select zoom).FirstOrDefault
+
+                Dim command As New SetVideoOutputCommand(Me, z)
+                Dim result As New CommandResult(command)
+                UpdateValues(result)
+            End Set
         End Property
 
         ''' <summary>
