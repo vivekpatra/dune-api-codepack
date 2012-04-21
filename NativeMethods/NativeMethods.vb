@@ -49,7 +49,7 @@ Friend NotInheritable Class NativeMethods
         Else
             ' TODO: handle various SendARP errors
             ' http://msdn.microsoft.com/en-us/library/windows/desktop/aa366358(v=vs.85).aspx
-            Throw New Win32Exception(Marshal.GetLastWin32Error)
+            Throw New Win32Exception(CInt(ReturnValue))
         End If
     End Function
 

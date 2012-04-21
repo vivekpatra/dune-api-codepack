@@ -11,6 +11,7 @@ Namespace Dune.ApiWrappers
 
         Public Sub New(ByRef dune As Dune, ByVal action As MenuAction)
             MyBase.New(dune)
+            CommandType = Constants.Commands.DvdNavigation
             _action = action
         End Sub
 
@@ -23,25 +24,28 @@ Namespace Dune.ApiWrappers
             End Get
         End Property
 
-        Public Overrides Function ToUri() As System.Uri
+        Public Overrides Function GetQueryString() As String
             Dim query As New StringBuilder
 
-            query.Append("cmd=dvd_navigation")
+            query.Append("cmd=")
+            query.Append(CommandType)
+
+            query.Append("&action=")
 
             Select Case Action
                 Case MenuAction.Left
-                    query.Append("&action=left")
+                    query.Append(Constants.DvdNavigationActions.Left)
                 Case MenuAction.Right
-                    query.Append("&action=right")
+                    query.Append(Constants.DvdNavigationActions.Right)
                 Case MenuAction.Up
-                    query.Append("&action=up")
+                    query.Append(Constants.DvdNavigationActions.Up)
                 Case MenuAction.Down
-                    query.Append("&action=down")
+                    query.Append(Constants.DvdNavigationActions.Down)
                 Case MenuAction.Enter
-                    query.Append("&action=enter")
+                    query.Append(Constants.DvdNavigationActions.Enter)
             End Select
 
-            Return New Uri(BaseUri.ToString + query.ToString)
+            Return query.ToString
 
         End Function
 

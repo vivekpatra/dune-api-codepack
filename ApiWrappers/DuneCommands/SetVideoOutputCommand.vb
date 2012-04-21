@@ -22,6 +22,7 @@ Namespace Dune.ApiWrappers
             If dune.ProtocolVersion < 2 Then
                 Throw New NotSupportedException(NotSupportedMessage)
             End If
+            CommandType = Constants.Commands.SetPlaybackState
             _zoom = zoom
         End Sub
 
@@ -87,34 +88,40 @@ Namespace Dune.ApiWrappers
             End Get
         End Property
 
-        Public Overrides Function ToUri() As System.Uri
+        Public Overrides Function GetQueryString() As String
             Dim query As New StringBuilder
 
-            query.Append("cmd=set_playback_state")
+            query.Append("cmd=")
+            query.Append(CommandType)
 
             If Zoom.HasValue Then
-                query.Append("&video_zoom=" + Zoom.Value.ToString())
+                query.Append("&video_zoom=")
+                query.Append(Zoom.ToString())
             Else
                 query.Append("&fullscreen=0")
 
                 If VideoX.HasValue Then
-                    query.Append("&video_x=" + VideoX.Value.ToString)
+                    query.Append("&video_x=")
+                    query.Append(VideoX.ToString)
                 End If
 
                 If VideoY.HasValue Then
-                    query.Append("&video_y=" + VideoY.Value.ToString)
+                    query.Append("&video_y=")
+                    query.Append(VideoY.ToString)
                 End If
 
                 If VideoWidth.HasValue Then
-                    query.Append("&video_width=" + VideoWidth.Value.ToString)
+                    query.Append("&video_width=")
+                    query.Append(VideoWidth.ToString)
                 End If
 
                 If VideoHeight.HasValue Then
-                    query.Append("&video_height=" + VideoHeight.Value.ToString)
+                    query.Append("&video_height=")
+                    query.Append(VideoHeight.ToString)
                 End If
             End If
 
-            Return New Uri(BaseUri.ToString + query.ToString)
+            Return query.ToString()
         End Function
     End Class
 

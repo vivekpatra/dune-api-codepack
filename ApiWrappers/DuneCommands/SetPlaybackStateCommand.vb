@@ -21,7 +21,10 @@ Namespace Dune.ApiWrappers
 
         Public Sub New(ByRef dune As Dune)
             MyBase.New(dune)
+            CommandType = Constants.Commands.SetPlaybackState
         End Sub
+
+#Region "Properties"
 
         ''' <summary>
         ''' Gets or sets the playback speed.
@@ -92,13 +95,13 @@ Namespace Dune.ApiWrappers
         ''' </summary>
         Public Property VideoEnabled As Nullable(Of Boolean)
             Get
-                If Dune.ProtocolVersion < 2 Then
+                If Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 End If
                 Return _videoEnabled
             End Get
             Set(value As Nullable(Of Boolean))
-                If Dune.ProtocolVersion < 2 Then
+                If Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 End If
                 _videoEnabled = value
@@ -111,13 +114,13 @@ Namespace Dune.ApiWrappers
         ''' <value>Must be between 0 and 100. Values above 100 are automatically reduced to 100.</value>
         Public Property Volume As Nullable(Of Byte)
             Get
-                If Dune.ProtocolVersion < 2 Then
+                If Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 End If
                 Return _volume
             End Get
             Set(value As Nullable(Of Byte))
-                If Dune.ProtocolVersion < 2 Then
+                If Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 End If
                 _volume = value
@@ -129,13 +132,13 @@ Namespace Dune.ApiWrappers
         ''' </summary>
         Public Property Mute As Nullable(Of Boolean)
             Get
-                If Dune.ProtocolVersion < 2 Then
+                If Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 End If
                 Return _mute
             End Get
             Set(value As Nullable(Of Boolean))
-                If Dune.ProtocolVersion < 2 Then
+                If Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 End If
                 _mute = value
@@ -148,69 +151,82 @@ Namespace Dune.ApiWrappers
         ''' <remarks>If a file contains multiple tracks (e.g. different languages, directors commentary), this property can be used to change the track.</remarks>
         Public Property AudioTrack As Nullable(Of Byte)
             Get
-                If Dune.ProtocolVersion < 2 Then
+                If Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 End If
                 Return _audioTrack
             End Get
             Set(value As Nullable(Of Byte))
-                If Dune.ProtocolVersion < 2 Then
+                If Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 End If
                 _audioTrack = value
             End Set
         End Property
 
-        Public Overrides Function ToUri() As Uri
-            Dim commandBuilder As New StringBuilder
+#End Region ' Properties
 
-            commandBuilder.Append("cmd=set_playback_state")
+        Public Overrides Function GetQueryString() As String
+            Dim query As New StringBuilder
+
+            query.Append("cmd=")
+            query.Append(CommandType)
 
             If Speed.HasValue Then
-                commandBuilder.Append("&speed=" + CInt(Speed).ToString)
+                query.Append("&speed=")
+                query.Append(CInt(Speed).ToString)
             End If
 
             If Position.HasValue Then
-                commandBuilder.Append("&position=" + Position.Value.TotalSeconds.ToString)
+                query.Append("&position=")
+                query.Append(Position.Value.TotalSeconds.ToString)
             End If
 
             If BlackScreen.HasValue Then
-                commandBuilder.Append("&black_screen=" + Math.Abs(CInt(BlackScreen)).ToString)
+                query.Append("&black_screen=")
+                query.Append(Math.Abs(CInt(BlackScreen)).ToString)
             End If
 
             If HideOnScreenDisplay.HasValue Then
-                commandBuilder.Append("&hide_osd=" + Math.Abs(CInt(HideOnScreenDisplay)).ToString)
+                query.Append("&hide_osd=")
+                query.Append(Math.Abs(CInt(HideOnScreenDisplay)).ToString)
             End If
 
-            If Repeat.HasValue AndAlso Repeat = True Then
-                commandBuilder.Append("&action_on_finish=restart_playback")
-            ElseIf Repeat.HasValue AndAlso Repeat = False Then
-                commandBuilder.Append("&action_on_finish=exit")
+            If Repeat.HasValue Then
+                query.Append("&action_on_finish=")
+                If Repeat = True Then
+                    query.Append(Constants.ActionOnFinishSettings.RestartPlayback)
+                Else
+                    query.Append(Constants.ActionOnFinishSettings.Exit)
+                End If
             End If
 
             If VideoEnabled.HasValue Then
-                commandBuilder.Append("&video_enabled=" + Math.Abs(CInt(VideoEnabled)).ToString)
+                query.Append("&video_enabled=")
+                query.Append(Math.Abs(CInt(VideoEnabled)).ToString)
             End If
 
             If Volume.HasValue Then
-                commandBuilder.Append("&volume=" + Volume.ToString)
+                query.Append("&volume=")
+                query.Append(Volume.ToString)
             End If
 
             If Mute.HasValue Then
-                commandBuilder.Append("&mute=" + Math.Abs(CInt(Mute)).ToString)
+                query.Append("&mute=")
+                query.Append(Math.Abs(CInt(Mute)).ToString)
             End If
 
             If AudioTrack.HasValue Then
-                commandBuilder.Append("&audio_track=" + AudioTrack.ToString)
+                query.Append("&audio_track=")
+                query.Append(AudioTrack.ToString)
             End If
 
             If Timeout.HasValue AndAlso Timeout <> 20 Then
-                commandBuilder.AppendFormat("&timeout={0}", Timeout.ToString)
+                query.Append("&timeout=")
+                query.Append(Timeout.ToString)
             End If
 
-            Dim query As String = commandBuilder.ToString
-
-            Return New Uri(BaseUri.ToString + query)
+            Return query.ToString
         End Function
     End Class
 

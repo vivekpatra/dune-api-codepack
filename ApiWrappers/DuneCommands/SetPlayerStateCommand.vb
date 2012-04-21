@@ -8,19 +8,15 @@
         ''' <param name="state">The requested player state.</param>
         Public Sub New(ByRef dune As Dune, ByVal state As PlayerState)
             MyBase.New(dune)
-            _playerState = state
+            Select Case state
+                Case PlayerState.MainScreen
+                    CommandType = Constants.Commands.MainScreen
+                Case PlayerState.BlackScreen
+                    CommandType = Constants.Commands.BlackScreen
+                Case PlayerState.Standby
+                    CommandType = Constants.Commands.Standby
+            End Select
         End Sub
-
-        Private _playerState As PlayerState
-
-        ''' <summary>
-        ''' Gets the requested player state.
-        ''' </summary>
-        Public ReadOnly Property State As PlayerState
-            Get
-                Return _playerState
-            End Get
-        End Property
 
         ''' <summary>
         ''' Enumeration of supported player states.
@@ -31,19 +27,8 @@
             Standby = 2
         End Enum
 
-        Public Overrides Function ToUri() As System.Uri
-            Dim query As String = Nothing
-
-            Select Case State
-                Case PlayerState.MainScreen
-                    query = "cmd=main_screen"
-                Case PlayerState.BlackScreen
-                    query = "cmd=black_screen"
-                Case PlayerState.Standby
-                    query = "cmd=standby"
-            End Select
-
-            Return New Uri(BaseUri.ToString + query)
+        Public Overrides Function GetQueryString() As String
+            Return New String("cmd=" + CommandType)
         End Function
     End Class
 

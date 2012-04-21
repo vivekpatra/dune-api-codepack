@@ -25,6 +25,7 @@ Namespace Dune.ApiWrappers
         ''' <param name="keyframe">The action that needs to be performed.</param>
         Public Sub New(ByVal dune As Dune, ByVal keyframe As Keyframe)
             MyBase.New(dune)
+            CommandType = Constants.Commands.SetPlaybackState
             _keyframe = keyframe
         End Sub
 
@@ -37,25 +38,16 @@ Namespace Dune.ApiWrappers
             End Get
         End Property
 
-        Public Overrides Function ToUri() As System.Uri
+        Public Overrides Function GetQueryString() As String
             Dim query As New StringBuilder
 
-            ' Playback must be paused for this to work
-            If Dune.PlaybackSpeed <> 0 Then
-                Dim pauseCommand As New SetPlaybackStateCommand(Dune)
-                pauseCommand.Speed = PlaybackSpeed.Pause
-                Dim result As New CommandResult(pauseCommand)
+            query.Append("cmd=")
+            query.Append(CommandType)
 
-                If result.Error IsNot Nothing Then ' pause playback by emulating a remote control button press
-                    Dune.RemoteControl.Push(IRemoteControl.Button.Pause)
-                End If
-            End If
+            query.Append("&skip_frames=")
+            query.Append(CInt(Action).ToString)
 
-            query.Append("cmd=set_playback_state")
-            query.Append("&skip_frames=" + CInt(Action).ToString)
-
-            Return New Uri(BaseUri.ToString + query.ToString)
-
+            Return query.ToString
         End Function
     End Class
 

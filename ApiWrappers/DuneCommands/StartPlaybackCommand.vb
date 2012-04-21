@@ -19,6 +19,7 @@ Namespace Dune.ApiWrappers
         ''' <remarks>Does not support playlists.</remarks>
         Public Sub New(ByRef dune As Dune, ByVal mediaUrl As String)
             MyBase.New(dune)
+            Type = PlaybackType.File
             _mediaUrl = UrlConverter.FormatUrl(dune, mediaUrl)
         End Sub
 
@@ -35,7 +36,7 @@ Namespace Dune.ApiWrappers
         End Property
 
         ''' <summary>
-        ''' Gets or sets the playback position to begin from.
+        ''' Gets or sets the playback position to start at.
         ''' </summary>
         Public Property Position As TimeSpan
             Get
@@ -51,13 +52,18 @@ Namespace Dune.ApiWrappers
         ''' </summary>
         Public Property Type As PlaybackType
             Get
-                If _type = Nothing Then
-                    _type = PlaybackType.File
-                End If
                 Return _type
             End Get
             Set(value As PlaybackType)
                 _type = value
+                Select Case value
+                    Case PlaybackType.File
+                        CommandType = Constants.Commands.StartFilePlayback
+                    Case PlaybackType.Dvd
+                        CommandType = Constants.Commands.StartDvdPlayback
+                    Case PlaybackType.Bluray
+                        CommandType = Constants.Commands.StartBlurayPlayback
+                End Select
             End Set
         End Property
 
@@ -116,47 +122,42 @@ Namespace Dune.ApiWrappers
             Bluray = 2
         End Enum
 
-        Public Overrides Function ToUri() As Uri
-            Dim commandBuilder As New StringBuilder
+        Public Overrides Function GetQueryString() As String
+            Dim query As New StringBuilder
 
-            Select Case Type
-                Case PlaybackType.File
-                    commandBuilder.Append("cmd=start_file_playback")
-                Case PlaybackType.Dvd
-                    commandBuilder.Append("cmd=start_dvd_playback")
-                Case PlaybackType.Bluray
-                    commandBuilder.Append("cmd=start_bluray_playback")
-            End Select
+            query.Append("cmd=")
+            query.Append(CommandType)
 
-            commandBuilder.AppendFormat("&media_url={0}", MediaUrl)
+            query.Append("&media_url=")
+            query.Append(MediaUrl)
 
             If Paused Then
-                commandBuilder.Append("&speed=0")
+                query.Append("&speed=0")
             End If
 
             If Position <> Nothing Then
-                commandBuilder.AppendFormat("&position={0}", Position.TotalSeconds)
+                query.append("&position=")
+                query.append(Position.TotalSeconds.ToString)
             End If
 
             If BlackScreen Then
-                commandBuilder.Append("&black_screen=1")
+                query.Append("&black_screen=1")
             End If
 
             If HideOnScreenDisplay Then
-                commandBuilder.Append("&hide_osd=1")
+                query.Append("&hide_osd=1")
             End If
 
             If Repeat Then
-                commandBuilder.Append("&action_on_finish=restart_playback")
+                query.Append("&action_on_finish=restart_playback")
             End If
 
             If Timeout > 0 AndAlso Timeout <> 20 Then
-                commandBuilder.AppendFormat("&timeout={0}", Timeout)
+                query.Append("&timeout=")
+                query.Append(Timeout)
             End If
 
-            Dim query As String = commandBuilder.ToString
-
-            Return New Uri(BaseUri.ToString + query)
+            Return query.ToString
 
         End Function
     End Class

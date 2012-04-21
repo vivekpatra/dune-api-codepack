@@ -8,15 +8,11 @@
 
         Public Sub New(ByRef dune As Dune)
             MyBase.New(dune)
+            CommandType = Constants.Commands.Status
         End Sub
 
-        Public Overrides Function ToUri() As System.Uri
-            Dim query As String
-
-            query = "cmd=status"
-
-            Return New Uri(BaseUri.ToString + query)
-
+        Public Overrides Function GetQueryString() As String
+            Return New String("cmd=" + CommandType)
         End Function
     End Class
 

@@ -14,6 +14,7 @@ Namespace Dune.ApiWrappers
         ''' <param name="button">The button to send.</param>
         Public Sub New(ByRef dune As Dune, ByVal button As IRemoteControl.Button)
             MyBase.New(dune)
+            CommandType = Constants.Commands.InfraredCode
             _button = button
         End Sub
 
@@ -54,18 +55,16 @@ Namespace Dune.ApiWrappers
             Return Nothing
         End Function
 
-        ''' <summary>
-        ''' Returns the full command URL.
-        ''' </summary>
-        ''' <returns>The command URL.</returns>
-        Public Overrides Function ToUri() As System.Uri
+        Public Overrides Function GetQueryString() As String
             Dim query As New StringBuilder
 
-            query.Append("cmd=ir_code")
+            query.Append("cmd=")
+            query.Append(CommandType)
 
-            query.AppendFormat("&ir_code={0}", HexCode)
+            query.Append("&ir_code=")
+            query.Append(HexCode)
 
-            Return New Uri(BaseUri.ToString + query.ToString)
+            Return query.ToString
         End Function
     End Class
 

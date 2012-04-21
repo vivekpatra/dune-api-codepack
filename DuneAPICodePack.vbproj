@@ -79,6 +79,7 @@
     <Compile Include="ApiWrappers\FirmwareInfo.vb" />
     <Compile Include="ApiWrappers\InfraredCodeAttribute.vb" />
     <Compile Include="ApiWrappers\Interfaces\IRemoteControl.vb" />
+    <Compile Include="Constants.vb" />
     <Compile Include="HttpHeader\HttpHeader.vb" />
     <Compile Include="ApiWrappers\PlaybackSpeed.vb" />
     <Compile Include="ApiWrappers\PlaybackType.vb" />

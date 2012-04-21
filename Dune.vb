@@ -22,7 +22,7 @@ Namespace Dune
         Private _shares As List(Of NetworkDriveInfo)
         Private _model As String
         Private _playlist As Playlist
-
+        Private _connected As Boolean
 
         ' Connection details
         Private _tcpClient As TcpClient
@@ -32,7 +32,7 @@ Namespace Dune
         Private _macAddress As String
         Private _timeout As UInteger
 
-        Private WithEvents _updateTimer As Timer ' Responsible for status updates
+        Private _updateTimer As Timer ' Responsible for status updates
 
 
         ' Protocol version 1 and up
@@ -68,48 +68,73 @@ Namespace Dune
 
 #Region "Constructors"
 
+        ''' <summary>
+        ''' Gets a Dune object that represents a Dune device on the network at the specified address on the default port (80).
+        ''' </summary>
+        ''' <param name="address">The IP address or hostname of the target device.</param>
+        ''' <exception cref="System.Net.Sockets.SocketException">: An error is encountered when resolving address.</exception>
         Public Sub New(ByVal address As String)
             Me.New(address, 80)
         End Sub
 
+        ''' <summary>
+        ''' Gets a Dune object that represents a Dune device on the network at the specified address on the default port (80).
+        ''' </summary>
+        ''' <param name="address">The IP address of the target device.</param>
+        ''' <exception cref="System.Net.Sockets.SocketException">: An error is encountered when resolving address.</exception>
         Public Sub New(ByVal address As IPAddress)
             Me.New(address, 80)
         End Sub
 
+        ''' <summary>
+        ''' Gets a Dune object that represents a Dune device on the network at the specified address on the default port (80).
+        ''' </summary>
+        ''' <param name="address">The host entry of the target device.</param>
         Public Sub New(ByVal address As IPHostEntry)
             Me.New(address, 80)
         End Sub
 
+        ''' <summary>
+        ''' Gets a Dune object that represents a Dune device on the network at the specified address on the specified port number.
+        ''' </summary>
+        ''' <param name="address">The IP address or hostname of the target device.</param>
+        ''' <exception cref="ArgumentOutOfRangeException">: port is less than System.Net.IPEndPoint.MinPort.-or- port is greater than System.Net.IPEndPoint.MaxPort.-or- address is less than 0 or greater than 0x00000000FFFFFFFF.</exception>       
+        ''' <exception cref="SocketException">: An error is encountered when resolving address.</exception>
+        ''' <exception cref="WebException">: An error is encountered when trying to query the API.</exception>
         Public Sub New(ByVal address As String, ByVal port As Integer)
             Dim host As IPHostEntry = Dns.GetHostEntry(address)
             _endpoint = New IPEndPoint(host.AddressList.FirstOrDefault, port)
             _hostname = host.HostName.Split(".").FirstOrDefault
-            Try
-                VerifyService(_endpoint)
-            Catch ex As SocketException
-                Throw ex
-            End Try
+            Connect(_endpoint)
         End Sub
 
+        ''' <summary>
+        ''' Gets a Dune object that represents a Dune device on the network at the specified address on the specified port number.
+        ''' </summary>
+        ''' <param name="address">The IP address of the target device.</param>
+        ''' <param name="port">The port number to connect on.</param>
+        ''' <exception cref="ArgumentOutOfRangeException">: port is less than System.Net.IPEndPoint.MinPort.-or- port is greater than System.Net.IPEndPoint.MaxPort.-or- address is less than 0 or greater than 0x00000000FFFFFFFF.</exception>
+        ''' <exception cref="SocketException">: An error is encountered when resolving address.</exception>
+        ''' <exception cref="WebException">: An error is encountered when trying to query the API.</exception>
         Public Sub New(ByVal address As IPAddress, ByVal port As Integer)
             Dim host As IPHostEntry = Dns.GetHostEntry(address)
             _endpoint = New IPEndPoint(host.AddressList.FirstOrDefault, port)
             _hostname = host.HostName.Split(".").FirstOrDefault
-            Try
-                VerifyService(_endpoint)
-            Catch ex As SocketException
-                Throw ex
-            End Try
+            Connect(_endpoint)
         End Sub
 
+        ''' <summary>
+        ''' Gets a Dune object that represents a Dune device on the network at the specified address on the specified port number.
+        ''' </summary>
+        ''' <param name="address">The host entry of the target device.</param>
+        ''' <param name="port">The port number to connect on.</param>
+        ''' <exception cref="System.ArgumentOutOfRangeException">: port is less than System.Net.IPEndPoint.MinPort.-or- port is greater than System.Net.IPEndPoint.MaxPort.-or- address is less than 0 or greater than 0x00000000FFFFFFFF.</exception>
+        ''' <exception cref="SocketException">: An error is encountered when resolving address.</exception>
+        ''' <exception cref="WebException">: An error is encountered when trying to query the API.</exception>
         Public Sub New(ByVal address As IPHostEntry, ByVal port As Integer)
             _endpoint = New IPEndPoint(address.AddressList.FirstOrDefault, port)
             _hostname = address.HostName.Split(".").FirstOrDefault
-            Try
-                VerifyService(_endpoint)
-            Catch ex As SocketException
-                Throw ex
-            End Try
+            Connect(_endpoint)
         End Sub
 
 #End Region ' Constructors
@@ -124,7 +149,6 @@ Namespace Dune
                 Return _endpoint.Address
             End Get
         End Property
-
 
         ''' <summary>
         ''' Gets the port number used to connect to the service.
@@ -198,13 +222,40 @@ Namespace Dune
         End Property
 
         ''' <summary>
-        ''' Checks whether the connection is still active.
+        ''' Gets whether the connection is still active or sets it to on/off.
         ''' </summary>
         ''' <returns>True if there is a connection; otherwise false.</returns>
-        Public ReadOnly Property Connected As Boolean
+        Public Property Connected As Boolean
             Get
-                Return _tcpClient.Connected
+                Return _connected
             End Get
+            Set(value As Boolean)
+                If _connected <> value Then
+                    If value = True Then
+                        Reconnect()
+                    Else
+                        Interval = 0
+                        ConnectedUpdate = False
+                    End If
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Sets the connection status"
+        ''' </summary>
+        Friend WriteOnly Property ConnectedUpdate As Boolean
+            Set(value As Boolean)
+                If _connected <> value Then
+                    _connected = value
+                    RaisePropertyChanged("Connected")
+                    If value = True Then
+                        CommandStatusUpdate = "connected"
+                    Else
+                        CommandStatusUpdate = "disconnected"
+                    End If
+                End If
+            End Set
         End Property
 
         ''' <summary>
@@ -251,7 +302,9 @@ Namespace Dune
             End Get
             Set(value As Double)
                 If value = 0 Then
-                    _updateTimer.Stop()
+                    If _updateTimer IsNot Nothing Then
+                        _updateTimer.Stop()
+                    End If
                     _updateTimer = Nothing
                 Else
                     If _updateTimer Is Nothing Then
@@ -285,32 +338,52 @@ Namespace Dune
 #Region "App methods"
 
         ''' <summary>
-        ''' Verifies the target address as a valid device and starts the status update timer.
+        ''' Attempts to initiate a connection with the target.
         ''' </summary>
-        Private Sub VerifyService(ByVal endpoint As IPEndPoint)
-            _tcpClient = New TcpClient()
-            _tcpClient.Connect(endpoint)
-
-            Me.GetStatus()
-
-            CommandStatusUpdate = "Connected"
-
-            If _updateTimer Is Nothing Then
-                Interval = 500
-            End If
+        Private Sub Connect(ByVal target As IPEndPoint)
+            Try
+                If TargetIsValid(_endpoint) Then
+                    CommandStatusUpdate = "connected"
+                    Interval = 1000
+                    ConnectedUpdate = True
+                End If
+            Catch connectionError As SocketException
+                Throw connectionError
+            Catch serviceError As WebException
+                Throw serviceError
+            End Try
         End Sub
 
-        <DebuggerStepThrough()>
+        ''' <summary>
+        ''' Verifies the target as a valid device.
+        ''' </summary>
+        Private Function TargetIsValid(ByVal target As IPEndPoint) As Boolean
+            Try
+                _tcpClient = New TcpClient()
+                _tcpClient.Connect(target) ' can throw a SocketException
+
+                UpdateValues(GetStatus()) ' can throw a WebException
+
+            Catch tcpClientException As SocketException ' if the connection failed
+                Throw tcpClientException
+            Catch serviceException As WebException ' if the API didn't properly respond (errors 404, 401, 403 etc.)
+                Throw serviceException
+            End Try
+
+            Return True
+        End Function
+
+
         Private Sub _updateTimer_elapsed(sender As Object, e As System.Timers.ElapsedEventArgs)
             If Connected Then
                 Try
-                    UpdateValues(Me.GetStatus)
+                    UpdateValues(GetStatus)
                 Catch ex As WebException
-                    CommandStatusUpdate = "Connection error"
+                    CommandStatusUpdate = "connection error"
                 End Try
             Else
                 Interval = 0
-                CommandStatusUpdate = "Lost connection"
+                CommandStatusUpdate = "lost connection"
             End If
         End Sub
 
@@ -380,9 +453,12 @@ Namespace Dune
         ''' </summary>
         Public Sub Reconnect()
             If Not Connected Then
-                CommandStatusUpdate = "Reconnecting..."
+                CommandStatusUpdate = "reconnecting..."
                 Try
-                    VerifyService(_endpoint)
+                    If TargetIsValid(_endpoint) Then
+                        Interval = 1000
+                        ConnectedUpdate = True
+                    End If
                 Catch ex As SocketException
                     CommandStatusUpdate = "failed"
                 End Try
@@ -460,6 +536,7 @@ Namespace Dune
                 Dim command As New SetPlaybackStateCommand(Me)
                 command.Position = value
                 command.Timeout = Timeout
+                command.Method = DuneCommand.RequestMethod.Post
                 Dim result As New CommandResult(command)
                 UpdateValues(result)
             End Set
@@ -492,6 +569,7 @@ Namespace Dune
                 Dim command As New SetPlaybackStateCommand(Me)
                 command.Speed = CInt(value)
                 command.Timeout = Timeout
+                command.Method = DuneCommand.RequestMethod.Post
                 Dim result As New CommandResult(command)
                 UpdateValues(result)
             End Set
@@ -606,7 +684,6 @@ Namespace Dune
             End Set
         End Property
 
-
         ''' <summary>
         ''' Gets whether the playback is buffering.
         ''' </summary>
@@ -662,10 +739,11 @@ Namespace Dune
         ''' Gets the player status and updates all relevant properties.
         ''' </summary>
         ''' <returns>New instance of the <seealso cref="CommandResult"/> class.</returns>
+        ''' <exception cref="System.Net.WebException">: An error occurred when trying to query the API.</exception>
         Public Function GetStatus() As ApiWrappers.CommandResult Implements ApiWrappers.IProtocolVersion1.GetStatus
             Dim command As New GetStatusCommand(Me)
+            command.Method = DuneCommand.RequestMethod.Post
             Dim result As New CommandResult(command)
-            UpdateValues(result)
             Return result
         End Function
 
@@ -728,6 +806,7 @@ Namespace Dune
                     Dim command As New SetPlaybackStateCommand(Me)
                     command.AudioTrack = value
                     command.Timeout = Timeout
+                    command.Method = DuneCommand.RequestMethod.Post
                     Dim result As New CommandResult(command)
                     UpdateValues(result)
                 End If
@@ -802,6 +881,7 @@ Namespace Dune
                     Dim command As New SetPlaybackStateCommand(Me)
                     command.Mute = value
                     command.Timeout = Timeout
+                    command.Method = DuneCommand.RequestMethod.Post
                     Dim result As New CommandResult(command)
                     UpdateValues(result)
                 End If
@@ -833,6 +913,7 @@ Namespace Dune
                     Dim command As New SetPlaybackStateCommand(Me)
                     command.VideoEnabled = value
                     command.Timeout = Timeout
+                    command.Method = DuneCommand.RequestMethod.Post
                     Dim result As New CommandResult(command)
                     UpdateValues(result)
                 End If
@@ -861,6 +942,8 @@ Namespace Dune
             Set(value As UShort?)
                 If value.HasValue And ProtocolVersion >= 2 Then
                     Dim command As New SetVideoOutputCommand(Me, VideoX, VideoY, VideoWidth, value)
+                    command.Timeout = Timeout
+                    command.Method = DuneCommand.RequestMethod.Post
                     Dim result As New CommandResult(command)
                     UpdateValues(result)
                 End If
@@ -931,6 +1014,8 @@ Namespace Dune
             Set(value As UShort?)
                 If value.HasValue And ProtocolVersion >= 2 Then
                     Dim command As New SetVideoOutputCommand(Me, VideoX, VideoY, value, VideoHeight)
+                    command.Timeout = Timeout
+                    command.Method = DuneCommand.RequestMethod.Post
                     Dim result As New CommandResult(command)
                     UpdateValues(result)
                 End If
@@ -959,6 +1044,8 @@ Namespace Dune
             Set(value As UShort?)
                 If value.HasValue And ProtocolVersion >= 2 Then
                     Dim command As New SetVideoOutputCommand(Me, value, VideoY, VideoWidth, VideoHeight)
+                    command.Timeout = Timeout
+                    command.Method = DuneCommand.RequestMethod.Post
                     Dim result As New CommandResult(command)
                     UpdateValues(result)
                 End If
@@ -987,6 +1074,8 @@ Namespace Dune
             Set(value As UShort?)
                 If value.HasValue And ProtocolVersion >= 2 Then
                     Dim command As New SetVideoOutputCommand(Me, VideoX, value, VideoWidth, VideoHeight)
+                    command.Timeout = Timeout
+                    command.Method = DuneCommand.RequestMethod.Post
                     Dim result As New CommandResult(command)
                     UpdateValues(result)
                 End If
@@ -1026,6 +1115,7 @@ Namespace Dune
                     Dim command As New SetPlaybackStateCommand(Me)
                     command.Volume = value
                     command.Timeout = Timeout
+                    command.Method = DuneCommand.RequestMethod.Post
                     Dim result As CommandResult = New CommandResult(command)
                     UpdateValues(result)
                 End If
@@ -1057,6 +1147,8 @@ Namespace Dune
                                 Select zoom).FirstOrDefault
 
                 Dim command As New SetVideoOutputCommand(Me, z)
+                command.Method = DuneCommand.RequestMethod.Post
+                command.Timeout = Timeout
                 Dim result As New CommandResult(command)
                 UpdateValues(result)
             End Set
