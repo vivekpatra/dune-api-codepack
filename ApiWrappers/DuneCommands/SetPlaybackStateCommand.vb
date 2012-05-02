@@ -1,4 +1,5 @@
 ﻿Imports System.Text
+Imports System.Collections.Specialized
 
 Namespace Dune.ApiWrappers
 
@@ -8,20 +9,19 @@ Namespace Dune.ApiWrappers
 
         Private Const NotSupportedMessage As String = "This property requires a firmware update."
 
-        Private _speed As Nullable(Of Integer)
-        Private _position As Nullable(Of TimeSpan)
-        Private _blackScreen As Nullable(Of Boolean)
-        Private _hideOnScreenDisplay As Nullable(Of Boolean)
-        Private _repeat As Nullable(Of Boolean)
-        Private _videoEnabled As Nullable(Of Boolean)
-        Private _volume As Nullable(Of Byte)
-        Private _mute As Nullable(Of Boolean)
-        Private _audioTrack As Nullable(Of Byte)
+        Private _speed As Integer?
+        Private _position As TimeSpan?
+        Private _blackScreen As Boolean?
+        Private _hideOnScreenDisplay As Boolean?
+        Private _repeat As Boolean?
+        Private _videoEnabled As Boolean?
+        Private _volume As Byte?
+        Private _mute As Boolean?
+        Private _audioTrack As Byte?
 
 
         Public Sub New(ByRef dune As Dune)
             MyBase.New(dune)
-            CommandType = Constants.Commands.SetPlaybackState
         End Sub
 
 #Region "Properties"
@@ -29,11 +29,15 @@ Namespace Dune.ApiWrappers
         ''' <summary>
         ''' Gets or sets the playback speed.
         ''' </summary>
-        Public Property Speed As Nullable(Of PlaybackSpeed)
+        Public Property Speed As PlaybackSpeed?
             Get
-                Return _speed
+                If _speed.HasValue Then
+                    Return DirectCast(_speed.Value, PlaybackSpeed)
+                Else
+                    Return Nothing
+                End If
             End Get
-            Set(value As Nullable(Of PlaybackSpeed))
+            Set(value As PlaybackSpeed?)
                 If value.HasValue Then
                     _speed = CInt(value)
                 Else
@@ -45,11 +49,11 @@ Namespace Dune.ApiWrappers
         ''' <summary>
         ''' Gets or sets the playback position.
         ''' </summary>
-        Public Property Position As Nullable(Of TimeSpan)
+        Public Property Position As TimeSpan?
             Get
                 Return _position
             End Get
-            Set(value As Nullable(Of TimeSpan))
+            Set(value As TimeSpan?)
                 _position = value
             End Set
         End Property
@@ -57,11 +61,11 @@ Namespace Dune.ApiWrappers
         ''' <summary>
         ''' Gets or sets whether to show a black screen.
         ''' </summary>
-        Public Property BlackScreen As Nullable(Of Boolean)
+        Public Property BlackScreen As Boolean?
             Get
                 Return _blackScreen
             End Get
-            Set(value As Nullable(Of Boolean))
+            Set(value As Boolean?)
                 _blackScreen = value
             End Set
         End Property
@@ -69,11 +73,11 @@ Namespace Dune.ApiWrappers
         ''' <summary>
         ''' Gets or sets whether to hide the OSD.
         ''' </summary>
-        Public Property HideOnScreenDisplay As Nullable(Of Boolean)
+        Public Property HideOnScreenDisplay As Boolean?
             Get
                 Return _hideOnScreenDisplay
             End Get
-            Set(value As Nullable(Of Boolean))
+            Set(value As Boolean?)
                 _hideOnScreenDisplay = value
             End Set
         End Property
@@ -81,11 +85,11 @@ Namespace Dune.ApiWrappers
         ''' <summary>
         ''' Gets or sets whether to repeat the playback.
         ''' </summary>
-        Public Property Repeat As Nullable(Of Boolean)
+        Public Property Repeat As Boolean?
             Get
                 Return _repeat
             End Get
-            Set(value As Nullable(Of Boolean))
+            Set(value As Boolean?)
                 _repeat = value
             End Set
         End Property
@@ -93,14 +97,14 @@ Namespace Dune.ApiWrappers
         ''' <summary>
         ''' Gets or sets whether to show video output.
         ''' </summary>
-        Public Property VideoEnabled As Nullable(Of Boolean)
+        Public Property VideoEnabled As Boolean?
             Get
                 If Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 End If
                 Return _videoEnabled
             End Get
-            Set(value As Nullable(Of Boolean))
+            Set(value As Boolean?)
                 If Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 End If
@@ -112,14 +116,14 @@ Namespace Dune.ApiWrappers
         ''' Gets or sets the volume.
         ''' </summary>
         ''' <value>Must be between 0 and 100. Values above 100 are automatically reduced to 100.</value>
-        Public Property Volume As Nullable(Of Byte)
+        Public Property Volume As Byte?
             Get
                 If Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 End If
                 Return _volume
             End Get
-            Set(value As Nullable(Of Byte))
+            Set(value As Byte?)
                 If Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 End If
@@ -130,14 +134,14 @@ Namespace Dune.ApiWrappers
         ''' <summary>
         ''' Gets or sets whether to mute the playback.
         ''' </summary>
-        Public Property Mute As Nullable(Of Boolean)
+        Public Property Mute As Boolean?
             Get
                 If Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 End If
                 Return _mute
             End Get
-            Set(value As Nullable(Of Boolean))
+            Set(value As Boolean?)
                 If Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 End If
@@ -149,14 +153,14 @@ Namespace Dune.ApiWrappers
         ''' Gets or sets the audio track number that is used in the current playback.
         ''' </summary>
         ''' <remarks>If a file contains multiple tracks (e.g. different languages, directors commentary), this property can be used to change the track.</remarks>
-        Public Property AudioTrack As Nullable(Of Byte)
+        Public Property AudioTrack As Byte?
             Get
                 If Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 End If
                 Return _audioTrack
             End Get
-            Set(value As Nullable(Of Byte))
+            Set(value As Byte?)
                 If Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 End If
@@ -166,67 +170,52 @@ Namespace Dune.ApiWrappers
 
 #End Region ' Properties
 
-        Public Overrides Function GetQueryString() As String
-            Dim query As New StringBuilder
+        Protected Overrides Function GetQuery() As NameValueCollection
+            Dim query As New NameValueCollection
 
-            query.Append("cmd=")
-            query.Append(CommandType)
+            query.Add("cmd", Constants.Commands.SetPlaybackState)
 
             If Speed.HasValue Then
-                query.Append("&speed=")
-                query.Append(CInt(Speed).ToString)
+                query.Add(Constants.SetPlaybackStateParameters.PlaybackSpeed, CInt(Speed).ToString)
             End If
 
             If Position.HasValue Then
-                query.Append("&position=")
-                query.Append(Position.Value.TotalSeconds.ToString)
+                query.Add(Constants.SetPlaybackStateParameters.PlaybackPosition, Position.Value.TotalSeconds.ToString)
             End If
 
             If BlackScreen.HasValue Then
-                query.Append("&black_screen=")
-                query.Append(Math.Abs(CInt(BlackScreen)).ToString)
+                query.Add(Constants.SetPlaybackStateParameters.BlackScreen, Math.Abs(CInt(BlackScreen)).ToString)
             End If
 
             If HideOnScreenDisplay.HasValue Then
-                query.Append("&hide_osd=")
-                query.Append(Math.Abs(CInt(HideOnScreenDisplay)).ToString)
+                query.Add(Constants.SetPlaybackStateParameters.HideOnScreenDisplay, Math.Abs(CInt(HideOnScreenDisplay)).ToString)
             End If
 
             If Repeat.HasValue Then
-                query.Append("&action_on_finish=")
                 If Repeat = True Then
-                    query.Append(Constants.ActionOnFinishSettings.RestartPlayback)
+                    query.Add(Constants.SetPlaybackStateParameters.ActionOnFinish, Constants.ActionOnFinishSettings.RestartPlayback)
                 Else
-                    query.Append(Constants.ActionOnFinishSettings.Exit)
+                    query.Add(Constants.SetPlaybackStateParameters.ActionOnFinish, Constants.ActionOnFinishSettings.Exit)
                 End If
             End If
 
             If VideoEnabled.HasValue Then
-                query.Append("&video_enabled=")
-                query.Append(Math.Abs(CInt(VideoEnabled)).ToString)
+                query.Add(Constants.SetPlaybackStateParameters.VideoEnabled, Math.Abs(CInt(VideoEnabled)).ToString)
             End If
 
             If Volume.HasValue Then
-                query.Append("&volume=")
-                query.Append(Volume.ToString)
+                query.Add(Constants.SetPlaybackStateParameters.PlaybackVolume, Volume.ToString)
             End If
 
             If Mute.HasValue Then
-                query.Append("&mute=")
-                query.Append(Math.Abs(CInt(Mute)).ToString)
+                query.Add(Constants.SetPlaybackStateParameters.PlaybackMute, Math.Abs(CInt(Mute)).ToString)
             End If
 
             If AudioTrack.HasValue Then
-                query.Append("&audio_track=")
-                query.Append(AudioTrack.ToString)
+                query.Add(Constants.SetPlaybackStateParameters.AudioTrack, AudioTrack.ToString)
             End If
 
-            If Timeout.HasValue AndAlso Timeout <> 20 Then
-                query.Append("&timeout=")
-                query.Append(Timeout.ToString)
-            End If
-
-            Return query.ToString
+            Return query
         End Function
     End Class
 

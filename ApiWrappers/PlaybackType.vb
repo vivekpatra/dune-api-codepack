@@ -7,7 +7,7 @@
     End Enum
 
     Public Class PlaybackTypeConverter
-        Public Shared Function GetName(ByVal type As PlaybackType)
+        Public Shared Function GetName(ByVal type As PlaybackType) As String
             Select Case type
                 Case PlaybackType.File
                     Return "File"

@@ -1,4 +1,6 @@
-﻿Namespace Dune.ApiWrappers
+﻿Option Compare Text
+
+Namespace Dune.ApiWrappers
 
     ''' <summary>
     ''' This class is used to format media URLs.
@@ -30,7 +32,7 @@
             Dim credentials As String = String.Empty
 
             If mediaUrl.IndexOf("@") > -1 Then 'get credentials
-                credentials = mediaUrl.Split("@").GetValue(0).ToString.Replace("//", Nothing)
+                credentials = mediaUrl.Split(CChar("@")).GetValue(0).ToString.Replace("//", Nothing)
                 If credentials.Contains("/") Then 'filename has one or more @ signs. What kind of person does that?!
                     credentials = String.Empty
                 Else 'temporary remove credentials so the URI can be parsed
@@ -44,17 +46,16 @@
 
             If mediaUri.IsUnc Then 'file is on an SMB share
 
-                If mediaUri.Host = dune.Address.ToString Or mediaUri.Host.ToLower = dune.Hostname.ToLower Then ' use 'storage_name' approach
+                If mediaUri.Host = dune.Address.ToString Or mediaUri.Host = dune.Hostname Then ' use 'storage_name' approach
                     protocol = protocol.storage_name
-                    result = String.Format("storage_name:/{0}", mediaUri.AbsolutePath.Replace("&", "%26"))
+                    result = String.Format("storage_name:{0}", mediaUri.OriginalString.Replace("/" + dune.Hostname, String.Empty))
                 Else 'use 'smb' approach
                     protocol = protocol.SMB
-                    Dim delimiter As String() = New String() {Uri.SchemeDelimiter}
-                    result = String.Format("smb://{0}", mediaUri.AbsoluteUri.Split(delimiter, StringSplitOptions.None).GetValue(1).ToString.Replace("&", "%26"))
+                    result = "smb:" + mediaUri.OriginalString
                 End If
             Else
-                result = Uri.EscapeUriString(mediaUri.OriginalString).Replace("&", "%26")
-                If result.ToLower.Contains("http:") Then
+                result = mediaUri.OriginalString
+                If result.Contains("http:") Then
                     protocol = protocol.HTTP
                 End If
             End If

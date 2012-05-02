@@ -12,14 +12,14 @@
         Dim _productId As String
         Dim _serialNumber As String
         Dim _interfaceLanguage As String
-        Dim _firmware As FirmwareInfo
+        ' Dim _firmware As FirmwareInfo
 
         Public Sub New(ByRef dune As Dune)
             ' TODO: implement http header stuff
             _productId = String.Empty
             _serialNumber = String.Empty
             _interfaceLanguage = String.Empty
-            _firmware = New FirmwareInfo(String.Empty)
+            '_firmware = New FirmwareInfo(String.Empty)
         End Sub
 
 #Region "Properties"
@@ -51,14 +51,14 @@
             End Get
         End Property
 
-        ''' <summary>
-        ''' Gets information about the device's firmware.
-        ''' </summary>
-        ReadOnly Property Firmware As FirmwareInfo
-            Get
-                Return _firmware
-            End Get
-        End Property
+        ' ''' <summary>
+        ' ''' Gets information about the device's firmware.
+        ' ''' </summary>
+        'ReadOnly Property Firmware As FirmwareInfo
+        '    Get
+        '        Return _firmware
+        '    End Get
+        'End Property
 
 #End Region
 

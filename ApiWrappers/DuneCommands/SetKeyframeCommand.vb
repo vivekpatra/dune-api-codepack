@@ -1,4 +1,5 @@
 ﻿Imports System.Text
+Imports System.Collections.Specialized
 
 Namespace Dune.ApiWrappers
     ''' <summary>
@@ -25,7 +26,6 @@ Namespace Dune.ApiWrappers
         ''' <param name="keyframe">The action that needs to be performed.</param>
         Public Sub New(ByVal dune As Dune, ByVal keyframe As Keyframe)
             MyBase.New(dune)
-            CommandType = Constants.Commands.SetPlaybackState
             _keyframe = keyframe
         End Sub
 
@@ -38,16 +38,13 @@ Namespace Dune.ApiWrappers
             End Get
         End Property
 
-        Public Overrides Function GetQueryString() As String
-            Dim query As New StringBuilder
+        Protected Overrides Function GetQuery() As NameValueCollection
+            Dim query As New NameValueCollection
 
-            query.Append("cmd=")
-            query.Append(CommandType)
+            query.Add("cmd", Constants.Commands.SetPlaybackState)
+            query.Add(Constants.SetPlaybackStateParameters.SetKeyframe, CInt(Action).ToString)
 
-            query.Append("&skip_frames=")
-            query.Append(CInt(Action).ToString)
-
-            Return query.ToString
+            Return query
         End Function
     End Class
 

@@ -51,6 +51,10 @@ Namespace Dune.ApiWrappers
                 info.AddValue("_errorKind", _errorKind)
             End If
         End Sub
+
+        Public Overrides Function ToString() As String
+            Return ErrorKind + ": " + Message
+        End Function
     End Class
 
 End Namespace

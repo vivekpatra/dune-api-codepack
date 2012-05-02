@@ -1,5 +1,6 @@
 ﻿Imports System.Text
 Imports System.Reflection
+Imports System.Collections.Specialized
 
 Namespace Dune.ApiWrappers
 
@@ -7,6 +8,7 @@ Namespace Dune.ApiWrappers
     Public Class RemoteControlCommand
         Inherits DuneCommand
 
+        Private _remoteType As IRemoteControl.RemoteType
         Private _button As IRemoteControl.Button
         Private _code As String
 
@@ -14,7 +16,6 @@ Namespace Dune.ApiWrappers
         ''' <param name="button">The button to send.</param>
         Public Sub New(ByRef dune As Dune, ByVal button As IRemoteControl.Button)
             MyBase.New(dune)
-            CommandType = Constants.Commands.InfraredCode
             _button = button
         End Sub
 
@@ -24,10 +25,28 @@ Namespace Dune.ApiWrappers
         Public ReadOnly Property HexCode As String
             Get
                 If String.IsNullOrEmpty(_code) Then
-                    _code = String.Concat(GetCodeFromButton(Button), "BF00")
+                    Dim remoteBytes() As Byte = BitConverter.GetBytes(RemoteType)
+                    Dim buttonBytes() As Byte = BitConverter.GetBytes(Button)
+
+                    _code = (BitConverter.ToString(buttonBytes, 0, 2) + BitConverter.ToString(remoteBytes, 0, 2)).Replace("-", String.Empty)
                 End If
                 Return _code
             End Get
+        End Property
+
+        ''' <summary>
+        ''' Gets or sets the remote type. The default of "New" should be fine in all cases.
+        ''' </summary>
+        Public Property RemoteType As IRemoteControl.RemoteType
+            Get
+                If _remoteType = Nothing Then
+                    _remoteType = IRemoteControl.RemoteType.New
+                End If
+                Return _remoteType
+            End Get
+            Set(value As IRemoteControl.RemoteType)
+                _remoteType = value
+            End Set
         End Property
 
         ''' <summary>
@@ -39,32 +58,13 @@ Namespace Dune.ApiWrappers
             End Get
         End Property
 
-        ''' <summary>
-        ''' Method that uses reflection to get the <see cref="InfraredCodeAttribute"/> value for the supplied button.
-        ''' </summary>
-        ''' <param name="button">The button to get the code for.</param>
-        ''' <returns>A hexadecimal code.</returns>
-        Public Shared Function GetCodeFromButton(ByVal button As IRemoteControl.Button) As String
-            Dim memberInfo As MemberInfo() = button.GetType().GetMember(button.ToString())
-            If memberInfo IsNot Nothing AndAlso memberInfo.Length > 0 Then
-                Dim attribute As InfraredCodeAttribute = TryCast(System.Attribute.GetCustomAttribute(memberInfo(0), GetType(InfraredCodeAttribute)), InfraredCodeAttribute)
-                If attribute IsNot Nothing Then
-                    Return attribute.Code
-                End If
-            End If
-            Return Nothing
-        End Function
+        Protected Overrides Function GetQuery() As NameValueCollection
+            Dim query As New NameValueCollection
 
-        Public Overrides Function GetQueryString() As String
-            Dim query As New StringBuilder
+            query.Add("cmd", Constants.Commands.InfraredCode)
+            query.Add(Constants.Commands.InfraredCode, HexCode)
 
-            query.Append("cmd=")
-            query.Append(CommandType)
-
-            query.Append("&ir_code=")
-            query.Append(HexCode)
-
-            Return query.ToString
+            Return query
         End Function
     End Class
 

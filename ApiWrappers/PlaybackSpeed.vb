@@ -17,7 +17,7 @@
     End Enum
 
     Public Class PlaybackSpeedConverter
-        Public Shared Function GetName(ByRef dune As Dune, ByVal speed As PlaybackSpeed)
+        Public Shared Function GetName(ByRef dune As Dune, ByVal speed As PlaybackSpeed) As String
             Select Case speed
                 Case PlaybackSpeed.Rewind_16x
                     Return "Rewinding (16x)"
@@ -32,7 +32,7 @@
                 Case PlaybackSpeed.Rewind_Slow
                     Return "Rewinding (Slow)"
                 Case PlaybackSpeed.Pause
-                    If dune.PlaybackDuration.TotalSeconds > 0 Then
+                    If dune.PlaybackDuration.Value.TotalSeconds > 0 Then
                         Return "Paused"
                     Else
                         Return "N/A"

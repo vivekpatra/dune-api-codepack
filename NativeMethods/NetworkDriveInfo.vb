@@ -6,7 +6,7 @@
 Public Class NetworkDriveInfo
 
     Private _root As DirectoryInfo
-    Private _shareInfo As Dictionary(Of NativeMethods.ShareInfo, Integer)
+    Private _shareInfo As Dictionary(Of NativeMethods.ShareInfo, UInteger)
 
     Public Sub New(ByVal share As String)
         _root = New DirectoryInfo(share)
@@ -26,7 +26,7 @@ Public Class NetworkDriveInfo
     ''' <summary>
     ''' Gets the bytes per sector.
     ''' </summary>
-    Public ReadOnly Property BytesPerSector As Integer
+    Public ReadOnly Property BytesPerSector As UInteger
         Get
             Return _shareInfo(NativeMethods.ShareInfo.BytesPerSector)
         End Get
@@ -35,7 +35,7 @@ Public Class NetworkDriveInfo
     ''' <summary>
     ''' Gets the number of free clusters.
     ''' </summary>
-    Public ReadOnly Property NumberOfFreeClusters As Integer
+    Public ReadOnly Property NumberOfFreeClusters As UInteger
         Get
             Return _shareInfo(NativeMethods.ShareInfo.NumberOfFreeClusters)
         End Get
@@ -44,7 +44,7 @@ Public Class NetworkDriveInfo
     ''' <summary>
     ''' Gets the sectors per cluster.
     ''' </summary>
-    Public ReadOnly Property SectorsPerCluster As Integer
+    Public ReadOnly Property SectorsPerCluster As UInteger
         Get
             Return _shareInfo(NativeMethods.ShareInfo.SectorsPerCluster)
         End Get
@@ -53,10 +53,14 @@ Public Class NetworkDriveInfo
     ''' <summary>
     ''' Gets the total number of clusters.
     ''' </summary>
-    Public ReadOnly Property TotalNumberOfClusters As Integer
+    Public ReadOnly Property TotalNumberOfClusters As UInteger
         Get
             Return _shareInfo(NativeMethods.ShareInfo.TotalNumberOfClusters)
         End Get
     End Property
+
+    Public Overrides Function ToString() As String
+        Return _root.ToString
+    End Function
 
 End Class

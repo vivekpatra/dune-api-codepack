@@ -2,6 +2,7 @@
 Imports System.Runtime.InteropServices
 Imports System.ComponentModel
 Imports System.IO
+Imports System.Net.NetworkInformation
 
 ''' <summary>
 ''' Exposes native methods in the Windows API.
@@ -38,14 +39,14 @@ Friend NotInheritable Class NativeMethods
     ''' Gets the MAC address that belongs to the specified IP address.
     ''' </summary>
     ''' <remarks>This uses a native method and should be replaced when a managed alternative becomes available.</remarks>
-    Public Shared Function GetMacAddress(ByVal address As IPAddress) As String
+    Public Shared Function GetMacAddress(ByVal address As IPAddress) As PhysicalAddress
         Dim IP As UInteger = BitConverter.ToUInt32(address.GetAddressBytes(), 0)
         Dim mac() As Byte = New Byte(5) {}
 
         Dim ReturnValue As UInteger = SendARP(IP, 0, mac, mac.Length)
 
         If ReturnValue = NO_ERROR Then
-            Return BitConverter.ToString(mac, 0, mac.Length)
+            Return New PhysicalAddress(mac)
         Else
             ' TODO: handle various SendARP errors
             ' http://msdn.microsoft.com/en-us/library/windows/desktop/aa366358(v=vs.85).aspx
@@ -72,8 +73,8 @@ Friend NotInheritable Class NativeMethods
     ''' Gets disk information about a network share.
     ''' </summary>
     ''' <remarks>This uses a native method and should be replaced when a managed alternative becomes available.</remarks>
-    Public Shared Function GetShareInfo(ByVal share As String) As Dictionary(Of ShareInfo, Integer)
-        Dim info As New Dictionary(Of ShareInfo, Integer)
+    Public Shared Function GetShareInfo(ByVal share As String) As Dictionary(Of ShareInfo, UInteger)
+        Dim info As New Dictionary(Of ShareInfo, UInteger)
 
         ' Variables to store seperate parameters
         Dim SectorsPerCluster As UInt32
@@ -87,7 +88,7 @@ Friend NotInheritable Class NativeMethods
         Dim ReturnValue As Boolean = GetDiskFreeSpace(share, SectorsPerCluster, BytesPerSector, NumberOfFreeClusters, TotalNumberOfClusters)
 
         If ReturnValue = True Then ' create a dictionary of the returned values
-            info = New Dictionary(Of ShareInfo, Integer)
+            info = New Dictionary(Of ShareInfo, UInteger)
             With info
                 .Add(ShareInfo.SectorsPerCluster, SectorsPerCluster)
                 .Add(ShareInfo.BytesPerSector, BytesPerSector)
@@ -105,7 +106,7 @@ Friend NotInheritable Class NativeMethods
     ''' <summary>
     ''' Enumeration of supported parameters.
     ''' </summary>
-    Public Enum ShareInfo
+    Public Enum ShareInfo As Integer
         SectorsPerCluster
         BytesPerSector
         NumberOfFreeClusters

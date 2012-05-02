@@ -176,7 +176,7 @@ Namespace Dune
 
             Console.WriteLine(file)
 
-            Dim result As New CommandResult(command)
+            Dim result As CommandResult = CommandResult.FromCommand(command)
 
             If result.CommandStatus = "ok" Or result.CommandStatus = "timeout" Then
                 _statusWatchTimer.Start()

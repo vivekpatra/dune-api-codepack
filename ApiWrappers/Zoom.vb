@@ -17,7 +17,7 @@
         ''' <summary>
         ''' Get the proper spelling for a zoom setting.
         ''' </summary>
-        Public Shared Function GetName(ByVal setting As Zoom)
+        Public Shared Function GetName(ByVal setting As Zoom) As String
             Select Case setting
                 Case Zoom.normal
                     Return "Normal"

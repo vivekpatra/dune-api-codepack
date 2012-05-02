@@ -1,4 +1,5 @@
 ﻿Imports System.Text
+Imports System.Collections.Specialized
 
 Namespace Dune.ApiWrappers
 
@@ -56,14 +57,6 @@ Namespace Dune.ApiWrappers
             End Get
             Set(value As PlaybackType)
                 _type = value
-                Select Case value
-                    Case PlaybackType.File
-                        CommandType = Constants.Commands.StartFilePlayback
-                    Case PlaybackType.Dvd
-                        CommandType = Constants.Commands.StartDvdPlayback
-                    Case PlaybackType.Bluray
-                        CommandType = Constants.Commands.StartBlurayPlayback
-                End Select
             End Set
         End Property
 
@@ -122,43 +115,41 @@ Namespace Dune.ApiWrappers
             Bluray = 2
         End Enum
 
-        Public Overrides Function GetQueryString() As String
-            Dim query As New StringBuilder
+        Protected Overrides Function GetQuery() As NameValueCollection
+            Dim query As New NameValueCollection
 
-            query.Append("cmd=")
-            query.Append(CommandType)
+            Select Case Type
+                Case PlaybackType.File
+                    query.Add("cmd", Constants.Commands.StartFilePlayback)
+                Case PlaybackType.Dvd
+                    query.Add("cmd", Constants.Commands.StartDvdPlayback)
+                Case PlaybackType.Bluray
+                    query.Add("cmd", Constants.Commands.StartBlurayPlayback)
+            End Select
 
-            query.Append("&media_url=")
-            query.Append(MediaUrl)
+            query.Add(Constants.StartPlaybackParameters.MediaLocation, MediaUrl)
 
             If Paused Then
-                query.Append("&speed=0")
+                query.Add(Constants.StartPlaybackParameters.PlaybackSpeed, "0")
             End If
 
             If Position <> Nothing Then
-                query.append("&position=")
-                query.append(Position.TotalSeconds.ToString)
+                query.Add(Constants.StartPlaybackParameters.PlaybackPosition, Position.TotalSeconds.ToString)
             End If
 
             If BlackScreen Then
-                query.Append("&black_screen=1")
+                query.Add(Constants.StartPlaybackParameters.BlackScreen, "1")
             End If
 
             If HideOnScreenDisplay Then
-                query.Append("&hide_osd=1")
+                query.Add(Constants.StartPlaybackParameters.HideOnScreenDisplay, "1")
             End If
 
             If Repeat Then
-                query.Append("&action_on_finish=restart_playback")
+                query.Add(Constants.StartPlaybackParameters.ActionOnFinish, Constants.ActionOnFinishSettings.RestartPlayback)
             End If
 
-            If Timeout > 0 AndAlso Timeout <> 20 Then
-                query.Append("&timeout=")
-                query.Append(Timeout)
-            End If
-
-            Return query.ToString
-
+            Return query
         End Function
     End Class
 

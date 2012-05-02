@@ -25,7 +25,7 @@ Namespace Dune.ApiWrappers
 
         WriteOnly Property AudioTrackUpdate As Byte?
 
-        ReadOnly Property VideoFullscreen As Boolean?
+        Property VideoFullscreen As Boolean?
 
         WriteOnly Property VideoFullscreenUpdate As Boolean?
 

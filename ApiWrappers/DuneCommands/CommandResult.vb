@@ -2,6 +2,7 @@
 Imports System.Globalization
 Imports System.Net
 Imports System.Collections.Specialized
+Imports System.Threading.Tasks
 
 Namespace Dune.ApiWrappers
 
@@ -24,16 +25,16 @@ Namespace Dune.ApiWrappers
         Private _playbackDuration As TimeSpan?
         Private _playbackPosition As TimeSpan?
         Private _playbackIsBuffering As Boolean
-        Private _playbackVolume As Nullable(Of SByte)
+        Private _playbackVolume As Byte?
         Private _playbackMute As Boolean?
-        Private _audioTrack As Nullable(Of SByte)
+        Private _audioTrack As Byte?
         Private _videoFullscreen As Boolean?
-        Private _videoX As Short?
-        Private _videoY As Short?
-        Private _videoWidth As Short?
-        Private _videoHeight As Short?
-        Private _videoTotalDisplayWidth As Short?
-        Private _videoTotalDisplayHeight As Short?
+        Private _videoX As UShort?
+        Private _videoY As UShort?
+        Private _videoWidth As UShort?
+        Private _videoHeight As UShort?
+        Private _videoTotalDisplayWidth As UShort?
+        Private _videoTotalDisplayHeight As UShort?
         Private _videoEnabled As Boolean?
         Private _videoZoom As String
         Private _audioTracks As SortedDictionary(Of Byte, CultureInfo)
@@ -44,51 +45,109 @@ Namespace Dune.ApiWrappers
 
 #End Region
 
-        ''' <summary>Executes a command and processes the command results.</summary>
-        ''' <param name="command">The command that needs to be executed.</param>
-        ''' <exception cref="WebException">: An error occurred when trying to query the API.</exception>
-        Public Sub New(ByVal command As DuneCommand)
+        Private Sub New(ByVal command As DuneCommand)
             _command = command
-
             If Not command.CommandType = Constants.Commands.Status Then
                 command.Target.ClearStatus()
             End If
+        End Sub
+
+        ' ''' <summary>Executes a command and processes the command results.</summary>
+        ' ''' <param name="command">The command that needs to be executed.</param>
+        ' ''' <exception cref="WebException">: An error occurred when trying to query the API.</exception>
+        'Public Sub New(ByVal command As DuneCommand)
+        '    _command = command
+
+        '    If Not command.CommandType = Constants.Commands.Status Then
+        '        command.Target.ClearStatus()
+        '    End If
+
+        '    Try
+        '        Dim results As XDocument = GetResultsAsync(command)
+        '        'Dim results As XDocument = GetResults(command)
+        '        ParseResults(results)
+        '    Catch ex As WebException
+        '        command.Target.ConnectedUpdate = False
+        '    End Try
+        'End Sub
+
+        Public Shared Function FromCommand(ByVal command As DuneCommand) As CommandResult
+            Dim result As New CommandResult(command)
 
             Try
-                Dim results As XDocument = GetResults(command)
-                ParseResults(results)
+                Dim results As XDocument = result.GetResults(command)
+                result.ParseResults(results)
             Catch ex As WebException
                 command.Target.ConnectedUpdate = False
             End Try
-        End Sub
+
+            Return result
+        End Function
+
+        Public Shared Function FromCommandAsync(ByVal command As DuneCommand) As Task(Of CommandResult)
+            Dim result As New CommandResult(command)
+
+            Dim commandTask As Task(Of CommandResult) =
+                Task(Of CommandResult).Factory.StartNew(Function()
+                                                            Try
+                                                                result.ParseResults(result.GetResultsAsync(command).Result)
+                                                                Return result
+                                                            Catch ex As AggregateException
+                                                                command.Target.ConnectedUpdate = False
+                                                            End Try
+                                                            Return Nothing
+                                                        End Function)
+            
+
+            Return commandTask
+        End Function
 
         ''' <summary>
         ''' Gets the command results in xml format and measures the latency.
         ''' </summary>
-        <DebuggerStepThrough()>
         Private Function GetResults(ByVal command As DuneCommand) As XDocument
             Dim stopwatch As Stopwatch = stopwatch.StartNew
 
             Dim request As WebRequest = command.GetRequest
-                Dim response As WebResponse = request.GetResponse
 
-                stopwatch.Stop()
+            Dim response As WebResponse = request.GetResponse
 
-                _roundTripTime = stopwatch.Elapsed
+            stopwatch.Stop()
 
-                Return XDocument.Load(response.GetResponseStream)
+            _roundTripTime = stopwatch.Elapsed
+            Return XDocument.Load(response.GetResponseStream)
+        End Function
+
+        ''' <summary>
+        ''' Gets the command results in xml format asynchronously and measures the latency.
+        ''' </summary>
+        Private Function GetResultsAsync(ByVal command As DuneCommand) As Task(Of XDocument)
+            Dim stopwatch As New Stopwatch
+            Dim request As WebRequest = command.GetRequest
+
+            Dim queryTask As Task(Of XDocument) =
+                Task.Factory.StartNew(AddressOf stopwatch.Start) _
+                .ContinueWith(Of WebResponse)(Function() Task.Factory.FromAsync(AddressOf request.BeginGetResponse, AddressOf request.EndGetResponse, Nothing, Nothing).Result) _
+                .ContinueWith(Of XDocument)(Function(antecedent)
+                                                stopwatch.Stop()
+                                                _roundTripTime = stopwatch.Elapsed
+                                                Return XDocument.Load(antecedent.Result.GetResponseStream)
+                                            End Function)
+
+            Return queryTask
         End Function
 
         ''' <summary>
         ''' Parses the xml document.
         ''' </summary>
-        <DebuggerStepThrough()>
         Private Sub ParseResults(ByVal results As XDocument)
-            Dim parameters As XElement = results.FirstNode
+            Dim parameters As IEnumerable(Of XElement) = results.Elements.First.Elements
 
-            For Each parameter As XElement In parameters.DescendantNodes
-                ProcessParameter(parameter.FirstAttribute.Value, parameter.LastAttribute.Value)
+            For Each XElement In parameters
+                ProcessParameter(XElement.FirstAttribute.Value, XElement.LastAttribute.Value)
             Next
+
+            'Parallel.ForEach(parameters, Sub(parameter As XElement) ProcessParameter(parameter.FirstAttribute.Value, parameter.LastAttribute.Value))
         End Sub
 
         ''' <summary>
@@ -97,20 +156,21 @@ Namespace Dune.ApiWrappers
         Private Sub ProcessParameter(ByVal name As String, ByVal value As String)
             RawData.Add(name, value)
 
+            If value = "-1" Then Exit Sub ' because nullables are much more awesome.
+
             Select Case name
                 Case Constants.CommandResults.CommandStatus
                     _commandStatus = value
                 Case Constants.CommandResults.ProtocolVersion
-                    _protocolVersion = CInt(value)
+                    _protocolVersion = CByte(value)
                 Case Constants.CommandResults.PlayerState
                     _playerState = value
                 Case Constants.CommandResults.PlaybackSpeed
                     _playbackSpeed = CInt(value)
                 Case Constants.CommandResults.PlaybackDuration
-                    If value = "-1" Then Exit Select
+                    If value = "0" Then Exit Select
                     _playbackDuration = TimeSpan.FromSeconds(CInt(value))
                 Case Constants.CommandResults.PlaybackPosition
-                    If value = "-1" then Exit Select
                     _playbackPosition = TimeSpan.FromSeconds(CInt(value))
                 Case Constants.CommandResults.PlaybackIsBuffering
                     _playbackIsBuffering = value.Equals("1")
@@ -119,23 +179,22 @@ Namespace Dune.ApiWrappers
                 Case Constants.CommandResults.PlaybackMute
                     _playbackMute = value.Equals("1")
                 Case Constants.CommandResults.AudioTrack
-                    _audioTrack = CSByte(value)
+                    _audioTrack = CByte(value)
                 Case Constants.CommandResults.VideoFullscreen
                     _videoFullscreen = value.Equals("1")
                 Case Constants.CommandResults.VideoX
-                    _videoX = CShort(value)
+                    _videoX = CUShort(value)
                 Case Constants.CommandResults.VideoY
-                    _videoY = CShort(value)
+                    _videoY = CUShort(value)
                 Case Constants.CommandResults.VideoWidth
-                    _videoWidth = CShort(value)
+                    _videoWidth = CUShort(value)
                 Case Constants.CommandResults.VideoHeight
-                    _videoHeight = CShort(value)
+                    _videoHeight = CUShort(value)
                 Case Constants.CommandResults.VideoTotalDisplayWidth
-                    _videoTotalDisplayWidth = CShort(value)
+                    _videoTotalDisplayWidth = CUShort(value)
                 Case Constants.CommandResults.VideoTotalDisplayHeight
-                    _videoTotalDisplayHeight = CShort(value)
+                    _videoTotalDisplayHeight = CUShort(value)
                 Case Constants.CommandResults.VideoEnabled
-                    If value = "-1" Then Exit Select
                     _videoEnabled = value.Equals("1")
                 Case Constants.CommandResults.VideoZoom
                     _videoZoom = value
@@ -144,6 +203,7 @@ Namespace Dune.ApiWrappers
                 Case Constants.CommandResults.ErrorDescription
                     _errorDescription = value
                     _error = New CommandException(_errorKind, _errorDescription)
+                    _error.Source = _command.ToString
                 Case Constants.CommandResults.PlaybackDvdMenu
                     _playbackDvdMenu = value.Equals("1")
                 Case Else
@@ -153,6 +213,7 @@ Namespace Dune.ApiWrappers
                         Console.WriteLine("No parsing logic in place for {0} (value: {1})", name, value)
                     End If
             End Select
+
         End Sub
 
 #Region "Public properties"
@@ -203,7 +264,7 @@ Namespace Dune.ApiWrappers
         Public ReadOnly Property ProtocolVersion As Byte
             Get
                 If _protocolVersion = Nothing Then
-                    _protocolVersion = 0
+                    _protocolVersion = Byte.MaxValue
                 End If
                 Return _protocolVersion
             End Get
@@ -236,7 +297,7 @@ Namespace Dune.ApiWrappers
         ''' <summary>
         ''' Gets the playback duration.
         ''' </summary>
-        Public ReadOnly Property PlaybackDuration As TimeSpan
+        Public ReadOnly Property PlaybackDuration As TimeSpan?
             Get
                 If _playbackDuration = Nothing Then
                     _playbackDuration = TimeSpan.Zero
@@ -248,7 +309,7 @@ Namespace Dune.ApiWrappers
         ''' <summary>
         ''' Gets the playback position.
         ''' </summary>
-        Public ReadOnly Property PlaybackPosition As TimeSpan
+        Public ReadOnly Property PlaybackPosition As TimeSpan?
             Get
                 If _playbackPosition = Nothing Then
                     _playbackPosition = TimeSpan.Zero
@@ -274,7 +335,7 @@ Namespace Dune.ApiWrappers
         ''' </summary>
         Public ReadOnly Property PlaybackVolume As Byte?
             Get
-                If ProtocolVersion < 2 Then
+                If Command.Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 End If
                 Return _playbackVolume
@@ -286,7 +347,7 @@ Namespace Dune.ApiWrappers
         ''' </summary>
         Public ReadOnly Property PlaybackMute As Boolean?
             Get
-                If ProtocolVersion < 2 Then
+                If Command.Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 End If
                 Return _playbackMute
@@ -298,7 +359,7 @@ Namespace Dune.ApiWrappers
         ''' </summary>
         Public ReadOnly Property AudioTrack As Byte?
             Get
-                If ProtocolVersion < 2 Then
+                If Command.Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 ElseIf _audioTrack = -1 Then
                     _audioTrack = Nothing
@@ -312,7 +373,7 @@ Namespace Dune.ApiWrappers
         ''' </summary>
         Public ReadOnly Property VideoFullscreen As Boolean?
             Get
-                If ProtocolVersion < 2 Then
+                If Command.Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 End If
                 Return _videoFullscreen
@@ -322,9 +383,9 @@ Namespace Dune.ApiWrappers
         ''' <summary>
         ''' Gets the horizontal position of the video output.
         ''' </summary>
-        Public ReadOnly Property VideoX As Short?
+        Public ReadOnly Property VideoX As UShort?
             Get
-                If ProtocolVersion < 2 Then
+                If Command.Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 ElseIf _videoX = -1 Then
                     _videoX = Nothing
@@ -336,9 +397,9 @@ Namespace Dune.ApiWrappers
         ''' <summary>
         ''' Gets the vertical position of the video output.
         ''' </summary>
-        Public ReadOnly Property VideoY As Short?
+        Public ReadOnly Property VideoY As UShort?
             Get
-                If ProtocolVersion < 2 Then
+                If Command.Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 ElseIf _videoY = -1 Then
                     _videoY = Nothing
@@ -350,9 +411,9 @@ Namespace Dune.ApiWrappers
         ''' <summary>
         ''' Gets the width of the video output.
         ''' </summary>
-        Public ReadOnly Property VideoWidth As Short?
+        Public ReadOnly Property VideoWidth As UShort?
             Get
-                If ProtocolVersion < 2 Then
+                If Command.Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 ElseIf _videoWidth = -1 Then
                     _videoWidth = Nothing
@@ -364,9 +425,9 @@ Namespace Dune.ApiWrappers
         ''' <summary>
         ''' Gets the height of the video output.
         ''' </summary>
-        Public ReadOnly Property VideoHeight As Short?
+        Public ReadOnly Property VideoHeight As UShort?
             Get
-                If ProtocolVersion < 2 Then
+                If Command.Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 ElseIf _videoHeight = -1 Then
                     _videoHeight = Nothing
@@ -378,9 +439,9 @@ Namespace Dune.ApiWrappers
         ''' <summary>
         ''' Gets the total width of the display.
         ''' </summary>
-        Public ReadOnly Property VideoTotalDisplayWidth As Short?
+        Public ReadOnly Property VideoTotalDisplayWidth As UShort?
             Get
-                If ProtocolVersion < 2 Then
+                If Command.Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 ElseIf _videoTotalDisplayWidth = -1 Then
                     _videoTotalDisplayWidth = Nothing
@@ -392,9 +453,9 @@ Namespace Dune.ApiWrappers
         ''' <summary>
         ''' Gets the height of the display.
         ''' </summary>
-        Public ReadOnly Property VideoTotalDisplayHeight As Short?
+        Public ReadOnly Property VideoTotalDisplayHeight As UShort?
             Get
-                If ProtocolVersion < 2 Then
+                If Command.Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 ElseIf _videoTotalDisplayHeight = -1 Then
                     _videoTotalDisplayHeight = Nothing
@@ -408,7 +469,7 @@ Namespace Dune.ApiWrappers
         ''' </summary>
         Public ReadOnly Property VideoEnabled As Boolean?
             Get
-                If ProtocolVersion < 2 Then
+                If Command.Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 End If
                 Return _videoEnabled
@@ -420,7 +481,7 @@ Namespace Dune.ApiWrappers
         ''' </summary>
         Public ReadOnly Property VideoZoom As String
             Get
-                If ProtocolVersion < 2 Then
+                If Command.Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 End If
                 Return _videoZoom
@@ -432,7 +493,7 @@ Namespace Dune.ApiWrappers
         ''' </summary>
         Public ReadOnly Property AudioTracks As SortedDictionary(Of Byte, CultureInfo)
             Get
-                If ProtocolVersion < 2 Then
+                If Command.Target.ProtocolVersion < 2 Then
                     Throw New NotSupportedException(NotSupportedMessage)
                 End If
                 If _audioTracks Is Nothing Then
@@ -468,13 +529,13 @@ Namespace Dune.ApiWrappers
         ''' Adds audio track info to the collection.
         ''' </summary>
         Private Sub AddAudioTrackInfo(ByVal name As String, ByVal value As String)
-            Dim delimiter As Char = "."
+            Dim delimiter As Char = Convert.ToChar(46) ' 46 = period
 
             ' get the track number (0...N)
             Dim key As Byte = CByte(name.Split(delimiter).GetValue(1))
 
             ' get the three-letter language code
-            Dim languageCode As String = name.Split(delimiter).GetValue(2)
+            Dim languageCode As String = value
 
             ' get the corresponding CultureInfo object
             Dim language As CultureInfo = GetCultureInfo(languageCode)

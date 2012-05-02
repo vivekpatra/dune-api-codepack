@@ -10,269 +10,241 @@ Namespace Dune.ApiWrappers
         Function Push(ByVal button As Button) As CommandResult
 
         ''' <summary>
+        ''' Enumeration of remote types.
+        ''' </summary>
+        ''' <remarks></remarks>
+        Enum RemoteType As Integer
+            Old = &HBE01
+            [New] = &HBF
+        End Enum
+
+        ''' <summary>
         ''' Enumeration of supported buttons.
         ''' </summary>
         Enum Button
 
+            None = 0
+
 #Region "First row"
 
             <Description("Eject")>
-            <InfraredCode("EF10")>
-                Eject
+                Eject = &H10EF
 
             <Description("Mute")>
-            <InfraredCode("B946")>
-                Mute
+                Mute = &H46B9
 
             <Description("Mode")>
-            <InfraredCode("BA45")>
-                Mode
+                Mode = &H45BA
 
             <Description("Power")>
-            <InfraredCode("BC43")>
-                Power
+                Power = &H43BC
 
 #End Region ' First row
 
 #Region "Second row"
 
             <Description("A (red)")>
-            <InfraredCode("BF40")>
-                Red
+                Red = &H40BF
 
             <Description("B (green)")>
-            <InfraredCode("E01F")>
-                Green
+                Green = &H1FE0
 
             <Description("C (yellow)")>
-            <InfraredCode("FF00")>
-                Yellow
+                Yellow = &HFF
 
             <Description("D (blue)")>
-            <InfraredCode("BE41")>
-                Blue
+                Blue = &H41BE
 
 #End Region ' Second row
 
 #Region "Third row"
 
             <Description("1 (.:/)")>
-            <InfraredCode("F40B")>
-                Num1
+                Num1 = &HBF4
 
             <Description("2 (abc)")>
-            <InfraredCode("F30C")>
-                Num2
+                Num2 = &HCF3
 
             <Description("3 (def)")>
-            <InfraredCode("F20D")>
-                Num3
+                Num3 = &HDF2
 
 #End Region ' Third row
 
 #Region "Fourth row"
 
             <Description("4 (ghi)")>
-            <InfraredCode("F10E")>
-                Num4
+                Num4 = &HEF1
 
             <Description("5 (jkl)")>
-            <InfraredCode("F00F")>
-                Num5
+                Num5 = &HFF0
 
             <Description("6 (mno)")>
-            <InfraredCode("FE01")>
-                Num6
+                Num6 = &H1FE
 
 #End Region ' Fourth row
 
 #Region "Fifth row"
 
             <Description("7 (pqrs)")>
-            <InfraredCode("EE11")>
-                Num7
+                Num7 = &H11EE
 
             <Description("8 (tuv)")>
-            <InfraredCode("ED12")>
-                Num8
+                Num8 = &H12ED
 
             <Description("9 (wxyz)")>
-            <InfraredCode("EC13")>
-                Num9
+                Num9 = &H13EC
 
 #End Region ' Fifth row
 
 #Region "Sixth row"
 
             <Description("Clear")>
-            <InfraredCode("FA05")>
-                Clear
+                Clear = &H5FA
 
             <Description("0 (␣)")>
-            <InfraredCode("F50A")>
-                Num0
+                Num0 = &HAF5
 
             <Description("Select (cap/num)")>
-            <InfraredCode("BD42")>
-                [Select]
+                [Select] = &H42BD
 
 #End Region ' Sixth row
 
 #Region "Seventh row"
 
             <Description("Volume up")>
-            <InfraredCode("AD52")>
-                VolumeUp
+                VolumeUp = &H52AD
 
             <Description("Search (?)")>
-            <InfraredCode("F906")>
-                Search
+                Search = &H6F9
 
             <Description("Zoom")>
-            <InfraredCode("FD02")>
-                Zoom
+                Zoom = &H2FD
 
             <Description("Page up")>
-            <InfraredCode("B44B")>
-                PageUp
+                PageUp = &H4BB4
 
 #End Region ' Seventh row
 
 #Region "Eighth row"
 
             <Description("Volume down")>
-            <InfraredCode("AC53")>
-               VolumeDown
+               VolumeDown = &H53AC
 
             <Description("Setup")>
-            <InfraredCode("BE41")>
-                Setup
+                Setup = &H4EB1
 
             <Description("Page down")>
-            <InfraredCode("B34C")>
-                PageDown
+                PageDown = &H4CB3
 
 #End Region ' Eighth row
 
 #Region "Ninth row"
 
             <Description("Info")>
-            <InfraredCode("AF50")>
-               Info
+               Info = &H50AF
 
             <Description("Up arrow")>
-            <InfraredCode("EA15")>
-                UpArrow
+                UpArrow = &H15EA
 
             <Description("Pop up menu")>
-            <InfraredCode("F807")>
-                PopUpMenu
+                PopUpMenu = &H7F8
 
 #End Region ' Ninth row
 
 #Region "Tenth row"
 
             <Description("Left arrow")>
-            <InfraredCode("E817")>
-               LeftArrow
+               LeftArrow = &H17E8
 
             <Description("Enter")>
-            <InfraredCode("EB14")>
-                Enter
+                Enter = &H14EB
 
             <Description("Right arrow")>
-            <InfraredCode("E718")>
-                RightArrow
+                RightArrow = &H18E7
 
 #End Region ' Tenth row
 
 #Region "Eleventh row"
 
             <Description("Return")>
-            <InfraredCode("FB04")>
-               [Return]
+               [Return] = &H4FB
 
             <Description("Down arrow")>
-            <InfraredCode("E916")>
-                DownArrow
+                DownArrow = &H16E9
 
             <Description("Top menu")>
-            <InfraredCode("AE51")>
-                TopMenu
+                TopMenu = &H51AE
 
 #End Region ' Eleventh row
 
 #Region "Twelfth row"
 
             <Description("Play")>
-            <InfraredCode("B748")>
-                Play
+                Play = &H48B7
 
             <Description("Pause")>
-            <InfraredCode("E11E")>
-                Pause
+                Pause = &H1EE1
 
             <Description("Previous")>
-            <InfraredCode("B649")>
-                Previous
+                Previous = &H49B6
 
             <Description("Next")>
-            <InfraredCode("E21D")>
-                [Next]
+                [Next] = &H1DE2
 
 #End Region ' Twelfth row
 
 #Region "Thirteenth row"
 
             <Description("Stop")>
-            <InfraredCode("E619")>
-                [Stop]
+                [Stop] = &H19E6
 
             <Description("Slow")>
-            <InfraredCode("E51A")>
-                Slow
+                Slow = &H1AE5
 
             <Description("Rewind")>
-            <InfraredCode("E31C")>
-                Rewind
+                Rewind = &H1CE3
 
             <Description("Forward")>
-            <InfraredCode("E41B")>
-                Forward
+                Forward = &H1BE4
 
 #End Region ' Thirteenth row
 
 #Region "Fourteenth row"
 
             <Description("Subtitle")>
-            <InfraredCode("AB54")>
-                Subtitle
+                Subtitle = &H54AB
 
             <Description("Angle/Rotate")>
-            <InfraredCode("B24D")>
-                AngleRotate
+                AngleRotate = &H4DB2
 
             <Description("Audio")>
-            <InfraredCode("BB44")>
-                Audio
+                Audio = &H44BB
 
 #End Region ' Fourteenth row
 
 #Region "Fifteenth row"
 
             <Description("Repeat/Record")>
-            <InfraredCode("B04F")>
-                RepeatRecord
+                RepeatRecord = &H4FB0
 
             <Description("Shuffle/PIP")>
-            <InfraredCode("B847")>
-                ShufflePip
+                ShufflePip = &H47B8
 
             <Description("URL/2nd audio")>
-            <InfraredCode("FC03")>
-                UrlSecondAudio
+                UrlSecondAudio = &H3FC
 
 #End Region ' Fifteenth row
+
+            DiscretePowerOn = &H5FA0
+
+            DiscretePowerOff = &H5EA1
+
+            ' Big V2 Only
+            REC = &H609F ' Acts like Rec/Repeat and Mode buttons
+
+            DUNE = &H619E
+
+            URL = &H629D
 
         End Enum
 

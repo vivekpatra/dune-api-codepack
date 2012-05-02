@@ -22,7 +22,8 @@
     <DefineTrace>true</DefineTrace>
     <OutputPath>bin\Debug\</OutputPath>
     <DocumentationFile>DuneAPICodePack.xml</DocumentationFile>
-    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <NoWarn>
+    </NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,7 +32,8 @@
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DocumentationFile>DuneAPICodePack.xml</DocumentationFile>
-    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <NoWarn>
+    </NoWarn>
   </PropertyGroup>
   <PropertyGroup>
     <OptionExplicit>On</OptionExplicit>
@@ -50,6 +52,7 @@
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -77,17 +80,17 @@
     <Compile Include="ApiWrappers\DuneCommands\SetPlayerStateCommand.vb" />
     <Compile Include="ApiWrappers\DuneCommands\SetVideoOutputCommand.vb" />
     <Compile Include="ApiWrappers\FirmwareInfo.vb" />
-    <Compile Include="ApiWrappers\InfraredCodeAttribute.vb" />
-    <Compile Include="ApiWrappers\Interfaces\IRemoteControl.vb" />
+    <Compile Include="NativeMethods\Interfaces\IRemoteControl.vb" />
     <Compile Include="Constants.vb" />
     <Compile Include="HttpHeader\HttpHeader.vb" />
     <Compile Include="ApiWrappers\PlaybackSpeed.vb" />
     <Compile Include="ApiWrappers\PlaybackType.vb" />
-    <Compile Include="ApiWrappers\Interfaces\IProtocolVersion1.vb" />
-    <Compile Include="ApiWrappers\Interfaces\IProtocolVersion2.vb" />
+    <Compile Include="NativeMethods\Interfaces\IProtocolVersion1.vb" />
+    <Compile Include="NativeMethods\Interfaces\IProtocolVersion2.vb" />
     <Compile Include="ApiWrappers\DuneCommands\StartPlaybackCommand.vb" />
     <Compile Include="ApiWrappers\RemoteControl.vb" />
     <Compile Include="ApiWrappers\Zoom.vb" />
+    <Compile Include="Extensions\IPAddressExtensions.vb" />
     <Compile Include="NativeMethods\NetworkShares.vb" />
     <Compile Include="ApiWrappers\UrlConverter.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
@@ -108,6 +111,8 @@
     <Compile Include="NativeMethods\NativeMethods.vb" />
     <Compile Include="NativeMethods\NetworkDriveInfo.vb" />
     <Compile Include="Dune.vb" />
+    <Compile Include="NetworkAdapterInfo.vb" />
+    <Compile Include="NetworkCardVendor.vb" />
     <Compile Include="Playlist.vb" />
   </ItemGroup>
   <ItemGroup>

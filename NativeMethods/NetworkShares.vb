@@ -28,4 +28,14 @@ Public Class NetworkShares
             Return _shares
         End Get
     End Property
+
+    Public Overrides Function ToString() As String
+        Dim text As New Text.StringBuilder
+
+        For Each drive As NetworkDriveInfo In Shares
+            text.AppendLine(drive.Root.Name)
+        Next
+
+        Return text.ToString
+    End Function
 End Class

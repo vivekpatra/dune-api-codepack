@@ -1,4 +1,5 @@
 ﻿Imports System.Text
+Imports System.Collections.Specialized
 
 Namespace Dune.ApiWrappers
 
@@ -9,7 +10,7 @@ Namespace Dune.ApiWrappers
         Private Const NotSupportedMessage As String = "This command requires a firmware update."
 
         Private _zoom As Zoom?
-
+        Private _fullscreen As Boolean?
         Private _videoX As UShort?
         Private _videoY As UShort?
         Private _videoWidth As UShort?
@@ -17,38 +18,48 @@ Namespace Dune.ApiWrappers
 
         ''' <param name="dune">The target device.</param>
         ''' <param name="zoom">The requested zoom setting.</param>
-        Public Sub New(ByRef dune As Dune, ByVal zoom As Zoom)
-            MyBase.New(dune)
-            If dune.ProtocolVersion < 2 Then
-                Throw New NotSupportedException(NotSupportedMessage)
-            End If
-            CommandType = Constants.Commands.SetPlaybackState
-            _zoom = zoom
-        End Sub
-
-        ''' <param name="dune">The target device.</param>
         ''' <param name="videoX">The requested horizontal position.</param>
         ''' <param name="videoY">The requested vertical position.</param>
         ''' <param name="videoWidth">The requested width.</param>
         ''' <param name="videoHeight">The requested height.</param>
         ''' <remarks></remarks>
-        Public Sub New(ByRef dune As Dune, ByVal videoX As UShort?, ByVal videoY As UShort?, ByVal videoWidth As UShort?, ByVal videoHeight As UShort?)
+        Public Sub New(ByRef dune As Dune, ByVal zoom As Zoom?, ByVal videoX As UShort?, ByVal videoY As UShort?, ByVal videoWidth As UShort?, ByVal videoHeight As UShort?)
             MyBase.New(dune)
             If dune.ProtocolVersion < 2 Then
                 Throw New NotSupportedException(NotSupportedMessage)
             End If
-            _videoX = videoX
-            _videoY = videoY
-            _videoWidth = videoWidth
-            _videoHeight = videoHeight
+
+            _zoom = zoom
+
+            _videoX = CUShort(IIf(videoX.HasValue, videoX, 0))
+            _videoY = CUShort(IIf(videoY.HasValue, videoY, 0))
+            _videoWidth = CUShort(IIf(videoWidth.HasValue, videoWidth, dune.VideoTotalDisplayWidth))
+            _videoHeight = CUShort(IIf(videoHeight.HasValue, videoHeight, dune.VideoTotalDisplayHeight))
+        End Sub
+
+        Public Sub New(ByVal dune As Dune, ByVal fullscreen As Boolean)
+            Me.New(dune, Nothing, dune.VideoX, dune.VideoY, dune.VideoWidth, dune.VideoHeight)
+            _fullscreen = fullscreen
         End Sub
 
         ''' <summary>
-        ''' Gets the requested zoom.
+        ''' Gets or sets the requested zoom.
         ''' </summary>
-        Public ReadOnly Property Zoom As Nullable(Of Zoom)
+        Public Property Zoom As Zoom?
             Get
                 Return _zoom
+            End Get
+            Set(value As Zoom?)
+                _zoom = value
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets whether to set the video output to fullscreen.
+        ''' </summary>
+        Public ReadOnly Property VideoFullscreen As Boolean?
+            Get
+                Return _fullscreen
             End Get
         End Property
 
@@ -88,40 +99,27 @@ Namespace Dune.ApiWrappers
             End Get
         End Property
 
-        Public Overrides Function GetQueryString() As String
-            Dim query As New StringBuilder
+        Protected Overrides Function GetQuery() As NameValueCollection
 
-            query.Append("cmd=")
-            query.Append(CommandType)
+            Dim query As New NameValueCollection
 
-            If Zoom.HasValue Then
-                query.Append("&video_zoom=")
-                query.Append(Zoom.ToString())
+            query.Add("cmd", Constants.Commands.SetPlaybackState)
+
+            If _fullscreen.HasValue AndAlso _fullscreen.Value = True Then
+                query.Add(Constants.SetPlaybackStateParameters.VideoFullscreen, "1")
             Else
-                query.Append("&fullscreen=0")
-
-                If VideoX.HasValue Then
-                    query.Append("&video_x=")
-                    query.Append(VideoX.ToString)
-                End If
-
-                If VideoY.HasValue Then
-                    query.Append("&video_y=")
-                    query.Append(VideoY.ToString)
-                End If
-
-                If VideoWidth.HasValue Then
-                    query.Append("&video_width=")
-                    query.Append(VideoWidth.ToString)
-                End If
-
-                If VideoHeight.HasValue Then
-                    query.Append("&video_height=")
-                    query.Append(VideoHeight.ToString)
-                End If
+                query.Add(Constants.SetPlaybackStateParameters.VideoFullscreen, "0")
+                query.Add(Constants.SetPlaybackStateParameters.VideoHorizontalPosition, VideoX.Value.ToString)
+                query.Add(Constants.SetPlaybackStateParameters.VideoVerticalPosition, VideoY.Value.ToString)
+                query.Add(Constants.SetPlaybackStateParameters.VideoWidth, VideoWidth.Value.ToString)
+                query.Add(Constants.SetPlaybackStateParameters.VideoHeight, VideoHeight.Value.ToString)
             End If
 
-            Return query.ToString()
+            If Zoom.HasValue Then
+                query.Add(Constants.SetPlaybackStateParameters.VideoZoom, Zoom.ToString)
+            End If
+
+            Return query
         End Function
     End Class
 

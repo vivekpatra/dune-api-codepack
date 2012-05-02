@@ -1,4 +1,6 @@
-﻿Namespace Dune.ApiWrappers
+﻿Imports System.Collections.Specialized
+
+Namespace Dune.ApiWrappers
 
     ''' <summary>
     ''' This command gets the player status without changing the player state in any way.
@@ -6,14 +8,19 @@
     Public Class GetStatusCommand
         Inherits DuneCommand
 
+
         Public Sub New(ByRef dune As Dune)
             MyBase.New(dune)
-            CommandType = Constants.Commands.Status
         End Sub
 
-        Public Overrides Function GetQueryString() As String
-            Return New String("cmd=" + CommandType)
+        Protected Overrides Function GetQuery() As NameValueCollection
+            Dim query As New NameValueCollection
+
+            query.Add("cmd", Constants.Commands.Status)
+
+            Return query
         End Function
+
     End Class
 
 End Namespace

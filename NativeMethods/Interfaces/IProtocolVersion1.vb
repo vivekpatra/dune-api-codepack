@@ -31,13 +31,13 @@
 
         WriteOnly Property PlaybackSpeedUpdate As Integer
 
-        ReadOnly Property PlaybackDuration As TimeSpan
+        ReadOnly Property PlaybackDuration As TimeSpan?
 
-        WriteOnly Property PlaybackDurationUpdate As TimeSpan
+        WriteOnly Property PlaybackDurationUpdate As TimeSpan?
 
-        Property PlaybackPosition As TimeSpan
+        Property PlaybackPosition As TimeSpan?
 
-        WriteOnly Property PlaybackPositionUpdate As TimeSpan
+        WriteOnly Property PlaybackPositionUpdate As TimeSpan?
 
         ReadOnly Property PlaybackIsBuffering As Boolean
 

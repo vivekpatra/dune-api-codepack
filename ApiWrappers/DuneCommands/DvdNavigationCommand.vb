@@ -1,4 +1,5 @@
 ﻿Imports System.Text
+Imports System.Collections.Specialized
 
 Namespace Dune.ApiWrappers
 
@@ -11,7 +12,6 @@ Namespace Dune.ApiWrappers
 
         Public Sub New(ByRef dune As Dune, ByVal action As MenuAction)
             MyBase.New(dune)
-            CommandType = Constants.Commands.DvdNavigation
             _action = action
         End Sub
 
@@ -24,31 +24,6 @@ Namespace Dune.ApiWrappers
             End Get
         End Property
 
-        Public Overrides Function GetQueryString() As String
-            Dim query As New StringBuilder
-
-            query.Append("cmd=")
-            query.Append(CommandType)
-
-            query.Append("&action=")
-
-            Select Case Action
-                Case MenuAction.Left
-                    query.Append(Constants.DvdNavigationActions.Left)
-                Case MenuAction.Right
-                    query.Append(Constants.DvdNavigationActions.Right)
-                Case MenuAction.Up
-                    query.Append(Constants.DvdNavigationActions.Up)
-                Case MenuAction.Down
-                    query.Append(Constants.DvdNavigationActions.Down)
-                Case MenuAction.Enter
-                    query.Append(Constants.DvdNavigationActions.Enter)
-            End Select
-
-            Return query.ToString
-
-        End Function
-
         ''' <summary>
         ''' Enumeration of supported actions.
         ''' </summary>
@@ -59,6 +34,27 @@ Namespace Dune.ApiWrappers
             Down = 3
             Enter = 4
         End Enum
+
+        Protected Overrides Function GetQuery() As NameValueCollection
+            Dim query As New NameValueCollection
+
+            query.Add("cmd", Constants.Commands.DvdNavigation)
+
+            Select Case Action
+                Case MenuAction.Left
+                    query.Add("action", Constants.DvdNavigationActions.Left)
+                Case MenuAction.Right
+                    query.Add("action", Constants.DvdNavigationActions.Right)
+                Case MenuAction.Up
+                    query.Add("action", Constants.DvdNavigationActions.Up)
+                Case MenuAction.Down
+                    query.Add("action", Constants.DvdNavigationActions.Down)
+                Case MenuAction.Enter
+                    query.Add("action", Constants.DvdNavigationActions.Enter)
+            End Select
+
+            Return query
+        End Function
     End Class
 
 End Namespace
