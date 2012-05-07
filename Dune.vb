@@ -629,10 +629,22 @@ Namespace Dune
         ''' <summary>
         ''' Gets the player state.
         ''' </summary>
-        Public ReadOnly Property PlayerState As String Implements IProtocolVersion1.PlayerState
+        Public Property PlayerState As String Implements IProtocolVersion1.PlayerState
             Get
                 Return _playerState
             End Get
+            Set(value As String)
+                Dim command As New SetPlayerStateCommand(Me, value)
+                command.Timeout = Timeout
+
+                Dim processTask As Task = ProcessCommandAsync(command)
+
+                Try
+                    processTask.Wait()
+                Catch ex As AggregateException
+                    Throw ex.InnerException
+                End Try
+            End Set
         End Property
 
         ''' <summary>
@@ -640,11 +652,8 @@ Namespace Dune
         ''' </summary>
         Private WriteOnly Property PlayerStateUpdate As String Implements IProtocolVersion1.PlayerStateUpdate
             Set(value As String)
-                Dim displayText As String
-                displayText = value.Replace("_", Space(1))
-
-                If PlayerState <> displayText Then
-                    _playerState = displayText
+                If PlayerState <> value Then
+                    _playerState = value
                     RaisePropertyChanged("PlayerState")
                 End If
             End Set
@@ -881,6 +890,29 @@ Namespace Dune
             Return ProcessCommandAsync(command)
         End Function
 
+        Public Function GoToPreviousKeyframe() As CommandResult
+            Dim command As New SetKeyframeCommand(Me, SetKeyframeCommand.Keyframe.Previous)
+            command.Timeout = Timeout
+            Return ProcessCommand(command)
+        End Function
+
+        Public Function GoToPreviousKeyframeAsync() As Task(Of CommandResult)
+            Dim command As New SetKeyframeCommand(Me, SetKeyframeCommand.Keyframe.Previous)
+            command.Timeout = Timeout
+            Return ProcessCommandAsync(command)
+        End Function
+
+        Public Function GoToNextKeyframe() As CommandResult
+            Dim command As New SetKeyframeCommand(Me, SetKeyframeCommand.Keyframe.Next)
+            command.Timeout = Timeout
+            Return ProcessCommand(command)
+        End Function
+
+        Public Function GoToNextKeyframeAsync() As Task(Of CommandResult)
+            Dim command As New SetKeyframeCommand(Me, SetKeyframeCommand.Keyframe.Next)
+            command.Timeout = Timeout
+            Return ProcessCommandAsync(command)
+        End Function
 #End Region ' Methods v1
 
 #Region "Properties v2"
@@ -1063,6 +1095,9 @@ Namespace Dune
         ''' </summary>
         Public Property VideoHeight As UShort? Implements IProtocolVersion2.VideoHeight
             Get
+                If Not _videoHeight.HasValue Then
+                    _videoHeight = VideoTotalDisplayHeight
+                End If
                 Return _videoHeight
             End Get
             Set(value As UShort?)
@@ -1150,6 +1185,9 @@ Namespace Dune
         ''' </summary>
         Public Property VideoWidth As UShort? Implements IProtocolVersion2.VideoWidth
             Get
+                If Not _videoWidth.HasValue Then
+                    _videoWidth = VideoTotalDisplayWidth
+                End If
                 Return _videoWidth
             End Get
             Set(value As UShort?)
@@ -1195,6 +1233,9 @@ Namespace Dune
         ''' </summary>
         Public Property VideoX As UShort? Implements IProtocolVersion2.VideoX
             Get
+                If Not _videoX.HasValue Then
+                    _videoX = 0
+                End If
                 Return _videoX
             End Get
             Set(value As UShort?)
@@ -1239,6 +1280,9 @@ Namespace Dune
         ''' </summary>
         Public Property VideoY As UShort? Implements IProtocolVersion2.VideoY
             Get
+                If Not _videoY.HasValue Then
+                    _videoY = 0
+                End If
                 Return _videoY
             End Get
             Set(value As UShort?)
@@ -1301,9 +1345,7 @@ Namespace Dune
                     command.Volume = value
                     command.Timeout = Timeout
 
-
                     Dim processTask As Task = ProcessCommandAsync(command)
-
                     Try
                         processTask.Wait()
                     Catch ex As AggregateException
@@ -1313,6 +1355,7 @@ Namespace Dune
                 End If
             End Set
         End Property
+
 
         ''' <summary>
         ''' Sets the playback volume.

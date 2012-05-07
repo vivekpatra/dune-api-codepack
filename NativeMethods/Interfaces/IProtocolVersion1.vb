@@ -23,7 +23,7 @@
 
         WriteOnly Property ProtocolVersionUpdate As Byte
 
-        ReadOnly Property PlayerState As String
+        Property PlayerState As String
 
         WriteOnly Property PlayerStateUpdate As String
 

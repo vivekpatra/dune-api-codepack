@@ -42,6 +42,7 @@ Namespace Dune.ApiWrappers
             Dim query As New NameValueCollection
 
             query.Add("cmd", Constants.Commands.SetPlaybackState)
+            query.Add(Constants.SetPlaybackStateParameters.PlaybackSpeed, Constants.PlaybackSpeedSettings.Pause.ToString)
             query.Add(Constants.SetPlaybackStateParameters.SetKeyframe, CInt(Action).ToString)
 
             Return query
