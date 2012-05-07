@@ -9,7 +9,7 @@ Namespace Dune.ApiWrappers
 
         Private Const NotSupportedMessage As String = "This command requires a firmware update."
 
-        Private _zoom As Zoom?
+        Private _zoom As String
         Private _fullscreen As Boolean?
         Private _videoX As UShort?
         Private _videoY As UShort?
@@ -23,7 +23,7 @@ Namespace Dune.ApiWrappers
         ''' <param name="videoWidth">The requested width.</param>
         ''' <param name="videoHeight">The requested height.</param>
         ''' <remarks></remarks>
-        Public Sub New(ByRef dune As Dune, ByVal zoom As Zoom?, ByVal videoX As UShort?, ByVal videoY As UShort?, ByVal videoWidth As UShort?, ByVal videoHeight As UShort?)
+        Public Sub New(ByRef dune As Dune, ByVal zoom As String, ByVal videoX As UShort?, ByVal videoY As UShort?, ByVal videoWidth As UShort?, ByVal videoHeight As UShort?)
             MyBase.New(dune)
             If dune.ProtocolVersion < 2 Then
                 Throw New NotSupportedException(NotSupportedMessage)
@@ -45,11 +45,11 @@ Namespace Dune.ApiWrappers
         ''' <summary>
         ''' Gets or sets the requested zoom.
         ''' </summary>
-        Public Property Zoom As Zoom?
+        Public Property Zoom As String
             Get
                 Return _zoom
             End Get
-            Set(value As Zoom?)
+            Set(value As String)
                 _zoom = value
             End Set
         End Property
@@ -115,7 +115,7 @@ Namespace Dune.ApiWrappers
                 query.Add(Constants.SetPlaybackStateParameters.VideoHeight, VideoHeight.Value.ToString)
             End If
 
-            If Zoom.HasValue Then
+            If Zoom <> String.Empty Then
                 query.Add(Constants.SetPlaybackStateParameters.VideoZoom, Zoom.ToString)
             End If
 

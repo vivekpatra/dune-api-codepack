@@ -40,7 +40,7 @@ Namespace Dune.ApiWrappers
         Private _audioTracks As SortedDictionary(Of Byte, CultureInfo)
         Private _errorKind As String
         Private _errorDescription As String
-        Private _error As CommandException
+        Private _commandError As CommandException
         Private _playbackDvdMenu As Boolean
 
 #End Region
@@ -52,25 +52,9 @@ Namespace Dune.ApiWrappers
             End If
         End Sub
 
-        ' ''' <summary>Executes a command and processes the command results.</summary>
-        ' ''' <param name="command">The command that needs to be executed.</param>
-        ' ''' <exception cref="WebException">: An error occurred when trying to query the API.</exception>
-        'Public Sub New(ByVal command As DuneCommand)
-        '    _command = command
-
-        '    If Not command.CommandType = Constants.Commands.Status Then
-        '        command.Target.ClearStatus()
-        '    End If
-
-        '    Try
-        '        Dim results As XDocument = GetResultsAsync(command)
-        '        'Dim results As XDocument = GetResults(command)
-        '        ParseResults(results)
-        '    Catch ex As WebException
-        '        command.Target.ConnectedUpdate = False
-        '    End Try
-        'End Sub
-
+        ''' <summary>Executes a command and processes the command results.</summary>
+        ''' <param name="command">The command that needs to be executed.</param>
+        ''' <exception cref="WebException">: An error occurred when trying to query the API.</exception>
         Public Shared Function FromCommand(ByVal command As DuneCommand) As CommandResult
             Dim result As New CommandResult(command)
 
@@ -84,6 +68,9 @@ Namespace Dune.ApiWrappers
             Return result
         End Function
 
+        ''' <summary>Executes a command and processes the command results asynchronously.</summary>
+        ''' <param name="command">The command that needs to be executed.</param>
+        ''' <exception cref="WebException">: An error occurred when trying to query the API.</exception>
         Public Shared Function FromCommandAsync(ByVal command As DuneCommand) As Task(Of CommandResult)
             Dim result As New CommandResult(command)
 
@@ -97,7 +84,7 @@ Namespace Dune.ApiWrappers
                                                             End Try
                                                             Return Nothing
                                                         End Function)
-            
+
 
             Return commandTask
         End Function
@@ -202,8 +189,8 @@ Namespace Dune.ApiWrappers
                     _errorKind = value
                 Case Constants.CommandResults.ErrorDescription
                     _errorDescription = value
-                    _error = New CommandException(_errorKind, _errorDescription)
-                    _error.Source = _command.ToString
+                    _commandError = New CommandException(_errorKind, _errorDescription)
+                    _commandError.Source = _command.ToString
                 Case Constants.CommandResults.PlaybackDvdMenu
                     _playbackDvdMenu = value.Equals("1")
                 Case Else
@@ -506,9 +493,9 @@ Namespace Dune.ApiWrappers
         ''' <summary>
         ''' Gets the command error, if any.
         ''' </summary>
-        Public ReadOnly Property [Error] As CommandException
+        Public ReadOnly Property CommandError As CommandException
             Get
-                Return _error
+                Return _commandError
             End Get
         End Property
 

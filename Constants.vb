@@ -196,6 +196,9 @@
         Public Const Loading As String = "loading"
         Public Const SafeMode As String = "safe_mode"
         Public Const PhotoViewer As String = "photo_viewer"
+        Public Const Upgrade As String = "upgrade"
+        Public Const BlackScreen As String = "black_screen"
+        Public Const TorrentDownloads As String = "torrent_downloads"
     End Class
 
     ''' <summary>
@@ -308,6 +311,37 @@
         Public Const Up As String = "up"
         Public Const Down As String = "down"
         Public Const Enter As String = "enter"
+    End Class
+
+    ''' <summary>
+    ''' Contains constants for each possible interface language.
+    ''' It might be a good idea to localize your app in each of these.
+    ''' </summary>
+    Friend Class InterfaceLanguages
+        Private Sub New()
+        End Sub
+
+        Public Const English As String = "english"
+        Public Const French As String = "french"
+        Public Const German As String = "german"
+        Public Const Dutch As String = "dutch"
+        Public Const Spanish As String = "spanish"
+        Public Const Italian As String = "italian"
+        Public Const Russian As String = "russian"
+        Public Const Ukrainian As String = "ukrainian"
+        Public Const Romanian As String = "romanian"
+        Public Const Hungarian As String = "hungarian"
+        Public Const Polish As String = "polish"
+        Public Const Greek As String = "greek"
+        Public Const Danish As String = "danish"
+        Public Const Czech As String = "czech"
+        Public Const Swedish As String = "swedish"
+        Public Const Estonian As String = "estonian"
+        Public Const Turkish As String = "turkish"
+        Public Const Hebrew As String = "hebrew"
+        Public Const ChineseSimplified As String = "chinese_simplified"
+        Public Const ChineseTraditional As String = "chinese_traditional"
+        Public Const Japanese As String = "japanese"
     End Class
 
 End Class
