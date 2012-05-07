@@ -34,11 +34,9 @@ Namespace Dune
 
         ' Connection details
         Private _tcpClient As TcpClient
-
         Private _endpoint As IPEndPoint
         Private _hostname As String
         Private _timeout As UInteger
-
         Private _updateTimer As Timer ' Responsible for status updates
 
 
@@ -46,7 +44,7 @@ Namespace Dune
         Private _remoteControl As RemoteControl
 
         Private _commandStatus As String
-        Private _error As CommandException
+        Private _commandError As CommandException
         Private _protocolVersion As Byte
         Private _playerState As String
         Private _playbackSpeed As PlaybackSpeed
@@ -148,6 +146,8 @@ Namespace Dune
         ''' <summary>
         ''' Gets the IP address of the device.
         ''' </summary>
+        <DisplayName("IP address")>
+        <Description("The IP address on which the connection is made.")>
         Public ReadOnly Property Address As IPAddress
             Get
                 Return _endpoint.Address
@@ -157,6 +157,8 @@ Namespace Dune
         ''' <summary>
         ''' Gets the port number used to connect to the service.
         ''' </summary>
+        <DisplayName("Port")>
+        <Description("The port on which the app is connected to the service.")>
         Public ReadOnly Property Port As Integer
             Get
                 Return _endpoint.Port
@@ -166,12 +168,19 @@ Namespace Dune
         ''' <summary>
         ''' Gets the hostname of the device.
         ''' </summary>
+        <DisplayName("Hostname")>
+        <Description("The device's hostname.")>
         Public ReadOnly Property Hostname As String
             Get
                 Return _hostname
             End Get
         End Property
 
+        ''' <summary>
+        ''' Gets information about the device's network interface.
+        ''' </summary>
+        <DisplayName("Network adapter")>
+        <Description("Displays information about the device's network interface and its vendor.")>
         Public ReadOnly Property NetworkAdapterInfo As NetworkAdapterInfo
             Get
                 Return _networkAdapterInfo
@@ -181,6 +190,8 @@ Namespace Dune
         ''' <summary>
         ''' Gets an instance of the RemoteControl class.
         ''' </summary>
+        <DisplayName("Remote Control")>
+        <Description("Preconfigured instance of the RemoteControl class which is used for emulating button presses.")>
         Public ReadOnly Property RemoteControl As RemoteControl
             Get
                 If _remoteControl Is Nothing Then
@@ -193,6 +204,8 @@ Namespace Dune
         ''' <summary>
         ''' Gets a list of network shares made available by the player's SMB server.
         ''' </summary>
+        <DisplayName("Network shares")>
+        <Description("Collection of network shares exposed by the device's SMB server.")>
         Public ReadOnly Property NetworkShares As ReadOnlyCollection(Of NetworkDriveInfo)
             Get
                 If _shares Is Nothing Then
@@ -207,7 +220,10 @@ Namespace Dune
         ''' </summary>
         ''' <remarks>
         ''' This feature requires parsing a useragent string and is not yet implemented.
+        ''' Actually it is better to retrieve this via telnet.
         ''' </remarks>
+        <DisplayName("Product ID")>
+        <Description("The device's product ID. Automatic lookup is not yet implemented. The product ID is currently used for firmware version checks.")>
         Public Property ProductID As String
             Get
                 'Throw New NotImplementedException("Retrieving player model is on my todo list.")
@@ -231,6 +247,8 @@ Namespace Dune
         ''' Gets whether the connection is still active or sets it to on/off.
         ''' </summary>
         ''' <returns>True if there is a connection; otherwise false.</returns>
+        <DisplayName("Connected")>
+        <Description("Displays whether the application is still connected. You may change this if you wish to reconnect or disconnect.")>
         Public Property Connected As Boolean
             Get
                 Return _connected
@@ -265,8 +283,10 @@ Namespace Dune
         End Property
 
         ''' <summary>
-        ''' Gets the playback time left.
+        ''' Gets the playback time left. This value is calculated based on <see cref="PlaybackDuration"/> and <see cref="PlaybackPosition"/>.
         ''' </summary>
+        <DisplayName("Playback time left")>
+        <Description("The duration until the end of the current playback.")>
         Public ReadOnly Property PlaybackTimeLeft As TimeSpan?
             Get
                 If PlaybackDuration.HasValue Then
@@ -282,6 +302,8 @@ Namespace Dune
         ''' </summary>
         ''' <value>A positive value bigger than 1</value>
         ''' <remarks>The default value is 20 seconds.</remarks>
+        <DisplayName("Command timeout")>
+        <Description("The amount of seconds before a command returns with a timeout. Command execution is not aborted when a timeout is reached.")>
         Public Property Timeout As UInteger
             Get
                 If _timeout = Nothing Then
@@ -301,6 +323,8 @@ Namespace Dune
         ''' Gets or sets the interval (in miliseconds) between status updates.
         ''' </summary>
         ''' <remarks>Setting this property to 0 will disable automatic status updates.</remarks>
+        <DisplayName("Update interval")>
+        <Description("The amount of miliseconds between status updates.")>
         Public Property Interval As Double
             Get
                 If _updateTimer Is Nothing Then
@@ -329,6 +353,8 @@ Namespace Dune
         ''' <summary>
         ''' Gets a list of available firmwares. The <see cref="ProductID" /> property must be set to populate the collection.
         ''' </summary>
+        <DisplayName("Available firmwares")>
+        <Description("The collection of available firmware versions for the specified product ID.")>
         Public ReadOnly Property AvailableFirmwares As ReadOnlyCollection(Of FirmwareProperties)
             Get
                 If _firmwares Is Nothing Then
@@ -410,8 +436,8 @@ Namespace Dune
             Dim result As CommandResult = CommandResult.FromCommand(command)
             UpdateValues(result)
 
-            If result.Error IsNot Nothing Then
-                Throw result.Error
+            If result.CommandError IsNot Nothing Then
+                Throw result.CommandError
             End If
 
             Return result
@@ -428,8 +454,8 @@ Namespace Dune
             resultTask = CommandResult.FromCommandAsync(command) _
                 .ContinueWith(Of CommandResult)(Function(antecedent)
                                                     UpdateValues(antecedent.Result)
-                                                    If antecedent.Result.Error IsNot Nothing Then
-                                                        Throw antecedent.Result.Error
+                                                    If antecedent.Result.CommandError IsNot Nothing Then
+                                                        Throw antecedent.Result.CommandError
                                                     End If
                                                     Return antecedent.Result
                                                 End Function)
@@ -444,8 +470,8 @@ Namespace Dune
             If commandResult.CommandStatus <> String.Empty Then
                 CommandStatusUpdate = commandResult.CommandStatus
             End If
-            If commandResult.Error IsNot Nothing Then
-                ErrorUpdate = commandResult.Error
+            If commandResult.CommandError IsNot Nothing Then
+                CommandErrorUpdate = commandResult.CommandError
             End If
             ProtocolVersionUpdate = commandResult.ProtocolVersion
             PlayerStateUpdate = commandResult.PlayerState
@@ -510,6 +536,8 @@ Namespace Dune
         ''' <summary>
         ''' Gets the status of the last command.
         ''' </summary>
+        <DisplayName("Command status")>
+        <Description("The status of the last command")>
         Public ReadOnly Property CommandStatus As String Implements IProtocolVersion1.CommandStatus
             Get
                 Return _commandStatus
@@ -531,6 +559,8 @@ Namespace Dune
         ''' <summary>
         ''' Gets the playback duration.
         ''' </summary>
+        <DisplayName("Playback duration")>
+        <Description("The current playback duration.")>
         Public ReadOnly Property PlaybackDuration As System.TimeSpan? Implements IProtocolVersion1.PlaybackDuration
             Get
                 Return _playbackDuration
@@ -553,6 +583,8 @@ Namespace Dune
         ''' Gets or sets the playback position.
         ''' </summary>
         ''' <exception cref="CommandException">: Command execution failed.</exception>
+        <DisplayName("Playback position")>
+        <Description("The current playback position.")>
         Public Property PlaybackPosition As System.TimeSpan? Implements IProtocolVersion1.PlaybackPosition
             Get
                 Return _playbackPosition
@@ -594,6 +626,8 @@ Namespace Dune
         ''' Gets or sets the playback speed.
         ''' </summary>
         ''' <exception cref="CommandException">: Command execution failed.</exception>
+        <DisplayName("Playback speed")>
+        <Description("The playback speed.")>
         Public Property PlaybackSpeed As PlaybackSpeed Implements IProtocolVersion1.PlaybackSpeed
             Get
                 Return _playbackSpeed
@@ -629,6 +663,8 @@ Namespace Dune
         ''' <summary>
         ''' Gets the player state.
         ''' </summary>
+        <DisplayName("Player state")>
+        <Description("The player state. Accepted values are ""main_screen"", ""black_screen"" or ""standby"".")>
         Public Property PlayerState As String Implements IProtocolVersion1.PlayerState
             Get
                 Return _playerState
@@ -662,6 +698,8 @@ Namespace Dune
         ''' <summary>
         ''' Gets the protocol version number.
         ''' </summary>
+        <DisplayName("Protocol version")>
+        <Description("The API version. The latest supported version number is 2.")>
         Public ReadOnly Property ProtocolVersion As Byte Implements IProtocolVersion1.ProtocolVersion
             Get
                 If _protocolVersion = 0 Then
@@ -686,19 +724,21 @@ Namespace Dune
         ''' <summary>
         ''' Gets the last command error.
         ''' </summary>
-        Public ReadOnly Property [Error] As CommandException Implements IProtocolVersion1.Error
+        <DisplayName("Command error")>
+        <Description("The last command error.")>
+        Public ReadOnly Property CommandError As CommandException Implements IProtocolVersion1.CommandError
             Get
-                Return _error
+                Return _commandError
             End Get
         End Property
 
         ''' <summary>
         ''' Sets the last command error.
         ''' </summary>
-        Private WriteOnly Property ErrorUpdate As CommandException Implements IProtocolVersion1.ErrorUpdate
+        Private WriteOnly Property CommandErrorUpdate As CommandException Implements IProtocolVersion1.CommandErrorUpdate
             Set(value As CommandException)
-                If value IsNot Nothing AndAlso _error IsNot value Then
-                    _error = value
+                If value IsNot Nothing AndAlso _commandError IsNot value Then
+                    _commandError = value
                     RaisePropertyChanged("Error")
                 End If
             End Set
@@ -707,6 +747,8 @@ Namespace Dune
         ''' <summary>
         ''' Gets whether a DVD menu is shown.
         ''' </summary>
+        <DisplayName("DVD menu")>
+        <Description("Displays whether the player is showing a DVD menu.")>
         Public ReadOnly Property PlaybackDvdMenu As Boolean Implements IProtocolVersion1.PlaybackDvdMenu
             Get
                 Return _playbackDvdMenu
@@ -728,6 +770,8 @@ Namespace Dune
         ''' <summary>
         ''' Gets whether the playback is buffering.
         ''' </summary>
+        <DisplayName("Playback buffering")>
+        <Description("Displays whether the playback is buffering.")>
         Public ReadOnly Property PlaybackIsBuffering As Boolean Implements IProtocolVersion1.PlaybackIsBuffering
             Get
                 Return _playbackIsBuffering
@@ -750,8 +794,15 @@ Namespace Dune
         ''' Sets whether to show a black screen during playback.
         ''' </summary>
         ''' <exception cref="CommandException">: Command execution failed.</exception>
-        Public WriteOnly Property BlackScreen As Boolean Implements IProtocolVersion1.BlackScreen
-            Set(value As Boolean)
+        <DisplayName("Black screen")>
+        <Description("Disables both the OSD and video output.")>
+        Public Property BlackScreen As Boolean? Implements IProtocolVersion1.BlackScreen
+            Get
+                Return Nothing
+            End Get
+            Set(value As Boolean?)
+                If Not value.HasValue Then value = False
+
                 Dim command As New SetPlaybackStateCommand(Me)
                 command.BlackScreen = value
                 command.Timeout = Timeout
@@ -764,14 +815,22 @@ Namespace Dune
                     Throw ex.InnerException
                 End Try
             End Set
+
         End Property
 
         ''' <summary>
         ''' Sets whether to hide the OSD during playback.
         ''' </summary>
         ''' <exception cref="CommandException">: Command execution failed.</exception>
-        Public WriteOnly Property HideOnScreenDisplay As Boolean Implements IProtocolVersion1.HideOnScreenDisplay
-            Set(value As Boolean)
+        <DisplayName("Hide on-screen display")>
+        <Description("Disables all overlay menu items such as the pop-up menu.")>
+        Public Property HideOnScreenDisplay As Boolean? Implements IProtocolVersion1.HideOnScreenDisplay
+            Get
+                Return Nothing
+            End Get
+            Set(value As Boolean?)
+                If Not value.HasValue Then value = False
+
                 Dim command As New SetPlaybackStateCommand(Me)
                 command.HideOnScreenDisplay = value
                 command.Timeout = Timeout
@@ -922,6 +981,8 @@ Namespace Dune
         ''' </summary>
         ''' <exception cref="CommandException">: Command execution failed.</exception>
         ''' <remarks>Setting this property does nothing if the protocol version is 1.</remarks>
+        <DisplayName("Audio track")>
+        <Description("The language track number that is currently playing. Not to be confused with the track number in a playlist.")>
         Public Property AudioTrack As Byte? Implements IProtocolVersion2.AudioTrack
             Get
                 Return _audioTrack
@@ -959,6 +1020,8 @@ Namespace Dune
         ''' <summary>
         ''' Gets whether the video output is fullscreen.
         ''' </summary>
+        <DisplayName("Fullscreen")>
+        <Description("Displays whether the video is in full screen or if custom video output settings are applied. Note that custom settings can mimic fullscreen.")>
         Public Property VideoFullscreen As Boolean? Implements IProtocolVersion2.VideoFullscreen
             Get
                 Return _videoFullscreen
@@ -996,6 +1059,8 @@ Namespace Dune
         ''' Gets the list of available audio tracks for the current playback.
         ''' </summary>
         ''' <returns>An instance of a <see cref="SortedDictionary(Of Byte, CultureInfo)" /> object that represents the list of available audio tracks.</returns>
+        <DisplayName("Audio tracks")>
+        <Description("The collection of language tracks in the current playback. Not to be confused with the amount of tracks in a playlist.")>
         Public ReadOnly Property AudioTracks As SortedDictionary(Of Byte, CultureInfo) Implements IProtocolVersion2.AudioTracks
             Get
                 Return _audioTracks
@@ -1018,6 +1083,8 @@ Namespace Dune
         ''' Gets or sets the mute status for the current playback.
         ''' </summary>
         ''' <remarks>Setting this property does nothing if the protocol version is 1.</remarks>
+        <DisplayName("Playback mute")>
+        <Description("Enables or disables audio output.")>
         Public Property PlaybackMute As Boolean? Implements IProtocolVersion2.PlaybackMute
             Get
                 Return _playbackMute
@@ -1056,6 +1123,8 @@ Namespace Dune
         ''' Gets or sets whether the video output is enabled.
         ''' </summary>
         ''' <remarks>Setting this property does nothing if the protocol version is 1.</remarks>
+        <DisplayName("Video enabled")>
+        <Description("Disabling the video does not hide the on-screen display.")>
         Public Property VideoEnabled As Boolean? Implements IProtocolVersion2.VideoEnabled
             Get
                 Return _videoEnabled
@@ -1093,6 +1162,8 @@ Namespace Dune
         ''' <summary>
         ''' Gets the video display height.
         ''' </summary>
+        <DisplayName("Video height")>
+        <Description("The video output's height in pixels.")>
         Public Property VideoHeight As UShort? Implements IProtocolVersion2.VideoHeight
             Get
                 If Not _videoHeight.HasValue Then
@@ -1141,6 +1212,8 @@ Namespace Dune
         ''' <summary>
         ''' Gets the total video display height.
         ''' </summary>
+        <DisplayName("Display height")>
+        <Description("The total amount of pixels in the display height.")>
         Public ReadOnly Property VideoTotalDisplayHeight As UShort? Implements IProtocolVersion2.VideoTotalDisplayHeight
             Get
                 Return _videoTotalDisplayHeight
@@ -1162,6 +1235,8 @@ Namespace Dune
         ''' <summary>
         ''' Gets the total video display width.
         ''' </summary>
+        <DisplayName("Display width")>
+        <Description("The total amount of pixels in the display width.")>
         Public ReadOnly Property VideoTotalDisplayWidth As UShort? Implements IProtocolVersion2.VideoTotalDisplayWidth
             Get
                 Return _videoTotalDisplayWidth
@@ -1183,6 +1258,8 @@ Namespace Dune
         ''' <summary>
         ''' Gets the video display width.
         ''' </summary>
+        <DisplayName("Video width")>
+        <Description("The video output's width in pixels.")>
         Public Property VideoWidth As UShort? Implements IProtocolVersion2.VideoWidth
             Get
                 If Not _videoWidth.HasValue Then
@@ -1231,6 +1308,8 @@ Namespace Dune
         ''' <summary>
         ''' Gets the video's horizontal position.
         ''' </summary>
+        <DisplayName("Video horizontal position")>
+        <Description("The amount of pixels between the left border of the display and the video output.")>
         Public Property VideoX As UShort? Implements IProtocolVersion2.VideoX
             Get
                 If Not _videoX.HasValue Then
@@ -1278,6 +1357,8 @@ Namespace Dune
         ''' <summary>
         ''' Gets the video's vertical position.
         ''' </summary>
+        <DisplayName("Video vertical position")>
+        <Description("The amount of pixels between the top border of the display and the video output.")>
         Public Property VideoY As UShort? Implements IProtocolVersion2.VideoY
             Get
                 If Not _videoY.HasValue Then
@@ -1328,6 +1409,8 @@ Namespace Dune
         ''' <value>A positive value between 0 and 100.</value>
         ''' <remarks>Setting this property does nothing if the protocol version is 1.
         ''' A maximum volume of 150 can be set using the remote control by holding 'volume up' for longer than usual.</remarks>
+        <DisplayName("Playback volume")>
+        <Description("The playback volume percentage.")>
         Public Property PlaybackVolume As Byte? Implements IProtocolVersion2.PlaybackVolume
             Get
                 Return _playbackVolume
@@ -1356,7 +1439,6 @@ Namespace Dune
             End Set
         End Property
 
-
         ''' <summary>
         ''' Sets the playback volume.
         ''' </summary>
@@ -1370,21 +1452,18 @@ Namespace Dune
         End Property
 
         ''' <summary>
-        ''' Gets the video zoom.
+        ''' Gets or sets the video zoom.
         ''' </summary>
+        <DisplayName("Video zoom")>
+        <Description("The video output's zoom mode. Accepted values are ""normal"", ""enlarge"", ""make_wider"", ""fill_screen"", ""full_fill_screen"", ""make_taller"" or ""cut_edges"".")>
         Public Property VideoZoom As String Implements IProtocolVersion2.VideoZoom
             Get
                 Return _videoZoom
             End Get
             Set(value As String)
-                ' TODO: clean this mess
-                Dim z As Zoom = (From zoom As Zoom In [Enum].GetValues(GetType(Zoom))
-                                Where zoom.ToString = value
-                                Select zoom).FirstOrDefault
-
-                Dim fullscreen As Boolean = CBool(IIf(VideoFullscreen.HasValue, VideoFullscreen.Value, False))
+                Dim fullscreen As Boolean = CBool(IIf(VideoFullscreen.HasValue, VideoFullscreen, False))
                 Dim command As New SetVideoOutputCommand(Me, fullscreen)
-                command.Zoom = z
+                command.Zoom = value
                 command.Timeout = Timeout
 
                 Dim processTask As Task = ProcessCommandAsync(command)

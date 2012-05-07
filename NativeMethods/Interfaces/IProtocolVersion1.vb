@@ -15,9 +15,9 @@
 
         WriteOnly Property CommandStatusUpdate As String
 
-        ReadOnly Property [Error] As CommandException
+        ReadOnly Property CommandError As CommandException
 
-        WriteOnly Property ErrorUpdate As CommandException
+        WriteOnly Property CommandErrorUpdate As CommandException
 
         ReadOnly Property ProtocolVersion As Byte
 
@@ -47,9 +47,9 @@
 
         WriteOnly Property PlaybackDvdMenuUpdate As Boolean
 
-        WriteOnly Property BlackScreen As Boolean
+        Property BlackScreen As Boolean?
 
-        WriteOnly Property HideOnScreenDisplay As Boolean
+        Property HideOnScreenDisplay As Boolean?
 
 #End Region ' Properties
 
