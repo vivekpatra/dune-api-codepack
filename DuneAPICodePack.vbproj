@@ -9,8 +9,8 @@
     </SchemaVersion>
     <ProjectGuid>{E050ED85-7292-4DF2-9C6A-B4C476F16AD3}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>DuneAPICodePack</RootNamespace>
-    <AssemblyName>DuneAPICodePack</AssemblyName>
+    <RootNamespace>SL.DuneApiCodePack</RootNamespace>
+    <AssemblyName>SL.DuneApiCodePack</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <MyType>Windows</MyType>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
@@ -21,7 +21,7 @@
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
     <OutputPath>bin\Debug\</OutputPath>
-    <DocumentationFile>DuneAPICodePack.xml</DocumentationFile>
+    <DocumentationFile>SL.DuneApiCodePack.xml</DocumentationFile>
     <NoWarn>
     </NoWarn>
   </PropertyGroup>
@@ -31,7 +31,7 @@
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DocumentationFile>DuneAPICodePack.xml</DocumentationFile>
+    <DocumentationFile>SL.DuneApiCodePack.xml</DocumentationFile>
     <NoWarn>
     </NoWarn>
   </PropertyGroup>
@@ -48,22 +48,17 @@
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="System" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Drawing" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.VisualBasic" />
     <Import Include="System" />
     <Import Include="System.Collections" />
     <Import Include="System.Collections.Generic" />
-    <Import Include="System.Data" />
     <Import Include="System.Diagnostics" />
     <Import Include="System.Linq" />
     <Import Include="System.Xml.Linq" />
@@ -80,13 +75,12 @@
     <Compile Include="ApiWrappers\DuneCommands\SetPlayerStateCommand.vb" />
     <Compile Include="ApiWrappers\DuneCommands\SetVideoOutputCommand.vb" />
     <Compile Include="ApiWrappers\FirmwareInfo.vb" />
-    <Compile Include="NativeMethods\Interfaces\IRemoteControl.vb" />
+    <Compile Include="Interfaces\IRemoteControl.vb" />
     <Compile Include="Constants.vb" />
-    <Compile Include="HttpHeader\HttpHeader.vb" />
     <Compile Include="ApiWrappers\PlaybackSpeed.vb" />
     <Compile Include="ApiWrappers\PlaybackType.vb" />
-    <Compile Include="NativeMethods\Interfaces\IProtocolVersion1.vb" />
-    <Compile Include="NativeMethods\Interfaces\IProtocolVersion2.vb" />
+    <Compile Include="Interfaces\IProtocolVersion1.vb" />
+    <Compile Include="Interfaces\IProtocolVersion2.vb" />
     <Compile Include="ApiWrappers\DuneCommands\StartPlaybackCommand.vb" />
     <Compile Include="ApiWrappers\RemoteControl.vb" />
     <Compile Include="ApiWrappers\Zoom.vb" />
@@ -114,6 +108,7 @@
     <Compile Include="NetworkAdapterInfo.vb" />
     <Compile Include="NetworkCardVendor.vb" />
     <Compile Include="Playlist.vb" />
+    <Compile Include="Telnet\TelnetClient.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="My Project\Resources.resx">

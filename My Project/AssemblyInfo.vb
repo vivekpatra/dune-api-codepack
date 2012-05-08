@@ -10,10 +10,10 @@ Imports System.Runtime.InteropServices
 
 ' Review the values of the assembly attributes
 
-<Assembly: AssemblyTitle("DuneAPICodePack")> 
-<Assembly: AssemblyDescription("")> 
+<Assembly: AssemblyTitle("Dune API Code Pack")> 
+<Assembly: AssemblyDescription("Collection of code wrappers for the Dune HD IP control API.")> 
 <Assembly: AssemblyCompany("")> 
-<Assembly: AssemblyProduct("DuneAPICodePack")> 
+<Assembly: AssemblyProduct("Dune API Code Pack")> 
 <Assembly: AssemblyCopyright("steven.liekens@gmail.com")> 
 <Assembly: AssemblyTrademark("")> 
 
@@ -33,7 +33,7 @@ Imports System.Runtime.InteropServices
 ' by using the '*' as shown below:
 ' <Assembly: AssemblyVersion("1.0.*")> 
 
-<Assembly: AssemblyVersion("0.9.7.0")> 
-<Assembly: AssemblyFileVersion("0.9.7.0")> 
+<Assembly: AssemblyVersion("0.9.8.0")> 
+<Assembly: AssemblyFileVersion("0.9.8.0")> 
 
 <Assembly: NeutralResourcesLanguageAttribute("en")> 

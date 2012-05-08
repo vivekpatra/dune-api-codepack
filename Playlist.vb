@@ -1,11 +1,11 @@
 ﻿Imports System.IO
-Imports DuneAPICodePack.Dune.ApiWrappers
+Imports SL.DuneApiCodePack.DuneUtilities.ApiWrappers
 Imports System.Timers
 Imports System.ComponentModel
 Imports System.Collections.ObjectModel
 
 
-Namespace Dune
+Namespace DuneUtilities
 
     ''' <summary>
     ''' A collection of files that represent a music playlist.

@@ -1,4 +1,4 @@
-﻿Namespace Dune.ApiWrappers
+﻿Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>
     ''' Interface that defines properties and methods available in protocol version 1 and up.

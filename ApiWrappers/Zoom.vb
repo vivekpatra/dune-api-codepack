@@ -1,4 +1,4 @@
-﻿Namespace Dune.ApiWrappers
+﻿Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>
     ''' Enumeration of supported zoom settings.

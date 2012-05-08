@@ -3,7 +3,7 @@ Imports System.IO
 Imports System.ComponentModel
 Imports System.Threading.Tasks
 
-Namespace Dune.ApiWrappers
+Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>
     ''' Provides information about firmware versions.

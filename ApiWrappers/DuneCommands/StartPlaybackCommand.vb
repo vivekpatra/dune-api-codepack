@@ -1,7 +1,7 @@
 ﻿Imports System.Text
 Imports System.Collections.Specialized
 
-Namespace Dune.ApiWrappers
+Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>This command is used to send a new playback request.</summary>
     Public Class StartPlaybackCommand

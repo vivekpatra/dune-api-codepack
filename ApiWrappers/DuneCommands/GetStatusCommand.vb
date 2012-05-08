@@ -1,6 +1,6 @@
 ﻿Imports System.Collections.Specialized
 
-Namespace Dune.ApiWrappers
+Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>
     ''' This command gets the player status without changing the player state in any way.

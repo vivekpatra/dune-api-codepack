@@ -1,6 +1,6 @@
 ﻿Option Compare Text
 
-Namespace Dune.ApiWrappers
+Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>
     ''' This class is used to format media URLs.

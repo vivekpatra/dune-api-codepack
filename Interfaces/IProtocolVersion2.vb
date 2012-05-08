@@ -1,6 +1,6 @@
 ﻿Imports System.Globalization
 
-Namespace Dune.ApiWrappers
+Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>
     ''' Interface that defines properties and methods available in protocol version 2 and up.

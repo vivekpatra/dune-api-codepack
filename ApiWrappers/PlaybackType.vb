@@ -1,4 +1,4 @@
-﻿Namespace Dune.ApiWrappers
+﻿Namespace DuneUtilities.ApiWrappers
 
     Public Enum PlaybackType
         File = 0
