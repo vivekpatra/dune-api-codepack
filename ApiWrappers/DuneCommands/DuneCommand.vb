@@ -2,7 +2,7 @@
 Imports System.IO
 Imports System.Collections.Specialized
 
-Namespace Dune.ApiWrappers
+Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>
     ''' This is the base class for all Dune commands.

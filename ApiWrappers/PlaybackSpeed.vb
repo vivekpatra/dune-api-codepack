@@ -1,4 +1,4 @@
-﻿Namespace Dune.ApiWrappers
+﻿Namespace DuneUtilities.ApiWrappers
 
     Public Enum PlaybackSpeed
         Rewind_16x = -4096

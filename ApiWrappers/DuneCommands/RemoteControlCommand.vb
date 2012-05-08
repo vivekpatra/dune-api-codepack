@@ -2,7 +2,7 @@
 Imports System.Reflection
 Imports System.Collections.Specialized
 
-Namespace Dune.ApiWrappers
+Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>This command is used to emulate a button press on the remote control.</summary>
     Public Class RemoteControlCommand

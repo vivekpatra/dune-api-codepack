@@ -1,6 +1,6 @@
 ﻿Imports System.ComponentModel
 
-Namespace Dune.ApiWrappers
+Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>
     ''' Interface that defines buttons on the remote control.

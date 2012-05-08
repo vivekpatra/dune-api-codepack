@@ -1,6 +1,6 @@
 ﻿Imports System.Collections.Specialized
 
-Namespace Dune.ApiWrappers
+Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>This command is used to set the player state.</summary>
     Public Class SetPlayerStateCommand
