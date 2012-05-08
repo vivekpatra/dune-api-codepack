@@ -1,6 +1,6 @@
 ﻿Imports System.Runtime.Serialization
 
-Namespace Dune.ApiWrappers
+Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>
     ''' The exception that is created when a command fails.

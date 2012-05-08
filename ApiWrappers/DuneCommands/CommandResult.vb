@@ -4,7 +4,7 @@ Imports System.Net
 Imports System.Collections.Specialized
 Imports System.Threading.Tasks
 
-Namespace Dune.ApiWrappers
+Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>
     ''' This class gets and holds the results for a requested command.

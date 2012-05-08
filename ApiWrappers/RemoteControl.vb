@@ -1,4 +1,4 @@
-﻿Namespace Dune.ApiWrappers
+﻿Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>This class represents a standard remote control, much like the physical remote that comes with the box.</summary>
     Public Class RemoteControl

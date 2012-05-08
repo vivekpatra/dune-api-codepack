@@ -1,7 +1,7 @@
 ﻿Imports System.Text
 Imports System.Collections.Specialized
 
-Namespace Dune.ApiWrappers
+Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>This command is used to change the video output (zoom; width; height; position).</summary>
     Public Class SetVideoOutputCommand

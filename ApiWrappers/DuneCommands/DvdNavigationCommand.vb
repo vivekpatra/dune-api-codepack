@@ -1,7 +1,7 @@
 ﻿Imports System.Text
 Imports System.Collections.Specialized
 
-Namespace Dune.ApiWrappers
+Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>This command can be used to navigate dvd menus.</summary>
     ''' <remarks>Test the <see cref="Dune.PlaybackDvdMenu"/> property for true or false before using.</remarks>

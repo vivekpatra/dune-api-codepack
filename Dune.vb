@@ -1,14 +1,16 @@
 ﻿Imports System.Net
 Imports System.Net.Sockets
 Imports System.ComponentModel
-Imports DuneAPICodePack.Dune.ApiWrappers
+Imports SL.DuneApiCodePack.DuneUtilities.ApiWrappers
 Imports System.Globalization
 Imports System.Timers
 Imports System.Threading.Tasks
 Imports System.Net.NetworkInformation
 Imports System.Collections.ObjectModel
+Imports SL.DuneApiCodePack.Storage
+Imports SL.DuneApiCodePack.Telnet
 
-Namespace Dune
+Namespace DuneUtilities
 
     ''' <summary>
     ''' This class represents a Dune player on the network and exposes several methods and properties to interact with it.
@@ -30,7 +32,11 @@ Namespace Dune
         Private _ftpServerEnabled As Boolean?
         Private _telnetServerEnabled As Boolean?
         Private _firmwares As List(Of FirmwareProperties)
-
+        Private _telnetClient As TelnetClient
+        Private _bootTime As Date
+        Private _serialNumber As String
+        Private _installedFirmware As String
+        Private _telnetEnabled As Boolean?
 
         ' Connection details
         Private _tcpClient As TcpClient
@@ -137,6 +143,10 @@ Namespace Dune
             _endpoint = New IPEndPoint(NetworkAdapterInfo.Address, port)
             _hostname = address.HostName.Split(delimiter).FirstOrDefault
             Connect(_endpoint)
+
+            If TelnetClient IsNot Nothing Then
+                GetSysinfo()
+            End If
         End Sub
 
 #End Region ' Constructors
@@ -216,31 +226,57 @@ Namespace Dune
         End Property
 
         ''' <summary>
-        ''' Gets the player's product ID. See remarks.
+        ''' Gets the player's product ID (using a Telnet connection).
         ''' </summary>
-        ''' <remarks>
-        ''' This feature requires parsing a useragent string and is not yet implemented.
-        ''' Actually it is better to retrieve this via telnet.
-        ''' </remarks>
         <DisplayName("Product ID")>
-        <Description("The device's product ID. Automatic lookup is not yet implemented. The product ID is currently used for firmware version checks.")>
-        Public Property ProductID As String
+        <Description("The device's product ID.")>
+        Public ReadOnly Property ProductID As String
             Get
-                'Throw New NotImplementedException("Retrieving player model is on my todo list.")
-                If _productID Is Nothing Then
-                    ' TODO: implement product id stuff
-                    _productID = "Unknown"
-                End If
+                Try
+                    If _productID Is Nothing AndAlso TelnetEnabled Then
+                        GetSysinfo()
+                    End If
+                Catch ex As SocketException
+                    Console.WriteLine("Telnet error: " + ex.Message)
+                End Try
                 Return _productID
             End Get
-            Set(value As String)
-                Select Case value.ToLower
-                    Case Constants.ProductIDs.BDPrime3, Constants.ProductIDs.HDBase3, Constants.ProductIDs.HDDuo, Constants.ProductIDs.HDLite53D, Constants.ProductIDs.HDMax, Constants.ProductIDs.HDSmartB1, Constants.ProductIDs.HDSmartD1, Constants.ProductIDs.HDSmartH1, Constants.ProductIDs.HDTV101, Constants.ProductIDs.HDTV301
-                        _productID = value
-                        _firmwares = FirmwareProperties.GetAvailableFirmwaresAsync(value).Result
-                        RaisePropertyChanged("ProductID")
-                End Select
-            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets the device's serial number (using a Telnet connection).
+        ''' </summary>
+        <DisplayName("Serial number")>
+        <Description("The device's serial number.")>
+        Public ReadOnly Property SerialNumber As String
+            Get
+                Try
+                    If _serialNumber Is Nothing AndAlso TelnetEnabled Then
+                        GetSysinfo()
+                    End If
+                Catch ex As SocketException
+                    Console.WriteLine("Telnet error: " + ex.Message)
+                End Try
+                Return _serialNumber
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Gets the installed firmware version string (using a Telnet connection).
+        ''' </summary>
+        <DisplayName("Installed firmware")>
+        <Description("The installed firmware version.")>
+        Public ReadOnly Property InstalledFirmware As String
+            Get
+                Try
+                    If _installedFirmware Is Nothing AndAlso TelnetEnabled Then
+                        GetSysinfo()
+                    End If
+                Catch ex As SocketException
+                    Console.WriteLine("Telnet error: " + ex.Message)
+                End Try
+                Return _installedFirmware
+            End Get
         End Property
 
         ''' <summary>
@@ -259,6 +295,7 @@ Namespace Dune
                         Reconnect()
                     Else
                         Interval = 0
+                        _bootTime = Nothing
                         ConnectedUpdate = False
                     End If
                 End If
@@ -358,16 +395,81 @@ Namespace Dune
         Public ReadOnly Property AvailableFirmwares As ReadOnlyCollection(Of FirmwareProperties)
             Get
                 If _firmwares Is Nothing Then
-                    _firmwares = New List(Of FirmwareProperties)
-                    Select Case ProductID.ToLower
-                        Case Constants.ProductIDs.BDPrime3, Constants.ProductIDs.HDBase3, Constants.ProductIDs.HDDuo, Constants.ProductIDs.HDLite53D, Constants.ProductIDs.HDMax, Constants.ProductIDs.HDSmartB1, Constants.ProductIDs.HDSmartD1, Constants.ProductIDs.HDSmartH1, Constants.ProductIDs.HDTV101, Constants.ProductIDs.HDTV301
-                            _firmwares = FirmwareProperties.GetAvailableFirmwaresAsync(ProductID).Result
-                            RaisePropertyChanged("AvailableFirmwares")
-                        Case Else
-                            Return Nothing
-                    End Select
+                    If ProductID <> String.Empty Then
+                        _firmwares = New List(Of FirmwareProperties)
+                        _firmwares = FirmwareProperties.GetAvailableFirmwaresAsync(ProductID).Result
+                    Else
+                        Return Nothing
+                    End If
                 End If
                 Return _firmwares.AsReadOnly
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Gets a preconfigured Telnet client.
+        ''' </summary>
+        Private ReadOnly Property TelnetClient As TelnetClient
+            Get
+                Try
+                    If Not TelnetEnabled.HasValue AndAlso _telnetClient Is Nothing Then
+                        _telnetClient = New TelnetClient(Address)
+                        _telnetClient.login("root")
+                        _telnetEnabled = True
+                    End If
+                Catch ex As SocketException
+                    _telnetEnabled = False
+                End Try
+                Return _telnetClient
+            End Get
+        End Property
+
+
+        ''' <summary>
+        ''' Gets the date and time when the device booted up.
+        ''' </summary>
+        <DisplayName("Up since")>
+        <Description("The date and time since when the device is up")>
+        Public ReadOnly Property BootTime As Date
+            Get
+                If Connected Then
+                    If _bootTime = Nothing Then
+                        If TelnetEnabled Then
+                            _bootTime = GetBootTime()
+                        Else
+                            Return Nothing
+                        End If
+                    End If
+                    Return _bootTime
+                Else
+                    Return Nothing
+                End If
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Gets the device's uptime.
+        ''' </summary>
+        <DisplayName("Uptime")>
+        <Description("The amount of time that the device has been running for.")>
+        Public ReadOnly Property Uptime As TimeSpan
+            Get
+                If Connected AndAlso BootTime <> Nothing Then
+                    Return Now.Subtract(_bootTime)
+                Else
+                    Return Nothing
+                End If
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Gets whether telnetd is turned on.
+        ''' </summary>
+        <DisplayName("Telnet access")>
+        <Description("Displays whether telnetd is running and accessible.")>
+        Public ReadOnly Property TelnetEnabled As Boolean?
+            Get
+                Return _telnetEnabled
             End Get
         End Property
 
@@ -527,6 +629,61 @@ Namespace Dune
         ''' </summary>
         Public Sub ClearStatus()
             CommandStatusUpdate = String.Empty
+        End Sub
+
+        ''' <summary>
+        ''' Gets the uptime of the device (using a Telnet connection).
+        ''' </summary>
+        ''' <returns>The boottime if successful; otherwise nothing.</returns>
+        Private Function GetBootTime() As Date
+            If Connected AndAlso TelnetClient.Client.Connected Then
+                Dim separator As String = Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator
+                Dim uptimeSeconds As String = TelnetClient.SendAndReceive("cat /proc/uptime").Split(" "c).GetValue(0).ToString.Replace(".", separator)
+                Dim uptime As TimeSpan = TimeSpan.FromSeconds(Double.Parse(uptimeSeconds))
+
+                Return Now.Subtract(uptime)
+            End If
+            Return Nothing
+        End Function
+
+        ''' <summary>
+        ''' Gets system information (using a Telnet connection).
+        ''' </summary>
+        ''' <remarks></remarks>
+        Private Sub GetSysinfo()
+            Dim file As String = TelnetClient.SendAndReceive("cat /tmp/sysinfo.txt")
+            Dim split() As String = {"product_id: ", "serial_number: ", "firmware_version: ", "tango"}
+
+            Dim info() As String = file.Split(split, StringSplitOptions.RemoveEmptyEntries)
+
+            _productID = info(0).TrimEnd
+            RaisePropertyChanged("ProductID")
+            _serialNumber = info(1).TrimEnd
+            RaisePropertyChanged("SerialNumber")
+            _installedFirmware = info(2).TrimEnd
+            RaisePropertyChanged("InstalledFirmware")
+        End Sub
+
+        ''' <summary>
+        ''' Closes the disc tray (if any) using a telnet connection.
+        ''' </summary>
+        Public Sub CloseDiscTray()
+            Try
+                TelnetClient.SendAndReceive("eject -t /dev/sr0")
+            Catch ex As Exception
+                Console.WriteLine("Telnet error: " + ex.Message)
+            End Try
+        End Sub
+
+        ''' <summary>
+        ''' Toggles between open/close disc tray (if any) using a telnet connection.
+        ''' </summary>
+        Public Sub ToggleDiscTray()
+            Try
+                TelnetClient.SendAndReceive("eject -T /dev/sr0")
+            Catch ex As Exception
+                Console.WriteLine("Telnet error: " + ex.Message)
+            End Try
         End Sub
 
 #End Region ' App methods
