@@ -6,7 +6,9 @@ Imports System.IO
 
 Namespace Telnet
 
-
+    ''' <summary>
+    ''' Provides a simple implementation of a Telnet client which takes care of option negotiations (don't worry if you don't know what I'm talking about).
+    ''' </summary>
     Public Class TelnetClient
         Private _client As TcpClient
 
@@ -28,6 +30,9 @@ Namespace Telnet
 
 #Region "Properties"
 
+        ''' <summary>
+        ''' Gets the underlying TcpClient instance.
+        ''' </summary>
         Public ReadOnly Property Client As TcpClient
             Get
                 If _client Is Nothing Then
@@ -37,20 +42,51 @@ Namespace Telnet
             End Get
         End Property
 
+        ''' <summary>
+        ''' Gets whether the client is connected to a remote host.
+        ''' </summary>
+        Public ReadOnly Property Connected As Boolean
+            Get
+                Return Client.Connected
+            End Get
+        End Property
+
 #End Region ' Properties
 
         Public Property Reader As StreamReader
 
 #Region "Methods"
 
+        ''' <summary>
+        ''' Blocks until the host asks for login and responds with the specified username. TODO: add timeout.
+        ''' </summary>
         Public Sub login(ByVal username As String)
             Dim prompt As String = String.empty
-            Do Until prompt.contains("login")
-                prompt = receive
+            Do Until prompt.ToLower.Contains("login")
+                prompt = Receive()
             Loop
             prompt = SendAndReceive(username)
         End Sub
 
+        ''' <summary>
+        ''' Blocks until the host asks for login details and responds with the specified username and password. TODO: add timeout.
+        ''' </summary>
+        Public Sub login(ByVal username As String, ByVal password As String)
+            Dim prompt As String = String.Empty
+            Do Until prompt.ToLower.Contains("login")
+                prompt = Receive()
+            Loop
+            prompt = SendAndReceive(username)
+            prompt = String.Empty
+            Do Until prompt.ToLower.Contains("password")
+                prompt = Receive()
+            Loop
+            prompt = SendAndReceive(password)
+        End Sub
+
+        ''' <summary>
+        ''' Returns plain text from the stream and also takes care of option negotiations.
+        ''' </summary>
         Public Function Receive() As String
             Dim text As New StringBuilder
 
@@ -93,11 +129,17 @@ Namespace Telnet
             Return String.Empty
         End Function
 
+        ''' <summary>
+        ''' Sends the specified command.
+        ''' </summary>
         Public Sub Send(ByVal command As String)
             Dim sendData() As Byte = Encoding.ASCII.GetBytes(command + vbLf)
             Client.GetStream.Write(sendData, 0, sendData.Length)
         End Sub
 
+        ''' <summary>
+        ''' Sends the specified command and returns the response.
+        ''' </summary>
         Public Function SendAndReceive(ByVal command As String) As String
             Send(command)
 
@@ -108,10 +150,6 @@ Namespace Telnet
             Dim response As String = Receive()
 
             Return response.Substring(command.Length, response.Length - command.Length).TrimStart
-        End Function
-
-        Public Function SendAndReceiveAsync(ByVal command As String) As Task(Of String)
-            Return Nothing
         End Function
 
 #End Region ' Methods
