@@ -10,21 +10,13 @@ Namespace DuneUtilities.ApiWrappers
     ''' so there is little point in checking whether the player state is DVD or file playback.
     ''' Also, playback needs to be paused for this to work at all, but this is done automatically by the code pack.</remarks>
     Public Class SetKeyframeCommand
-        Inherits DuneCommand
+        Inherits Command
 
-        ''' <summary>
-        ''' Enumeration of supported actions.
-        ''' </summary>
-        Public Enum Keyframe
-            Previous = -1
-            [Next] = 1
-        End Enum
-
-        Private _keyframe As Keyframe
+        Private _keyframe As Constants.SetKeyframeSettings
 
         ''' <param name="dune">The target device.</param>
         ''' <param name="keyframe">The action that needs to be performed.</param>
-        Public Sub New(ByVal dune As Dune, ByVal keyframe As Keyframe)
+        Public Sub New(ByVal dune As Dune, ByVal keyframe As Constants.SetKeyframeSettings)
             MyBase.New(dune)
             _keyframe = keyframe
         End Sub
@@ -32,7 +24,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the action that needs to be performed.
         ''' </summary>
-        Public ReadOnly Property Action As Keyframe
+        Public ReadOnly Property Action As Constants.SetKeyframeSettings
             Get
                 Return _keyframe
             End Get

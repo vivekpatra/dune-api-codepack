@@ -67,12 +67,6 @@ Namespace DuneUtilities.ApiWrappers
 
 #End Region ' Properties
 
-#Region "Methods"
-
-        Function SetVideoOutput(ByVal command As SetVideoOutputCommand) As CommandResult
-
-#End Region
-
     End Interface
 
 End Namespace

@@ -1,11 +1,11 @@
 ﻿Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>
-    ''' Interface that defines properties and methods available in protocol version 1 and up.
+    ''' Interface that defines properties available in protocol version 1 and up.
     ''' </summary>
     ''' <remarks>
-    ''' if [Propertyname] has a setter, use it only to execute a command.
-    ''' Only [PropertynameUpdate] should be used to internally update the field value.
+    ''' if [Propertyname] has a setter, it is used to send a command.
+    ''' Only [PropertynameUpdate] is to be used to update the field value.
     ''' </remarks>
     Public Interface IProtocolVersion1
 
@@ -52,18 +52,6 @@
         Property HideOnScreenDisplay As Boolean?
 
 #End Region ' Properties
-
-#Region "Methods"
-
-        Function GetStatus() As CommandResult
-
-        Function StartPlayback(ByVal command As StartPlaybackCommand) As CommandResult
-
-        Function SetPlaybackState(ByVal command As SetPlaybackStateCommand) As CommandResult
-
-        Function SetPlayerState(ByVal command As SetPlayerStateCommand) As CommandResult
-
-#End Region ' Methods
 
     End Interface
 

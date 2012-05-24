@@ -23,7 +23,7 @@ Namespace DuneUtilities
 #Region "Private Fields"
 
         ' Custom fields
-        Private _shares As List(Of NetworkDriveInfo)
+        Private _shares As List(Of SmbShare)
         Private _productID As String
         Private _playlist As Playlist
         Private _connected As Boolean
@@ -216,10 +216,10 @@ Namespace DuneUtilities
         ''' </summary>
         <DisplayName("Network shares")>
         <Description("Collection of network shares exposed by the device's SMB server.")>
-        Public ReadOnly Property NetworkShares As ReadOnlyCollection(Of NetworkDriveInfo)
+        Public ReadOnly Property NetworkShares As ReadOnlyCollection(Of SmbShare)
             Get
                 If _shares Is Nothing Then
-                    _shares = New NetworkShares(Me.Hostname).Shares
+                    _shares = SmbShare.FromHost(Dns.GetHostEntry(Me.Address))
                 End If
                 Return _shares.AsReadOnly
             End Get
@@ -502,7 +502,7 @@ Namespace DuneUtilities
                 _tcpClient = New TcpClient()
                 _tcpClient.Connect(target) ' can throw a SocketException
 
-                UpdateValues(GetStatus()) ' can throw a WebException
+                GetStatus() ' can throw a WebException
 
             Catch tcpClientException As SocketException ' if the connection failed
                 Throw tcpClientException
@@ -519,12 +519,12 @@ Namespace DuneUtilities
         Private Sub _updateTimer_elapsed(sender As Object, e As System.Timers.ElapsedEventArgs)
             If Connected Then
                 Try
-                    UpdateValues(GetStatus)
+                    GetStatus()
                 Catch ex As WebException
                     CommandStatusUpdate = "connection error"
                 End Try
             Else
-                Interval = 0
+                Connected = False
                 CommandStatusUpdate = "lost connection"
             End If
         End Sub
@@ -534,12 +534,19 @@ Namespace DuneUtilities
         ''' </summary>
         ''' <param name="command">The command to execute.</param>
         ''' <exception cref="CommandException">: The device could not successfully  complete the command.</exception>
-        Private Function ProcessCommand(ByVal command As DuneCommand) As CommandResult
-            Dim result As CommandResult = CommandResult.FromCommand(command)
-            UpdateValues(result)
+        Public Function ProcessCommand(ByVal command As Command) As CommandResult
+            If Not command.Timeout.HasValue Then
+                command.Timeout = Me.Timeout
+            End If
 
-            If result.CommandError IsNot Nothing Then
-                Throw result.CommandError
+            Dim result As CommandResult = command.GetResult
+
+            If result IsNot Nothing Then
+                UpdateValues(result)
+
+                If result.CommandError IsNot Nothing Then
+                    Throw result.CommandError
+                End If
             End If
 
             Return result
@@ -550,17 +557,17 @@ Namespace DuneUtilities
         ''' </summary>
         ''' <param name="command">The command to execute.</param>
         ''' <exception cref="CommandException">: The device could not successfully  complete the command.</exception>
-        Private Function ProcessCommandAsync(ByVal command As DuneCommand) As Task(Of CommandResult)
+        Public Function ProcessCommandAsync(ByVal command As Command) As Task(Of CommandResult)
             Dim resultTask As Task(Of CommandResult)
 
-            resultTask = CommandResult.FromCommandAsync(command) _
-                .ContinueWith(Of CommandResult)(Function(antecedent)
-                                                    UpdateValues(antecedent.Result)
-                                                    If antecedent.Result.CommandError IsNot Nothing Then
-                                                        Throw antecedent.Result.CommandError
-                                                    End If
-                                                    Return antecedent.Result
-                                                End Function)
+            resultTask = Task(Of CommandResult).Factory.StartNew(Function()
+                                                                     Dim result As CommandResult = command.GetResult
+                                                                     UpdateValues(result)
+                                                                     If result.CommandError IsNot Nothing Then
+                                                                         Throw result.CommandError
+                                                                     End If
+                                                                     Return result
+                                                                 End Function)
 
             Return resultTask
         End Function
@@ -568,7 +575,7 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Updates the player status properties.
         ''' </summary>
-        Friend Sub UpdateValues(ByVal commandResult As CommandResult)
+        Private Sub UpdateValues(ByVal commandResult As CommandResult)
             If commandResult.CommandStatus <> String.Empty Then
                 CommandStatusUpdate = commandResult.CommandStatus
             End If
@@ -607,7 +614,7 @@ Namespace DuneUtilities
                 CommandStatusUpdate = "reconnecting..."
                 Try
                     If TargetIsValid(_endpoint) Then
-                        Interval = 900
+                        Interval = 990
                         ConnectedUpdate = True
                     End If
                 Catch ex As SocketException
@@ -686,6 +693,27 @@ Namespace DuneUtilities
             End Try
         End Sub
 
+        ''' <summary>
+        ''' Sends a reboot command using telnet.
+        ''' </summary>
+        Public Sub Reboot()
+            Try
+                TelnetClient.SendAndReceive("reboot")
+            Catch ex As Exception
+                Console.WriteLine("Telnet error: " + ex.Message)
+            End Try
+        End Sub
+
+        ''' <summary>
+        ''' Sends a poweroff command using telnet.
+        ''' </summary>
+        Public Sub PowerOff()
+            Try
+                TelnetClient.SendAndReceive("poweroff")
+            Catch ex As Exception
+                Console.WriteLine("Telnet error: " + ex.Message)
+            End Try
+        End Sub
 #End Region ' App methods
 
 #Region "Properties v1"
@@ -1007,128 +1035,68 @@ Namespace DuneUtilities
 #Region "Methods v1"
 
         ''' <summary>
-        ''' Gets the player status and updates all relevant properties.
+        ''' Navigates to the previous keyframe during DVD or MKV playback.
         ''' </summary>
-        ''' <returns>New instance of the <seealso cref="CommandResult"/> class.</returns>
-        ''' <exception cref="System.Net.WebException">: An error occurred when trying to query the API.</exception>
-        Public Function GetStatus() As CommandResult Implements IProtocolVersion1.GetStatus
-            Dim command As New GetStatusCommand(Me)
-
-
-            Return ProcessCommand(command)
-        End Function
-
-        ''' <summary>
-        ''' Gets the player status and updates all relevant properties asynchronously.
-        ''' </summary>
-        ''' <returns>New instance of the <seealso cref="CommandResult"/> class.</returns>
-        ''' <exception cref="System.Net.WebException">: An error occurred when trying to query the API.</exception>
-        Public Function GetStatusAsync() As Task(Of CommandResult)
-            Dim command As New GetStatusCommand(Me)
-
-
-            Return ProcessCommandAsync(command)
-        End Function
-
-        ''' <summary>
-        ''' Changes playback options (such as volume) to get the desired playback state.
-        ''' </summary>
-        ''' <param name="command">An instance of a <see cref="SetPlaybackStateCommand"/> object that contains the desired parameter values.</param>
-        ''' <returns>New instance of the <seealso cref="CommandResult"/> class.</returns>
-        Public Function SetPlaybackState(ByVal command As SetPlaybackStateCommand) As CommandResult Implements IProtocolVersion1.SetPlaybackState
-            If Not command.Timeout.HasValue Then
-                command.Timeout = Timeout
-            End If
-
-            Return ProcessCommand(command)
-        End Function
-
-        ''' <summary>
-        ''' Changes playback options (such as volume) to get the desired playback state asynchronously.
-        ''' </summary>
-        ''' <param name="command">An instance of a <see cref="SetPlaybackStateCommand"/> object that contains the desired parameter values.</param>
-        ''' <returns>New instance of the <seealso cref="CommandResult"/> class.</returns>
-        Public Function SetPlaybackStateAsync(ByVal command As SetPlaybackStateCommand) As Task(Of CommandResult)
-            If Not command.Timeout.HasValue Then
-                command.Timeout = Timeout
-            End If
-
-            Return ProcessCommandAsync(command)
-        End Function
-
-        ''' <summary>
-        ''' Sets the player state to 'main screen', 'black screen' or 'standby'.
-        ''' </summary>
-        ''' <param name="command">An instance of a <see cref="SetPlayerStateCommand"/> object that contains the desired player state value.</param>
-        ''' <returns>New instance of the <seealso cref="CommandResult"/> class.</returns>
-        Public Function SetPlayerState(ByVal command As SetPlayerStateCommand) As CommandResult Implements IProtocolVersion1.SetPlayerState
-            If Not command.Timeout.HasValue Then
-                command.Timeout = Timeout
-            End If
-
-            Return ProcessCommand(command)
-        End Function
-
-        ''' <summary>
-        ''' Sets the player state to 'main screen', 'black screen' or 'standby' asynchronously.
-        ''' </summary>
-        ''' <param name="command">An instance of a <see cref="SetPlayerStateCommand"/> object that contains the desired player state value.</param>
-        ''' <returns>New instance of the <seealso cref="CommandResult"/> class.</returns>
-        Public Function SetPlayerStateAsync(ByVal command As SetPlayerStateCommand) As Task(Of CommandResult)
-            If Not command.Timeout.HasValue Then
-                command.Timeout = Timeout
-            End If
-
-            Return ProcessCommandAsync(command)
-        End Function
-
-        ''' <summary>
-        ''' Starts playback.
-        ''' </summary>
-        ''' <param name="command">An instance of a <see cref="StartPlaybackCommand"/> object that contains the desired media URL and playback options.</param>
-        ''' <returns>New instance of the <seealso cref="CommandResult"/> class.</returns>
-        Public Function StartPlayback(ByVal command As StartPlaybackCommand) As CommandResult Implements IProtocolVersion1.StartPlayback
-            If Not command.Timeout.HasValue Then
-                command.Timeout = Timeout
-            End If
-
-            Return ProcessCommand(command)
-        End Function
-
-        ''' <summary>
-        ''' Starts playback asynchronously.
-        ''' </summary>
-        Public Function StartPlaybackAsync(ByVal command As StartPlaybackCommand) As Task(Of CommandResult)
-            If Not command.Timeout.HasValue Then
-                command.Timeout = Timeout
-            End If
-
-            Return ProcessCommandAsync(command)
-        End Function
-
         Public Function GoToPreviousKeyframe() As CommandResult
-            Dim command As New SetKeyframeCommand(Me, SetKeyframeCommand.Keyframe.Previous)
-            command.Timeout = Timeout
+            Dim command As New SetKeyframeCommand(Me, Constants.SetKeyframeSettings.Previous)
             Return ProcessCommand(command)
         End Function
 
-        Public Function GoToPreviousKeyframeAsync() As Task(Of CommandResult)
-            Dim command As New SetKeyframeCommand(Me, SetKeyframeCommand.Keyframe.Previous)
-            command.Timeout = Timeout
-            Return ProcessCommandAsync(command)
-        End Function
-
+        ''' <summary>
+        ''' Navigates to the next keyframe during DVD or MKV playback.
+        ''' </summary>
         Public Function GoToNextKeyframe() As CommandResult
-            Dim command As New SetKeyframeCommand(Me, SetKeyframeCommand.Keyframe.Next)
-            command.Timeout = Timeout
+            Dim command As New SetKeyframeCommand(Me, Constants.SetKeyframeSettings.Next)
             Return ProcessCommand(command)
         End Function
 
-        Public Function GoToNextKeyframeAsync() As Task(Of CommandResult)
-            Dim command As New SetKeyframeCommand(Me, SetKeyframeCommand.Keyframe.Next)
-            command.Timeout = Timeout
-            Return ProcessCommandAsync(command)
+        ''' <summary>
+        ''' Sets the device to standby mode.
+        ''' </summary>
+        Public Function SetToStandby() As CommandResult
+            Dim command As New SetPlayerStateCommand(Me, Constants.Commands.Standby)
+            Return ProcessCommand(command)
         End Function
+
+        ''' <summary>
+        ''' Sets the device to navigator mode.
+        ''' </summary>
+        Public Function SetToMainScreen() As CommandResult
+            Dim command As New SetPlayerStateCommand(Me, Constants.Commands.MainScreen)
+            Return ProcessCommand(command)
+        End Function
+
+        ''' <summary>
+        ''' Sets the device to black screen mode.
+        ''' </summary>
+        Public Function SetToBlackScreen() As CommandResult
+            Dim command As New SetPlayerStateCommand(Me, Constants.Commands.BlackScreen)
+            Return ProcessCommand(command)
+        End Function
+
+        ''' <summary>
+        ''' Navigates through menus.
+        ''' </summary>
+        ''' <param name="action">The navigation action. Possible values are enumerated in <see cref="Constants.NavigationActions"/>.</param>
+        ''' <remarks>
+        ''' The actual command is context sensitive.
+        ''' If the device is in dvd playback, it will be a 'dvd_navigation' command.
+        ''' Similarly, a 'bluray_navigation' command is sent when the device is in blu-ray playback mode.
+        ''' In all other cases, a remote control button is emulated ('ir_code' command).
+        ''' </remarks>
+        Public Function NavigateMenu(ByVal action As String) As CommandResult
+            Dim command As New NavigationCommand(Me, action)
+            Return ProcessCommand(command)
+        End Function
+
+        ''' <summary>
+        ''' Gets the player status.
+        ''' </summary>
+        Public Function GetStatus() As CommandResult
+            Dim command As New GetStatusCommand(Me)
+            Return ProcessCommand(command)
+        End Function
+
 #End Region ' Methods v1
 
 #Region "Properties v2"
@@ -1646,38 +1614,6 @@ Namespace DuneUtilities
         End Property
 
 #End Region 'Properties v2
-
-#Region "Methods v2"
-
-        ''' <summary>
-        ''' Changes how the video output is displayed.
-        ''' </summary>
-        Public Function SetVideoOutput(ByVal command As SetVideoOutputCommand) As CommandResult Implements IProtocolVersion2.SetVideoOutput
-            If ProtocolVersion >= 2 Then
-                If Not command.Timeout.HasValue Then
-                    command.Timeout = Timeout
-                End If
-                Return ProcessCommand(command)
-            Else
-                Return Nothing
-            End If
-        End Function
-
-        ''' <summary>
-        ''' Changes how the video output is displayed asynchronously.
-        ''' </summary>
-        Public Function SetVideoOutputAsync(ByVal command As SetVideoOutputCommand) As Task(Of CommandResult)
-            If ProtocolVersion >= 2 Then
-                If Not command.Timeout.HasValue Then
-                    command.Timeout = Timeout
-                End If
-                Return ProcessCommandAsync(command)
-            Else
-                Return Nothing
-            End If
-        End Function
-
-#End Region ' Methods v2
 
         ''' <summary>
         ''' INotifyPropertyChanged implementation.

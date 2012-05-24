@@ -6,7 +6,7 @@ Namespace DuneUtilities.ApiWrappers
     ''' This command gets the player status without changing the player state in any way.
     ''' </summary>
     Public Class GetStatusCommand
-        Inherits DuneCommand
+        Inherits Command
 
 
         Public Sub New(ByRef dune As Dune)

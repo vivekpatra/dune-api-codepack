@@ -80,4 +80,16 @@ Public Class NetworkCardVendor
             Return _country
         End Get
     End Property
+
+    Public Overrides Function ToString() As String
+        Dim text As New Text.StringBuilder
+
+        text.AppendLine("Vendor: " + Company)
+        text.AppendLine("Department: " + Department)
+        text.AppendLine("Address line 1: " + Address1)
+        text.AppendLine("Address line 2: " + Address2)
+        text.Append("Country: " + Country)
+
+        Return text.ToString
+    End Function
 End Class

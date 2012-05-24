@@ -2,6 +2,7 @@
 Imports System.Net.Sockets
 Imports System.Net.NetworkInformation
 Imports System.Threading.Tasks
+Imports SL.DuneApiCodePack.Extensions
 
 ''' <summary>
 ''' Reveals information about a network interface on a remote machine.
@@ -17,7 +18,7 @@ Public Class NetworkAdapterInfo ' TODO: test with local interfaces.
 
     Public Sub New(ByVal address As IPAddress)
         _ipAddress = address
-        _physicalAddress = NativeMethods.GetMacAddress(address)
+        _physicalAddress = NativeMethods.Networking.GetMacAddress(address)
 
         _vendor = New NetworkCardVendor(_physicalAddress)
     End Sub
@@ -176,13 +177,7 @@ Public Class NetworkAdapterInfo ' TODO: test with local interfaces.
 
         text.AppendLine("Connection type: " + Connection.ToString)
         text.AppendLine("IP address: " + Address.ToString)
-        text.AppendLine("MAC address: " + PhysicalAddress.ToString)
-        text.AppendLine(New String("-"c, 20))
-        text.AppendLine("Vendor: " + Vendor.Company)
-        text.AppendLine("Department: " + Vendor.Department)
-        text.AppendLine("Address line 1: " + Vendor.Address1)
-        text.AppendLine("Address line 2: " + Vendor.Address2)
-        text.Append("Country: " + Vendor.Country)
+        text.Append("MAC address: " + PhysicalAddress.ToDelimitedString)
 
         Return text.ToString
     End Function

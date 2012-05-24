@@ -1,4 +1,4 @@
-﻿Imports SL.DuneApiCodePack.NativeMethods
+﻿Imports SL.DuneApiCodePack.NativeMethods.Networking
 
 Namespace Storage
 
@@ -6,7 +6,7 @@ Namespace Storage
     ''' A collection of network shares and information about their disk space.
     ''' </summary>
     ''' <remarks>This type depends on a native method and should be replaced when a managed alternative becomes available.</remarks> 
-    Public Class NetworkShares
+    Public Class NetworkSharess
 
         Private _shares As List(Of NetworkDriveInfo)
 

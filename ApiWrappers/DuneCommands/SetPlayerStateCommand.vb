@@ -4,7 +4,7 @@ Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>This command is used to set the player state.</summary>
     Public Class SetPlayerStateCommand
-        Inherits DuneCommand
+        Inherits Command
 
         Private _state As String
 

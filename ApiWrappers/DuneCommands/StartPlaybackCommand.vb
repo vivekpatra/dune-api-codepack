@@ -5,7 +5,7 @@ Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>This command is used to send a new playback request.</summary>
     Public Class StartPlaybackCommand
-        Inherits DuneCommand
+        Inherits Command
 
         Private _type As PlaybackType
         Private _mediaUrl As String

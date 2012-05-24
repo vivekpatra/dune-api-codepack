@@ -8,13 +8,12 @@ Namespace Storage
     Public Class NetworkDriveInfo
 
         Private _root As DirectoryInfo
-        Private _shareInfo As Dictionary(Of NativeMethods.ShareInfo, UInteger)
+        Private _shareInfo As NativeMethods.Networking.ShareInfo
 
         Public Sub New(ByVal share As String)
             _root = New DirectoryInfo(share)
-            _shareInfo = NativeMethods.GetShareInfo(share)
+            _shareInfo = NativeMethods.Networking.GetShareInfo(Root.GetUri)
         End Sub
-
 
         ''' <summary>
         ''' Gets the root directory of the network share.
@@ -30,7 +29,7 @@ Namespace Storage
         ''' </summary>
         Public ReadOnly Property BytesPerSector As UInteger
             Get
-                Return _shareInfo(NativeMethods.ShareInfo.BytesPerSector)
+                Return _shareInfo.BytesPerSector
             End Get
         End Property
 
@@ -39,7 +38,7 @@ Namespace Storage
         ''' </summary>
         Public ReadOnly Property NumberOfFreeClusters As UInteger
             Get
-                Return _shareInfo(NativeMethods.ShareInfo.NumberOfFreeClusters)
+                Return _shareInfo.NumberOfFreeClusters
             End Get
         End Property
 
@@ -48,7 +47,7 @@ Namespace Storage
         ''' </summary>
         Public ReadOnly Property SectorsPerCluster As UInteger
             Get
-                Return _shareInfo(NativeMethods.ShareInfo.SectorsPerCluster)
+                Return _shareInfo.NumberOfFreeClusters
             End Get
         End Property
 
@@ -57,7 +56,7 @@ Namespace Storage
         ''' </summary>
         Public ReadOnly Property TotalNumberOfClusters As UInteger
             Get
-                Return _shareInfo(NativeMethods.ShareInfo.TotalNumberOfClusters)
+                Return _shareInfo.TotalNumberOfClusters
             End Get
         End Property
 

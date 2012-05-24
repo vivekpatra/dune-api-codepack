@@ -5,7 +5,7 @@ Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>This command is used to change various playback options.</summary>
     Public Class SetPlaybackStateCommand
-        Inherits DuneCommand
+        Inherits Command
 
         Private Const NotSupportedMessage As String = "This property requires a firmware update."
 

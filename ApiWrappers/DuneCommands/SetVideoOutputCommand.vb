@@ -5,7 +5,7 @@ Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>This command is used to change the video output (zoom; width; height; position).</summary>
     Public Class SetVideoOutputCommand
-        Inherits DuneCommand
+        Inherits Command
 
         Private Const NotSupportedMessage As String = "This command requires a firmware update."
 

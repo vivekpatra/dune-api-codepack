@@ -14,7 +14,7 @@ Namespace DuneUtilities.ApiWrappers
 #Region "Private fields"
 
         Private Const NotSupportedMessage As String = "This property requires a firmware update."
-        Private _command As DuneCommand
+        Private _command As Command
         Private _rawData As NameValueCollection
         Private _roundTripTime As TimeSpan
 
@@ -45,84 +45,124 @@ Namespace DuneUtilities.ApiWrappers
 
 #End Region
 
-        Private Sub New(ByVal command As DuneCommand)
+
+        Friend Sub New(ByVal command As Command)
             _command = command
             If Not command.CommandType = Constants.Commands.Status Then
                 command.Target.ClearStatus()
             End If
+
+            Dim stopwatch As Stopwatch = stopwatch.StartNew
+            Using response As WebResponse = command.GetResponse
+                stopwatch.Stop()
+                _roundTripTime = stopwatch.Elapsed
+                Dim document As XDocument = XDocument.Load(response.GetResponseStream)
+                ParseResults(document)
+            End Using
         End Sub
 
-        ''' <summary>Executes a command and processes the command results.</summary>
-        ''' <param name="command">The command that needs to be executed.</param>
-        ''' <exception cref="WebException">: An error occurred when trying to query the API.</exception>
-        Public Shared Function FromCommand(ByVal command As DuneCommand) As CommandResult
-            Dim result As New CommandResult(command)
+        ' ''' <summary>Executes a command and processes the command results.</summary>
+        ' ''' <param name="command">The command that needs to be executed.</param>
+        ' ''' <exception cref="WebException">: An error occurred when trying to query the API.</exception>
+        'Public Shared Function FromCommand(ByVal command As Command) As CommandResult
+        '    Dim result As New CommandResult(command)
 
-            Try
-                Dim results As XDocument = result.GetResults(command)
-                result.ParseResults(results)
-            Catch ex As WebException
-                command.Target.ConnectedUpdate = False
-            End Try
+        '    Try
+        '        Dim results As XDocument = result.GetResults(command)
+        '        result.ParseResults(results)
+        '    Catch ex As WebException
+        '        If ex.Status = WebExceptionStatus.Timeout Then
+        '            Console.WriteLine(ex.Message + ": " + command.ToString)
+        '        Else
+        '            command.Target.ConnectedUpdate = False
+        '        End If
+        '    End Try
 
-            Return result
-        End Function
+        '    Return result
+        'End Function
 
-        ''' <summary>Executes a command and processes the command results asynchronously.</summary>
-        ''' <param name="command">The command that needs to be executed.</param>
-        ''' <exception cref="WebException">: An error occurred when trying to query the API.</exception>
-        Public Shared Function FromCommandAsync(ByVal command As DuneCommand) As Task(Of CommandResult)
-            Dim result As New CommandResult(command)
+        ' ''' <summary>Executes a command and processes the command results asynchronously.</summary>
+        ' ''' <param name="command">The command that needs to be executed.</param>
+        ' ''' <exception cref="WebException">: An error occurred when trying to query the API.</exception>
+        'Public Shared Function FromCommandAsync(ByVal command As Command) As Task(Of CommandResult)
+        '    Dim result As New CommandResult(command)
 
-            Dim commandTask As Task(Of CommandResult) =
-                Task(Of CommandResult).Factory.StartNew(Function()
-                                                            Try
-                                                                result.ParseResults(result.GetResultsAsync(command).Result)
-                                                                Return result
-                                                            Catch ex As AggregateException
-                                                                command.Target.ConnectedUpdate = False
-                                                            End Try
-                                                            Return Nothing
-                                                        End Function)
+        '    Dim commandTask As Task(Of CommandResult) =
+        '        Task(Of CommandResult).Factory.StartNew(Function()
+        '                                                    Try
+        '                                                        result.ParseResults(result.GetResultsAsync(command).Result)
+        '                                                        Return result
+        '                                                    Catch ex As AggregateException
+        '                                                        command.Target.ConnectedUpdate = False
+        '                                                    End Try
+        '                                                    Return Nothing
+        '                                                End Function)
 
 
-            Return commandTask
-        End Function
+        '    Return commandTask
+        'End Function
 
-        ''' <summary>
-        ''' Gets the command results in xml format and measures the latency.
-        ''' </summary>
-        Private Function GetResults(ByVal command As DuneCommand) As XDocument
-            Dim stopwatch As Stopwatch = stopwatch.StartNew
+        ' ''' <summary>
+        ' ''' Gets the command results in xml format and measures the latency.
+        ' ''' </summary>
+        'Private Function GetResults(ByVal command As Command) As XDocument
+        '    Dim stopwatch As Stopwatch = stopwatch.StartNew
 
-            Dim request As WebRequest = command.GetRequest
+        '    Dim request As WebRequest = command.GetRequest
 
-            Dim response As WebResponse = request.GetResponse
+        '    Dim commandResult As XDocument
 
-            stopwatch.Stop()
+        '    Using response As WebResponse = request.GetResponse
+        '        stopwatch.Stop()
+        '        _roundTripTime = stopwatch.Elapsed
+        '        commandResult = XDocument.Load(response.GetResponseStream)
+        '    End Using
 
-            _roundTripTime = stopwatch.Elapsed
-            Return XDocument.Load(response.GetResponseStream)
-        End Function
+        '    Return commandResult
+        'End Function
 
-        ''' <summary>
-        ''' Gets the command results in xml format asynchronously and measures the latency.
-        ''' </summary>
-        Private Function GetResultsAsync(ByVal command As DuneCommand) As Task(Of XDocument)
-            Dim stopwatch As New Stopwatch
-            Dim request As WebRequest = command.GetRequest
+        ' ''' <summary>
+        ' ''' Gets the command results in xml format asynchronously and measures the latency.
+        ' ''' </summary>
+        'Private Function GetResultsAsync(ByVal command As Command) As Task(Of XDocument)
+        '    Dim stopwatch As New Stopwatch
+        '    Dim request As WebRequest = command.GetRequest
 
-            Dim queryTask As Task(Of XDocument) =
-                Task.Factory.StartNew(AddressOf stopwatch.Start) _
-                .ContinueWith(Of WebResponse)(Function() Task.Factory.FromAsync(AddressOf request.BeginGetResponse, AddressOf request.EndGetResponse, Nothing, Nothing).Result) _
-                .ContinueWith(Of XDocument)(Function(antecedent)
-                                                stopwatch.Stop()
-                                                _roundTripTime = stopwatch.Elapsed
-                                                Return XDocument.Load(antecedent.Result.GetResponseStream)
-                                            End Function)
+        '    'Dim queryTask As Task(Of XDocument) =
+        '    '    Task.Factory.StartNew(AddressOf stopwatch.Start) _
+        '    '    .ContinueWith(Of WebResponse)(Function() Task.Factory.FromAsync(AddressOf request.BeginGetResponse, AddressOf request.EndGetResponse, state).Result) _
+        '    '    .ContinueWith(Of XDocument)(Function(antecedent)
+        '    '                                    stopwatch.Stop()
+        '    '                                    _roundTripTime = stopwatch.Elapsed
+        '    '                                    Return XDocument.Load(antecedent.Result.GetResponseStream)
+        '    '                                End Function, TaskContinuationOptions.OnlyOnRanToCompletion)
 
-            Return queryTask
-        End Function
+        '    'stopwatch.Start()
+        '    'request.Timeout = Integer.MaxValue
+
+        '    'Dim responses As WebResponse = request.GetResponse()
+        '    'stopwatch.Stop()
+        '    '_roundTripTime = stopwatch.Elapsed
+
+
+
+        '    Dim queryTask As Task(Of XDocument) =
+        '        Task.Factory.StartNew(Function()
+        '                                  stopwatch.Start()
+        '                                  request.Timeout = Integer.MaxValue
+
+        '                                  Dim response As WebResponse = request.GetResponse()
+        '                                  stopwatch.Stop()
+        '                                  _roundTripTime = stopwatch.Elapsed
+        '                                  Dim xml As XDocument = XDocument.Load(response.GetResponseStream)
+        '                                  response.Close()
+        '                                  Return xml
+        '                              End Function)
+
+
+
+        '    Return queryTask
+        'End Function
 
         ''' <summary>
         ''' Parses the xml document.
@@ -153,7 +193,7 @@ Namespace DuneUtilities.ApiWrappers
                 Case Constants.CommandResults.PlayerState
                     _playerState = value
                 Case Constants.CommandResults.PlaybackSpeed
-                    _playbackSpeed = CInt(value)
+                    _playbackSpeed = GetSpeedFromBuggedValue(value)
                 Case Constants.CommandResults.PlaybackDuration
                     If value = "0" Then Exit Select
                     _playbackDuration = TimeSpan.FromSeconds(CInt(value))
@@ -208,7 +248,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the underlying command object that was used for this command.
         ''' </summary>
-        Public ReadOnly Property Command As DuneCommand
+        Public ReadOnly Property Command As Command
             Get
                 Return _command
             End Get
@@ -596,6 +636,20 @@ Namespace DuneUtilities.ApiWrappers
                 Case Else
                     Return languageCode
             End Select
+        End Function
+
+        ''' <summary>
+        ''' Workaround method for a bug in the API. This method gets the real playback speed for values where something server-side went wrong with bitwise operations.
+        ''' The problem seems to be that the unit does not properly recognize the sign bit on values between -128 and -16.
+        ''' </summary>
+        ''' <param name="value">The actual value.</param>
+        ''' <returns>The expected value.</returns>
+        ''' <remarks>Version 1 and 2 have this bug. Hopefully it will be fixed in version 3. I've e-mailed support about this on 13 may 2012.</remarks>
+        Private Function GetSpeedFromBuggedValue(ByVal value As String) As Integer
+            Dim buggedValue As Integer = Convert.ToInt32(value)
+            Dim bytes() As Byte = BitConverter.GetBytes(buggedValue)
+            Dim fixedValue As Short = BitConverter.ToInt16(bytes, 0)
+            Return fixedValue
         End Function
 
 #End Region ' Methods

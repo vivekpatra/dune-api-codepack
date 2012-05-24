@@ -1,11 +1,11 @@
-﻿Friend Class Constants
+﻿Public Class Constants
     Private Sub New()
     End Sub
 
     ''' <summary>
     ''' Contains constants for each possible command (as defined by the API).
     ''' </summary>
-    Friend Class Commands
+    Public Class Commands
         Private Sub New()
         End Sub
 
@@ -27,8 +27,10 @@
         Public Const BlackScreen As String = "black_screen"
         ''' <summary>Sets the player to standby.</summary>
         Public Const Standby As String = "standby"
-        ''' <summary>Sends a dvd navigation command. It takes only one parameter: "action". Possible values are enumerated in <see cref="DvdNavigationActions"/>.</summary>
+        ''' <summary>Sends a dvd navigation command. It takes only one parameter: "action". Possible values are enumerated in <see cref="NavigationActions"/>.</summary>
         Public Const DvdNavigation As String = "dvd_navigation"
+        ''' <summary>Sends a bluray navigation command. It takes only one parameter: "action". Possible values are enumerated in <see cref="NavigationActions"/>.</summary>
+        Public Const BlurayNavigation As String = "bluray_navigation"
 
         ' Protocol version 3
         ''' <summary>???</summary>
@@ -41,7 +43,7 @@
     ''' <summary>
     ''' Contains constants for each possible parameter that you can supply with a start playback command.
     ''' </summary>
-    Friend Class StartPlaybackParameters
+    Public Class StartPlaybackParameters
         Private Sub New()
         End Sub
 
@@ -63,7 +65,7 @@
     ''' <summary>
     ''' Containts constants for each possible parameter that you can supply with a set playback state command.
     ''' </summary>
-    Friend Class SetPlaybackStateParameters
+    Public Class SetPlaybackStateParameters
         Private Sub New()
         End Sub
 
@@ -77,25 +79,34 @@
         Public Const HideOnScreenDisplay As String = "hide_osd"
         ''' <summary>Action to take on playback finish. Possible values are enumerated in <see cref="Constants.ActionOnFinishSettings" />.</summary>
         Public Const ActionOnFinish As String = "action_on_finish"
-
+        ''' <summary>1 to forward to the next keyframe; -1 to rewind to the previous keyframe. Only valid during DVD and MKV playback.</summary>
         Public Const SetKeyframe As String = "skip_frames"
+        ''' <summary>Volume in percentage. Only integer values are allowed.</summary>
         Public Const PlaybackVolume As String = "volume"
+        ''' <summary>1 to mute the volume; otherwise 0.</summary>
         Public Const PlaybackMute As String = "mute"
+        ''' <summary>The 0-based index number of the current language track.</summary>
         Public Const AudioTrack As String = "audio_track"
+        ''' <summary>0 to disable video output; otherwise 1.</summary>
         Public Const VideoEnabled As String = "video_enabled"
+        ''' <summary>Name of the zoom mode. Possible values are enumerated in <see cref="Constants.VideoZoomSettings"/>.</summary>
         Public Const VideoZoom As String = "video_zoom"
+        ''' <summary>0 to enable custom video output dimensions; otherwise 1.</summary>
         Public Const VideoFullscreen As String = "video_fullscreen"
+        ''' <summary>The horizontal video output position in pixels.</summary>
         Public Const VideoHorizontalPosition As String = "video_x"
+        ''' <summary>The vertical video output position in pixels.</summary>
         Public Const VideoVerticalPosition As String = "video_y"
+        ''' <summary>The horizontal video output width in pixels.</summary>
         Public Const VideoWidth As String = "video_width"
+        ''' <summary>The vertical video output height in pixels.</summary>
         Public Const VideoHeight As String = "video_height"
-
     End Class
 
     ''' <summary>
     ''' Contains constants for each possible parameter name in the command results.
     ''' </summary>
-    Friend Class CommandResults
+    Public Class CommandResults
         Private Sub New()
         End Sub
 
@@ -149,7 +160,7 @@
     ''' <summary>
     ''' Contains constants for each possible command status.
     ''' </summary>
-    Friend Class Status
+    Public Class Status
         Private Sub New()
         End Sub
         ''' <summary>The command completed without error.</summary>
@@ -163,7 +174,7 @@
     ''' <summary>
     ''' Contains constants for each possible error kind.
     ''' </summary>
-    Friend Class ErrorKinds
+    Public Class ErrorKinds
         Private Sub New()
         End Sub
 
@@ -184,7 +195,7 @@
     ''' <summary>
     ''' Contains constants for each possible player state.
     ''' </summary>
-    Friend Class PlayerStateSettings
+    Public Class PlayerStateSettings
         Private Sub New()
         End Sub
 
@@ -204,9 +215,12 @@
     ''' <summary>
     ''' Contains constants for each possible product ID.
     ''' </summary>
-    Friend Class ProductIDs
+    Public Class ProductIDs
         Private Sub New()
         End Sub
+
+        ' Uncomment if and when the HD Pro is released.
+        ' Public Const HDPro As String = "hdpro"
 
         Public Const HDTV301 As String = "hdtv_301"
         Public Const HDTV101 As String = "hdtv_101"
@@ -218,51 +232,40 @@
         Public Const HDSmartH1 As String = "hdsmart_h1"
         Public Const HDBase3 As String = "hdbase3"
         Public Const BDPrime3 As String = "bdprime3"
-
-        ''' <summary>
-        ''' Discontinued models don't have the API installed but are listed for consistency.
-        ''' </summary>
-        ''' <remarks>These models don't have update checkers.</remarks>
-        Friend Class DiscontinuedModels
-            Private Sub New()
-            End Sub
-
-            ' Discontinued models (no API support)
-            Public Const HDBase2 As String = "hdbase2"
-            Public Const HDBase As String = "hdbase"
-            Public Const HDCenter As String = "hdcenter"
-            Public Const BDPrime As String = "bdprime"
-            Public Const HDMini As String = "hdmini"
-            Public Const HDUltra As String = "hdultra"
-        End Class
-
     End Class
 
     ''' <summary>
     ''' Contains constants for each possible playback speed setting.
     ''' </summary>
     ''' <remarks>
-    ''' The "start_x_playback" commands only accept 0 and 256.
+    ''' The "start_x_playback" commands only accept values for normal speed and paused.
     ''' "set_playback_state" commands accept all values.
     ''' </remarks>
-    Friend Class PlaybackSpeedSettings
-        Private Sub New()
-        End Sub
-
-        Public Const Rewind16x As Short = -4096
-        Public Const Rewind8x As Short = -2048
-        Public Const Rewind4x As Short = -1024
-        Public Const Rewind2x As Short = -512
-        Public Const Rewind As Short = -256
-        Public Const RewindSlow As Short = -64
-        Public Const Pause As Short = 0
-        Public Const Slow As Short = 64
-        Public Const Normal As Short = &H100
-        Public Const Forward2x As Short = 512
-        Public Const Forward4x As Short = 1024
-        Public Const Forward8x As Short = 2048
-        Public Const Forward16x As Short = 4096
-    End Class
+    Public Enum PlaybackSpeedSettings As Short
+        Rewind32x = -CShort(2 ^ 13)
+        Rewind16x = -CShort(2 ^ 12)
+        Rewind8x = -CShort(2 ^ 11)
+        Rewind4x = -CShort(2 ^ 10)
+        Rewind2x = -CShort(2 ^ 9)
+        Rewind1x = -CShort(2 ^ 8)
+        Rewind1_2x = -CShort(2 ^ 7)
+        Rewind1_4x = -CShort(2 ^ 6)
+        Rewind1_8x = -CShort(2 ^ 5)
+        Rewind1_16x = -CShort(2 ^ 4)
+        ' Rewind1_32x = -CShort(2 ^ 3) uncomment if and when this becomes supported
+        Pause = 0
+        ' Slowdown1_32x = CShort(2 ^ 3) uncomment if and when this becomes supported
+        Slowdown1_16x = CShort(2 ^ 4)
+        Slowdown1_8x = CShort(2 ^ 5)
+        Slowdown1_4x = CShort(2 ^ 6)
+        Slowdown1_2x = CShort(2 ^ 7)
+        Normal = CShort(2 ^ 8)
+        Forward2x = CShort(2 ^ 9)
+        Forward4x = CShort(2 ^ 10)
+        Forward8x = CShort(2 ^ 11)
+        Forward16x = CShort(2 ^ 12)
+        Forward32x = CShort(2 ^ 13)
+    End Enum
 
     ''' <summary>
     ''' Contains constants for each possible zoom setting.
@@ -271,7 +274,7 @@
     ''' Custom zoom settings cannot be set through the "video_zoom" parameter.
     ''' You must set video height and size parameters instead.
     ''' </remarks>
-    Friend Class VideoZoomSettings
+    Public Class VideoZoomSettings
         Private Sub New()
         End Sub
 
@@ -287,7 +290,7 @@
     ''' <summary>
     ''' Contains constants for each possible action on finish.
     ''' </summary>
-    Friend Class ActionOnFinishSettings
+    Public Class ActionOnFinishSettings
         Private Sub New()
         End Sub
 
@@ -298,11 +301,7 @@
     ''' <summary>
     ''' Contains constants for each possible DVD menu action.
     ''' </summary>
-    ''' <remarks>
-    ''' These are pretty useless IMHO since you can emulate remote control buttons.
-    ''' Checking for a dvd menu would be extra work.
-    ''' </remarks>
-    Friend Class DvdNavigationActions
+    Public Class NavigationActions
         Private Sub New()
         End Sub
 
@@ -314,10 +313,14 @@
     End Class
 
     ''' <summary>
-    ''' Contains constants for each possible interface language.
+    ''' Contains constants for each pre-installed interface language.
     ''' It might be a good idea to localize your app in each of these.
     ''' </summary>
-    Friend Class InterfaceLanguages
+    ''' <remarks>
+    ''' These languages are installed by default.
+    ''' It is possible to install supplemental languages, in which case this enumeration becomes incomplete.
+    ''' </remarks>
+    Public Class InterfaceLanguages
         Private Sub New()
         End Sub
 
@@ -343,5 +346,222 @@
         Public Const ChineseTraditional As String = "chinese_traditional"
         Public Const Japanese As String = "japanese"
     End Class
+
+    ''' <summary>
+    ''' Contains constants for each supported remote control and a helper function to retrieve the right codes.
+    ''' </summary>
+    ''' <remarks>Many of the buttons have overlapping values, but it is in our best interest to keep redundant copies or things get too complicated.</remarks>
+    Public Class RemoteControls
+        Private Sub New()
+        End Sub
+
+        ''' <summary>Code for the New remotes.</summary>
+        Private Const CustomerCode As UShort = &HBF
+
+        ''' <summary>
+        ''' Returns the hexadecimal string representation of the 32-bit NEC code that belongs to a button.
+        ''' Valid values are enumerated in <see cref="BigRemoteButtons"/>, <see cref="BigRemote2Buttons" /> and <see cref="SmallRemoteButtons"/>.
+        ''' </summary>
+        ''' <param name="button">The 16-bit value that represents a button.</param>
+        ''' <returns>The 32-bit value that represents a NEC code.</returns>
+        Public Shared Function GetButtonCode(ByVal button As UShort) As String
+            Dim control() As Byte = BitConverter.GetBytes(CustomerCode)
+            Dim suffix() As Byte = BitConverter.GetBytes(button)
+
+            Return (String.Concat(BitConverter.ToString(suffix), BitConverter.ToString(control)).Replace("-"c, String.Empty))
+        End Function
+
+        ''' <summary>
+        ''' Contains constants for each button on the big remote control (version 1).
+        ''' </summary>
+        Public Enum BigRemoteButtons As UShort
+            Eject = &H10EF
+            Mute = &H46B9
+            Mode = &H45BA
+            Power = &H43BC
+            Red = &H40BF
+            Green = &H1FE0
+            Yellow = &HFF
+            Blue = &H41BE
+            Num1 = &HBF4
+            Num2 = &HCF3
+            Num3 = &HDF2
+            Num4 = &HEF1
+            Num5 = &HFF0
+            Num6 = &H1FE
+            Num7 = &H11EE
+            Num8 = &H12ED
+            Num9 = &H13EC
+            Num0 = &HAF5
+            Clear = &H5FA
+            [Select] = &H42BD
+            VolumeUp = &H52AD
+            VolumeDown = &H53AC
+            PageUp = &H4BB4
+            PageDown = &H4CB3
+            Search = &H6F9
+            Zoom = &H2FD
+            Setup = &H4EB1
+            Up = &H15EA
+            Down = &H16E9
+            Left = &H17E8
+            Right = &H18E7
+            Enter = &H14EB
+            [Return] = &H4FB
+            Info = &H50AF
+            PopUpMenu = &H7F8
+            TopMenu = &H51AE
+            Play = &H48B7
+            Pause = &H1EE1
+            Previous = &H49B6
+            [Next] = &H1DE2
+            [Stop] = &H19E6
+            Slow = &H1AE5
+            Rewind = &H1CE3
+            Forward = &H1BE4
+            Subtitle = &H54AB
+            AngleRotate = &H4DB2
+            Audio = &H44BB
+            Repeat = &H4FB0
+            ShufflePip = &H47B8
+            Url2ndAudio = &H3FC
+        End Enum
+
+        ''' <summary>
+        ''' Contains constants for each button on the big remote control (version 2).
+        ''' </summary>
+        Public Enum BigRemote2Buttons
+            Eject = &H10EF
+            Mute = &H46B9
+            Mode = &H45BA
+            Power = &H43BC
+            Red = &H40BF
+            Green = &H1FE0
+            Yellow = &HFF
+            Blue = &H41BE
+            Num1 = &HBF4
+            Num2 = &HCF3
+            Num3 = &HDF2
+            Num4 = &HEF1
+            Num5 = &HFF0
+            Num6 = &H1FE
+            Num7 = &H11EE
+            Num8 = &H12ED
+            Num9 = &H13EC
+            Num0 = &HAF5
+            Clear = &H5FA
+            [Select] = &H42BD
+            VolumeUp = &H52AD
+            VolumeDown = &H53AC
+            PageUp = &H4BB4
+            PageDown = &H4CB3
+            Search = &H6F9
+            Zoom = &H2FD
+            Setup = &H4EB1
+            Up = &H15EA
+            Down = &H16E9
+            Left = &H17E8
+            Right = &H18E7
+            Enter = &H14EB
+            [Return] = &H4FB
+            Info = &H50AF
+            PopUpMenu = &H7F8
+            TopMenu = &H51AE
+            Play = &H48B7
+            Pause = &H1EE1
+            Previous = &H49B6
+            [Next] = &H1DE2
+            [Stop] = &H19E6
+            Slow = &H1AE5
+            Rewind = &H1CE3
+            Forward = &H1BE4
+            Subtitle = &H54AB
+            AngleRotate = &H4DB2
+            Audio = &H44BB
+            Rec = &H609F
+            Dune = &H619E
+            Url = &H629D
+        End Enum
+
+        ''' <summary>
+        ''' Contains constants for each button on the small remote control.
+        ''' </summary>
+        Public Enum SmallRemoteButtons
+            Mute = &H46B9
+            Power = &H43BC
+            Red = &H40BF
+            Green = &H1FE0
+            Yellow = &HFF
+            Blue = &H41BE
+            Num1 = &HBF4
+            Num2 = &HCF3
+            Num3 = &HDF2
+            Num4 = &HEF1
+            Num5 = &HFF0
+            Num6 = &H1FE
+            Num7 = &H11EE
+            Num8 = &H12ED
+            Num9 = &H13EC
+            Num0 = &HAF5
+            Clear = &H5FA
+            [Select] = &H42BD
+            Up = &H15EA
+            Down = &H16E9
+            Left = &H17E8
+            Right = &H18E7
+            Enter = &H14EB
+            [Return] = &H4FB
+            Info = &H50AF
+            PopUpMenu = &H7F8
+            TopMenu = &H51AE
+            Previous = &H49B6
+            [Next] = &H1DE2
+            [Stop] = &H19E6
+            Slow = &H1AE5
+            Forward = &H1BE4
+            Subtitle = &H54AB
+            AngleRotate = &H4DB2
+            Audio = &H44BB
+            Rec = &H55AA
+            PlayPause = &H56A9
+            TopMenuDune = &H57A8
+        End Enum
+
+        ''' <summary>
+        ''' Contains constants for button codes that are not on any Dune HD branded remote controls.
+        ''' </summary>
+        Public Enum SpecialButtons
+            DiscretePowerOn = &H5FA0
+            DiscretePowerOff = &H5EA1
+        End Enum
+    End Class
+
+    ''' <summary>
+    ''' Contains constants for each possible parameter that you can supply with a DVD or Blu-ray navigation command.
+    ''' </summary>
+    Public Class NavigationParameters
+        Private Sub New()
+        End Sub
+
+        Public Const Action As String = "action"
+    End Class
+
+    ''' <summary>
+    ''' Contains constants for each possible parameter that you can supply with an infrared code command.
+    ''' </summary>
+    Public Class InfraredCodeParameters
+        Private Sub New()
+        End Sub
+
+        Public Const InfraredCode As String = "ir_code"
+    End Class
+
+    ''' <summary>
+    ''' Contains constants for each possible 'skip_keyframe' setting.
+    ''' </summary>
+    Public Enum SetKeyframeSettings
+        Previous = -1
+        [Next] = 1
+    End Enum
 
 End Class
