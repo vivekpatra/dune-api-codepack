@@ -27,9 +27,9 @@
 
         WriteOnly Property PlayerStateUpdate As String
 
-        Property PlaybackSpeed As PlaybackSpeed
+        Property PlaybackSpeed As Constants.PlaybackSpeedSettings
 
-        WriteOnly Property PlaybackSpeedUpdate As Integer
+        WriteOnly Property PlaybackSpeedUpdate As Short
 
         ReadOnly Property PlaybackDuration As TimeSpan?
 

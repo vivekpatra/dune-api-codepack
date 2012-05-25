@@ -88,7 +88,7 @@ Public NotInheritable Class NativeMethods
             ' Make the API call
             ' If the function succeeds, the return value is nonzero.
             ' If the function fails, the return value is zero.
-            Dim ReturnValue As Boolean = GetDiskFreeSpace(uncPath.AbsolutePath, sectorsPerCluster, bytesPerSector, numberOfFreeClusters, totalNumberOfClusters)
+            Dim ReturnValue As Boolean = GetDiskFreeSpace(uncPath.LocalPath, sectorsPerCluster, bytesPerSector, numberOfFreeClusters, totalNumberOfClusters)
 
             If ReturnValue = True Then ' create a dictionary of the returned values
                 info = New ShareInfo(sectorsPerCluster, bytesPerSector, numberOfFreeClusters, totalNumberOfClusters)
@@ -135,6 +135,14 @@ Public NotInheritable Class NativeMethods
                     Return _totalNumberOfClusters
                 End Get
             End Property
+
+            Public Overrides Function ToString() As String
+                Dim total As ULong = CULng(TotalNumberOfClusters) * CULng(SectorsPerCluster) * CULng(BytesPerSector)
+                Dim free As ULong = CULng(NumberOfFreeClusters) * CULng(SectorsPerCluster) * CULng(BytesPerSector)
+                Dim used As ULong = total - free
+
+                Return Math.Round(total / 1024 ^ 3, 2).ToString + " GiB (" + Math.Round(total / 1000 ^ 3, 2).ToString + " GB)"
+            End Function
 
         End Structure
 

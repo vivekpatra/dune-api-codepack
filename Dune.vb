@@ -53,7 +53,7 @@ Namespace DuneUtilities
         Private _commandError As CommandException
         Private _protocolVersion As Byte
         Private _playerState As String
-        Private _playbackSpeed As PlaybackSpeed
+        Private _playbackSpeed As Constants.PlaybackSpeedSettings
         Private _playbackDuration As TimeSpan?
         Private _playbackPosition As TimeSpan?
         Private _playbackTimeLeft As TimeSpan?
@@ -645,7 +645,7 @@ Namespace DuneUtilities
         Private Function GetBootTime() As Date
             If Connected AndAlso TelnetClient.Client.Connected Then
                 Dim separator As String = Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator
-                Dim uptimeSeconds As String = TelnetClient.SendAndReceive("cat /proc/uptime").Split(" "c).GetValue(0).ToString.Replace(".", separator)
+                Dim uptimeSeconds As String = TelnetClient.ExecuteCommand("cat /proc/uptime").Split(" "c).GetValue(0).ToString.Replace(".", separator)
                 Dim uptime As TimeSpan = TimeSpan.FromSeconds(Double.Parse(uptimeSeconds))
 
                 Return Now.Subtract(uptime)
@@ -658,8 +658,8 @@ Namespace DuneUtilities
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub GetSysinfo()
-            Dim file As String = TelnetClient.SendAndReceive("cat /tmp/sysinfo.txt")
-            Dim split() As String = {"product_id: ", "serial_number: ", "firmware_version: ", "tango"}
+            Dim file As String = TelnetClient.ExecuteCommand("cat /tmp/sysinfo.txt")
+            Dim split() As String = {"product_id: ", "serial_number: ", "firmware_version: "}
 
             Dim info() As String = file.Split(split, StringSplitOptions.RemoveEmptyEntries)
 
@@ -676,7 +676,7 @@ Namespace DuneUtilities
         ''' </summary>
         Public Sub CloseDiscTray()
             Try
-                TelnetClient.SendAndReceive("eject -t /dev/sr0")
+                TelnetClient.ExecuteCommand("eject -t /dev/sr0")
             Catch ex As Exception
                 Console.WriteLine("Telnet error: " + ex.Message)
             End Try
@@ -687,7 +687,7 @@ Namespace DuneUtilities
         ''' </summary>
         Public Sub ToggleDiscTray()
             Try
-                TelnetClient.SendAndReceive("eject -T /dev/sr0")
+                TelnetClient.ExecuteCommand("eject -T /dev/sr0")
             Catch ex As Exception
                 Console.WriteLine("Telnet error: " + ex.Message)
             End Try
@@ -698,7 +698,7 @@ Namespace DuneUtilities
         ''' </summary>
         Public Sub Reboot()
             Try
-                TelnetClient.SendAndReceive("reboot")
+                TelnetClient.ExecuteCommand("reboot")
             Catch ex As Exception
                 Console.WriteLine("Telnet error: " + ex.Message)
             End Try
@@ -709,7 +709,7 @@ Namespace DuneUtilities
         ''' </summary>
         Public Sub PowerOff()
             Try
-                TelnetClient.SendAndReceive("poweroff")
+                TelnetClient.ExecuteCommand("poweroff")
             Catch ex As Exception
                 Console.WriteLine("Telnet error: " + ex.Message)
             End Try
@@ -813,11 +813,11 @@ Namespace DuneUtilities
         ''' <exception cref="CommandException">: Command execution failed.</exception>
         <DisplayName("Playback speed")>
         <Description("The playback speed.")>
-        Public Property PlaybackSpeed As PlaybackSpeed Implements IProtocolVersion1.PlaybackSpeed
+        Public Property PlaybackSpeed As Constants.PlaybackSpeedSettings Implements IProtocolVersion1.PlaybackSpeed
             Get
                 Return _playbackSpeed
             End Get
-            Set(value As PlaybackSpeed)
+            Set(value As Constants.PlaybackSpeedSettings)
                 Dim command As New SetPlaybackStateCommand(Me)
                 command.Speed = value
                 command.Timeout = Timeout
@@ -836,10 +836,10 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Sets the playback speed.
         ''' </summary>
-        Private WriteOnly Property PlaybackSpeedUpdate As Integer Implements IProtocolVersion1.PlaybackSpeedUpdate
-            Set(value As Integer)
+        Private WriteOnly Property PlaybackSpeedUpdate As Short Implements IProtocolVersion1.PlaybackSpeedUpdate
+            Set(value As Short)
                 If PlaybackSpeed <> value Then
-                    _playbackSpeed = DirectCast(value, PlaybackSpeed)
+                    _playbackSpeed = DirectCast(value, Constants.PlaybackSpeedSettings)
                     RaisePropertyChanged("PlaybackSpeed")
                 End If
             End Set

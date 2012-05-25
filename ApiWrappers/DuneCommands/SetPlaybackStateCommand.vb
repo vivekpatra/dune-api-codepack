@@ -9,7 +9,7 @@ Namespace DuneUtilities.ApiWrappers
 
         Private Const NotSupportedMessage As String = "This property requires a firmware update."
 
-        Private _speed As Integer?
+        Private _speed As Short?
         Private _position As TimeSpan?
         Private _blackScreen As Boolean?
         Private _hideOnScreenDisplay As Boolean?
@@ -29,17 +29,17 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets or sets the playback speed.
         ''' </summary>
-        Public Property Speed As PlaybackSpeed?
+        Public Property Speed As Constants.PlaybackSpeedSettings?
             Get
                 If _speed.HasValue Then
-                    Return DirectCast(_speed.Value, PlaybackSpeed)
+                    Return DirectCast(_speed.Value, Constants.PlaybackSpeedSettings)
                 Else
                     Return Nothing
                 End If
             End Get
-            Set(value As PlaybackSpeed?)
+            Set(value As Constants.PlaybackSpeedSettings?)
                 If value.HasValue Then
-                    _speed = CInt(value)
+                    _speed = CShort(value)
                 Else
                     _speed = Nothing
                 End If

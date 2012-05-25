@@ -89,15 +89,12 @@
     <Compile Include="Extensions\PhysicalAddressExtensions.vb" />
     <Compile Include="Interfaces\IRemoteControl.vb" />
     <Compile Include="Constants.vb" />
-    <Compile Include="ApiWrappers\PlaybackSpeed.vb" />
     <Compile Include="ApiWrappers\PlaybackType.vb" />
     <Compile Include="Interfaces\IProtocolVersion1.vb" />
     <Compile Include="Interfaces\IProtocolVersion2.vb" />
     <Compile Include="ApiWrappers\DuneCommands\StartPlaybackCommand.vb" />
-    <Compile Include="ApiWrappers\RemoteControl.vb" />
-    <Compile Include="ApiWrappers\Zoom.vb" />
+    <Compile Include="RemoteControl.vb" />
     <Compile Include="Extensions\IPAddressExtensions.vb" />
-    <Compile Include="NativeMethods\NetworkShares.vb" />
     <Compile Include="ApiWrappers\UrlConverter.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
@@ -115,7 +112,6 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="NativeMethods\NativeMethods.vb" />
-    <Compile Include="NativeMethods\NetworkDriveInfo.vb" />
     <Compile Include="Dune.vb" />
     <Compile Include="NetworkAdapterInfo.vb" />
     <Compile Include="NetworkCardVendor.vb" />
