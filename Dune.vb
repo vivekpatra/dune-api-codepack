@@ -10,6 +10,8 @@ Imports System.Collections.ObjectModel
 Imports SL.DuneApiCodePack.Storage
 Imports SL.DuneApiCodePack.Telnet
 Imports SL.DuneApiCodePack.Extensions
+Imports SL.DuneApiCodePack.ApiWrappers
+Imports SL.DuneApiCodePack.Networking
 
 Namespace DuneUtilities
 
@@ -25,18 +27,13 @@ Namespace DuneUtilities
 
         ' Custom fields
         Private _shares As List(Of LocalStorage)
-        Private _productID As String
         Private _connected As Boolean
         Private _networkAdapterInfo As NetworkAdapterInfo
-        Private _sshServerEnabled As Boolean?
-        Private _ftpServerEnabled As Boolean?
-        Private _telnetServerEnabled As Boolean?
         Private _firmwares As List(Of FirmwareProperties)
         Private _telnetClient As TelnetClient
-        Private _bootTime As Date
-        Private _serialNumber As String
-        Private _installedFirmware As String
         Private _telnetEnabled As Boolean?
+        Private _systemInfo As SystemInformation
+
 
         ' Connection details
         Private _hostentry As IPHostEntry
@@ -140,11 +137,15 @@ Namespace DuneUtilities
             _networkAdapterInfo = New NetworkAdapterInfo(address.AddressList.First)
             _endpoint = New IPEndPoint(NetworkAdapterInfo.Address, port)
 
+            Initialize()
+        End Sub
+
+        Private Sub Initialize()
             Connect(_endpoint)
 
             If Connected Then
                 If TelnetClient IsNot Nothing Then
-                    GetSysinfo()
+                    Task.Factory.StartNew(Sub() _firmwares = FirmwareProperties.GetAvailableFirmwaresAsync(ProductID).Result)
                 End If
             End If
         End Sub
@@ -248,14 +249,10 @@ Namespace DuneUtilities
         <Description("The device's product ID.")>
         Public ReadOnly Property ProductID As String
             Get
-                Try
-                    If _productID Is Nothing AndAlso TelnetEnabled Then
-                        GetSysinfo()
-                    End If
-                Catch ex As SocketException
-                    Console.WriteLine("Telnet error: " + ex.Message)
-                End Try
-                Return _productID
+                If _systemInfo Is Nothing Then
+                    _systemInfo = SystemInformation.FromHost(Me)
+                End If
+                Return SystemInfo.ProductId
             End Get
         End Property
 
@@ -266,14 +263,10 @@ Namespace DuneUtilities
         <Description("The device's serial number.")>
         Public ReadOnly Property SerialNumber As String
             Get
-                Try
-                    If _serialNumber Is Nothing AndAlso TelnetEnabled Then
-                        GetSysinfo()
-                    End If
-                Catch ex As SocketException
-                    Console.WriteLine("Telnet error: " + ex.Message)
-                End Try
-                Return _serialNumber
+                If _systemInfo Is Nothing Then
+                    _systemInfo = SystemInformation.FromHost(Me)
+                End If
+                Return SystemInfo.Serial
             End Get
         End Property
 
@@ -282,16 +275,12 @@ Namespace DuneUtilities
         ''' </summary>
         <DisplayName("Installed firmware")>
         <Description("The installed firmware version.")>
-        Public ReadOnly Property InstalledFirmware As String
+        Public ReadOnly Property FirmwareVersion As String
             Get
-                Try
-                    If _installedFirmware Is Nothing AndAlso TelnetEnabled Then
-                        GetSysinfo()
-                    End If
-                Catch ex As SocketException
-                    Console.WriteLine("Telnet error: " + ex.Message)
-                End Try
-                Return _installedFirmware
+                If _systemInfo Is Nothing Then
+                    _systemInfo = SystemInformation.FromHost(Me)
+                End If
+                Return SystemInfo.FirmareVersion
             End Get
         End Property
 
@@ -310,8 +299,6 @@ Namespace DuneUtilities
                     If value.IsTrue Then
                         Reconnect()
                     Else
-                        Interval = 0
-                        _bootTime = Nothing
                         ConnectedUpdate = False
                     End If
                 End If
@@ -329,8 +316,11 @@ Namespace DuneUtilities
                     If value.IsTrue Then
                         CommandStatusUpdate = "connected"
                     Else
+                        Interval = 0
+                        _telnetEnabled = Nothing
                         CommandStatusUpdate = "disconnected"
                     End If
+                    RaisePropertyChanged("CommandStatus")
                 End If
             End Set
         End Property
@@ -412,12 +402,16 @@ Namespace DuneUtilities
             Get
                 If _firmwares Is Nothing Then
                     If ProductID.IsNotNullOrEmpty Then
-                        _firmwares = New List(Of FirmwareProperties)
-                        _firmwares = FirmwareProperties.GetAvailableFirmwaresAsync(ProductID).Result
+                        Try
+                            _firmwares = FirmwareProperties.GetAvailableFirmwaresAsync(ProductID).Result
+                        Catch ex As Exception
+                            _firmwares = New List(Of FirmwareProperties)
+                        End Try
                     Else
-                        Return Nothing
+                        _firmwares = New List(Of FirmwareProperties)
                     End If
                 End If
+
                 Return _firmwares.AsReadOnly
             End Get
         End Property
@@ -425,10 +419,10 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Gets a preconfigured Telnet client.
         ''' </summary>
-        Private ReadOnly Property TelnetClient As TelnetClient
+        Public ReadOnly Property TelnetClient As TelnetClient
             Get
                 Try
-                    If Not TelnetEnabled.HasValue AndAlso _telnetClient Is Nothing Then
+                    If Not TelnetEnabled.HasValue Then
                         _telnetClient = New TelnetClient(Address)
                         _telnetClient.login("root")
                         _telnetEnabled = True
@@ -448,18 +442,7 @@ Namespace DuneUtilities
         <Description("The date and time since when the device is up")>
         Public ReadOnly Property BootTime As Date
             Get
-                If Connected Then
-                    If _bootTime = Nothing Then
-                        If TelnetEnabled Then
-                            _bootTime = GetBootTime()
-                        Else
-                            Return Nothing
-                        End If
-                    End If
-                    Return _bootTime
-                Else
-                    Return Nothing
-                End If
+                Return SystemInfo.BootTime
             End Get
         End Property
 
@@ -471,7 +454,7 @@ Namespace DuneUtilities
         Public ReadOnly Property Uptime As TimeSpan
             Get
                 If Connected AndAlso BootTime <> Nothing Then
-                    Return Now.Subtract(_bootTime)
+                    Return Now.Subtract(BootTime)
                 Else
                     Return Nothing
                 End If
@@ -486,6 +469,15 @@ Namespace DuneUtilities
         Public ReadOnly Property TelnetEnabled As Boolean?
             Get
                 Return _telnetEnabled
+            End Get
+        End Property
+
+        Public ReadOnly Property SystemInfo As SystemInformation
+            Get
+                If _systemInfo Is Nothing AndAlso TelnetEnabled Then
+                    _systemInfo = SystemInformation.FromHost(Me)
+                End If
+                Return _systemInfo
             End Get
         End Property
 
@@ -515,7 +507,6 @@ Namespace DuneUtilities
         Private Sub Connect(ByVal target As IPEndPoint)
             Try
                 If TargetIsValid(_endpoint) Then
-                    CommandStatusUpdate = "connected"
                     Interval = 900
                     ConnectedUpdate = True
                 Else
@@ -533,21 +524,15 @@ Namespace DuneUtilities
         ''' </summary>
         Private Function TargetIsValid(ByVal target As IPEndPoint) As Boolean
             Try
-                Using client As New TcpClient()
-                    client.Connect(target) ' can throw a SocketException
+                Dim commandResult As CommandResult = GetStatus() ' can throw a WebException
 
-                    If client.Connected Then ' try to get the device status
-                        Dim commandResult As CommandResult = GetStatus() ' can throw a WebException
-
-                        If commandResult.ProtocolVersion = Byte.MaxValue Then
-                            Return False
-                        End If
-                    End If
-                End Using
+                If commandResult.ProtocolVersion = Byte.MaxValue Then ' target is running a webserver but is not a Dune device
+                    Return False
+                End If
             Catch tcpClientException As SocketException ' if the connection failed
-                Throw tcpClientException
+                Return False
             Catch serviceException As WebException ' if the API didn't properly respond (errors 404, 401, 403 etc.)
-                Throw serviceException
+                Return False
             End Try
 
             Return True
@@ -565,7 +550,6 @@ Namespace DuneUtilities
                     CommandStatusUpdate = "connection error"
                 End Try
             Else
-                Connected = False
                 CommandStatusUpdate = "lost connection"
             End If
         End Sub
@@ -655,6 +639,8 @@ Namespace DuneUtilities
                 CommandStatusUpdate = "reconnecting..."
                 Try
                     If TargetIsValid(_endpoint) Then
+                        SystemInfo.Refresh()
+
                         Interval = 990
                         ConnectedUpdate = True
                     End If
@@ -677,43 +663,6 @@ Namespace DuneUtilities
         ''' </summary>
         Public Sub ClearStatus()
             CommandStatusUpdate = String.Empty
-        End Sub
-
-        ''' <summary>
-        ''' Gets the uptime of the device (using a Telnet connection).
-        ''' </summary>
-        ''' <returns>The boottime if successful; otherwise nothing.</returns>
-        Private Function GetBootTime() As Date
-            If Connected AndAlso TelnetClient.Client.Connected Then
-                Dim separator As String = Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator
-                Dim uptimeSeconds As String = TelnetClient.ExecuteCommand("cat /proc/uptime").Split(" "c).GetValue(0).ToString.Replace(".", separator)
-                Dim uptime As TimeSpan = TimeSpan.FromSeconds(Double.Parse(uptimeSeconds))
-
-                Return Now.Subtract(uptime)
-            End If
-            Return Nothing
-        End Function
-
-        ''' <summary>
-        ''' Gets system information (using a Telnet connection).
-        ''' </summary>
-        ''' <remarks></remarks>
-        Private Sub GetSysinfo()
-            Try
-                Dim file As String = TelnetClient.ExecuteCommand("cat /tmp/sysinfo.txt")
-                Dim split() As String = {"product_id: ", "serial_number: ", "firmware_version: "}
-
-                Dim info() As String = file.Split(split, StringSplitOptions.RemoveEmptyEntries)
-
-                _productID = info(0).TrimEnd
-                RaisePropertyChanged("ProductID")
-                _serialNumber = info(1).TrimEnd
-                RaisePropertyChanged("SerialNumber")
-                _installedFirmware = info(2).TrimEnd
-                RaisePropertyChanged("InstalledFirmware")
-            Catch ex As Exception
-                Console.WriteLine("GetSysinfo error: " + ex.Message)
-            End Try
         End Sub
 
         ''' <summary>

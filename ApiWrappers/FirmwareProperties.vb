@@ -28,13 +28,14 @@ Namespace DuneUtilities.ApiWrappers
             _firmware = pieces(0)
 
             _gzipLocation = New Uri(pieces(1))
-            _gzipLength = GetSize(_gzipLocation)
-
             _zipLocation = New Uri(pieces(1).Replace(".gz", ".zip"))
-            _zipLength = GetSize(_zipLocation)
-
             _uncompressedLocation = New Uri(pieces(1).Replace(".gz", String.Empty))
-            _uncompressedLength = GetSize(_uncompressedLocation)
+
+            Dim t1 As Action = Sub() _gzipLength = GetSize(_gzipLocation)
+            Dim t2 As Action = Sub() _zipLength = GetSize(_zipLocation)
+            Dim t3 As Action = (Sub() _uncompressedLength = GetSize(_uncompressedLocation))
+
+            Parallel.Invoke(t1, t2, t3)
 
             _beta = String.Equals(pieces(2), "non-stable")
             _number = Integer.Parse(pieces(3))
@@ -164,16 +165,16 @@ Namespace DuneUtilities.ApiWrappers
             Dim firmwares As New List(Of FirmwareProperties)
 
             Dim reader As New StringReader(client.DownloadString(New Uri(BaseUri + product + ".txt")))
+            Dim delimiters() As String = {vbCr, vbLf}
+            Dim results() As String = reader.ReadToEnd.Split(delimiters, StringSplitOptions.RemoveEmptyEntries)
 
-            Do
-                Dim firmware As String = reader.ReadLine
+            ' get the firmware properties and add to the list
+            Parallel.ForEach(results, Sub(firmware)
+                                          firmwares.Add(New FirmwareProperties(firmware))
+                                      End Sub)
 
-                If firmware Is Nothing Then
-                    Exit Do
-                End If
-
-                firmwares.Add(New FirmwareProperties(firmware))
-            Loop
+            ' sort the list by date
+            firmwares.Sort(Function(firmware, firmware2) CInt(firmware.BuildDate > firmware2.BuildDate))
 
             Return firmwares
         End Function
@@ -188,22 +189,26 @@ Namespace DuneUtilities.ApiWrappers
             Dim client As New WebClient
             Dim firmwares As New List(Of FirmwareProperties)
             Dim request As WebRequest = WebRequest.Create(New Uri(BaseUri + product + ".txt"))
-            Dim response As WebResponse
 
-            Dim downloadTask As Task(Of List(Of FirmwareProperties)) =
-                Task.Factory.StartNew(Sub() response = Task.Factory.FromAsync(AddressOf request.BeginGetResponse, AddressOf request.EndGetResponse, Nothing, Nothing).Result) _
-            .ContinueWith(Of List(Of FirmwareProperties))(Function(antecedent)
-                                                              Dim streamReader As New StreamReader(response.GetResponseStream)
-                                                              Dim stringReader As New StringReader(streamReader.ReadToEnd)
-                                                              Do
-                                                                  Dim firmware As String = stringReader.ReadLine
-                                                                  If firmware Is Nothing Then
-                                                                      Exit Do
-                                                                  End If
-                                                                  firmwares.Add(New FirmwareProperties(firmware))
-                                                              Loop
-                                                              Return firmwares
-                                                          End Function)
+            Dim response As Task(Of WebResponse) = Task(Of WebResponse).Factory.FromAsync(AddressOf request.BeginGetResponse, AddressOf request.EndGetResponse, Nothing)
+            Dim downloadTask As Task(Of List(Of FirmwareProperties)) = response.ContinueWith(Of List(Of FirmwareProperties))(Function(antecedent)
+                                                                                                                                 Dim streamReader As New StreamReader(response.Result.GetResponseStream)
+
+                                                                                                                                 Dim stringReader As New StringReader(StreamReader.ReadToEnd)
+
+                                                                                                                                 Dim delimiters() As String = {vbCr, vbLf}
+                                                                                                                                 Dim results() As String = StringReader.ReadToEnd.Split(delimiters, StringSplitOptions.RemoveEmptyEntries)
+
+                                                                                                                                 ' get the firmware properties and add to the list
+                                                                                                                                 Parallel.ForEach(results, Sub(firmware)
+                                                                                                                                                               firmwares.Add(New FirmwareProperties(firmware))
+                                                                                                                                                           End Sub)
+
+                                                                                                                                 ' sort the list by date
+                                                                                                                                 firmwares.Sort(Function(firmware, firmware2) CInt(firmware.BuildDate > firmware2.BuildDate))
+
+                                                                                                                                 Return firmwares
+                                                                                                                             End Function)
 
             Return downloadTask
         End Function

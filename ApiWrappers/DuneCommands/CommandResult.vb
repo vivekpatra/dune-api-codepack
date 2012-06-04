@@ -48,7 +48,7 @@ Namespace DuneUtilities.ApiWrappers
 
         Friend Sub New(ByVal command As Command)
             _command = command
-            If Not command.CommandType = Constants.Commands.Status Then
+            If command.CommandType <> Constants.Commands.Status Then
                 command.Target.ClearStatus()
             End If
 

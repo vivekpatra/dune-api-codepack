@@ -87,17 +87,23 @@ Namespace Telnet
         End Sub
 
         ''' <summary>
-        ''' Reads bytes from the network stream until a match is found. TODO: add a timeout of some sort.
+        ''' Reads bytes from the network stream until a match is found.
         ''' </summary>
         ''' <param name="expression"></param>
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Function ReadUntilRegex(ByVal expression As Regex) As String
             Dim prompt As String = String.Empty
-            Do
+
+            For retries As Integer = 1 To 5
                 prompt += ReadAndNegotiate()
-            Loop Until expression.IsMatch(prompt)
-            Return expression.Replace(prompt, String.Empty)
+                If expression.IsMatch(prompt) Then
+                    Return expression.Replace(prompt, String.Empty)
+                End If
+                Threading.Thread.Sleep(100)
+            Next
+
+            Return Nothing
         End Function
 
         ''' <summary>
@@ -149,45 +155,6 @@ Namespace Telnet
 
 
             Return text.ToString
-
-
-
-            'Do While Client.Available > 0
-            '    Dim stream As NetworkStream = Client.GetStream
-            '    Dim input As Byte = CByte(stream.ReadByte)
-
-            '    Select Case input
-            '        Case OptionCodes.IAC ' first 3 bytes represents a negotiation
-            '            Dim request As Byte = CByte(Client.GetStream.ReadByte)
-            '            Dim action As Byte = CByte(Client.GetStream.ReadByte)
-
-            '            Dim response As Byte
-
-            '            If action = TelnetOptions.SuppressGoAhead Then ' WILL / DO
-            '                If request = OptionCodes.DO Then
-            '                    response = OptionCodes.WILL
-            '                Else
-            '                    response = OptionCodes.DO
-            '                End If
-            '            Else ' WON'T / DON'T
-            '                If request = OptionCodes.DO Then
-            '                    response = OptionCodes.WONT
-            '                Else
-            '                    response = OptionCodes.DONT
-            '                End If
-            '            End If
-
-            '            Dim sendData() As Byte = {OptionCodes.IAC, response, action}
-
-            '            Client.GetStream.Write(sendData, 0, sendData.Length)
-
-            '        Case Else ' plain text
-            '            text.Append(ChrW(input))
-
-            '    End Select
-            'Loop
-
-            'Return text.ToString
         End Function
 
         ''' <summary>
@@ -203,18 +170,11 @@ Namespace Telnet
         ''' </summary>
         Public Function ExecuteCommand(ByVal command As String) As String
             SyncLock _telnetLock
-
                 Write(command)
-
-                'Do Until Client.Available > Encoding.ASCII.GetBytes(command + vbCrLf).Length
-                '    Threading.Thread.Sleep(100)
-                'Loop
                 Dim response As String = ReadUntilRegex(_promptRegex)
 
-                ' Dim response As String = Receive()
                 Return response.Substring(command.Length).TrimStart
             End SyncLock
-
         End Function
 
 #End Region ' Methods

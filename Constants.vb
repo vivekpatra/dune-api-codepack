@@ -1,11 +1,11 @@
-﻿Public Class Constants
+﻿Public NotInheritable Class Constants
     Private Sub New()
     End Sub
 
     ''' <summary>
     ''' Contains constants for each possible command (as defined by the API).
     ''' </summary>
-    Public Class Commands
+    Public NotInheritable Class Commands
         Private Sub New()
         End Sub
 
@@ -33,9 +33,9 @@
         Public Const BlurayNavigation As String = "bluray_navigation"
 
         ' Protocol version 3
-        ''' <summary>???</summary>
+        ''' <summary>Start playback of a playlist file.</summary>
         Public Const StartPlaylistPlayback As String = "start_playlist_playback"
-        ''' <summary>???</summary>
+        ''' <summary>Detect media url type.</summary>
         Public Const LaunchMediaUrl As String = "launch_media_url"
 
     End Class
@@ -43,7 +43,7 @@
     ''' <summary>
     ''' Contains constants for each possible parameter that you can supply with a start playback command.
     ''' </summary>
-    Public Class StartPlaybackParameters
+    Public NotInheritable Class StartPlaybackParameters
         Private Sub New()
         End Sub
 
@@ -65,7 +65,7 @@
     ''' <summary>
     ''' Containts constants for each possible parameter that you can supply with a set playback state command.
     ''' </summary>
-    Public Class SetPlaybackStateParameters
+    Public NotInheritable Class SetPlaybackStateParameters
         Private Sub New()
         End Sub
 
@@ -106,7 +106,7 @@
     ''' <summary>
     ''' Contains constants for each possible parameter name in the command results.
     ''' </summary>
-    Public Class CommandResults
+    Public NotInheritable Class CommandResults
         Private Sub New()
         End Sub
 
@@ -160,7 +160,7 @@
     ''' <summary>
     ''' Contains constants for each possible command status.
     ''' </summary>
-    Public Class Status
+    Public NotInheritable Class Status
         Private Sub New()
         End Sub
         ''' <summary>The command completed without error.</summary>
@@ -174,7 +174,7 @@
     ''' <summary>
     ''' Contains constants for each possible error kind.
     ''' </summary>
-    Public Class ErrorKinds
+    Public NotInheritable Class ErrorKinds
         Private Sub New()
         End Sub
 
@@ -195,7 +195,7 @@
     ''' <summary>
     ''' Contains constants for each possible player state.
     ''' </summary>
-    Public Class PlayerStateSettings
+    Public NotInheritable Class PlayerStateSettings
         Private Sub New()
         End Sub
 
@@ -215,7 +215,7 @@
     ''' <summary>
     ''' Contains constants for each possible product ID.
     ''' </summary>
-    Public Class ProductIDs
+    Public NotInheritable Class ProductIDs
         Private Sub New()
         End Sub
 
@@ -274,7 +274,7 @@
     ''' Custom zoom settings cannot be set through the "video_zoom" parameter.
     ''' You must set video height and size parameters instead.
     ''' </remarks>
-    Public Class VideoZoomSettings
+    Public NotInheritable Class VideoZoomSettings
         Private Sub New()
         End Sub
 
@@ -290,7 +290,7 @@
     ''' <summary>
     ''' Contains constants for each possible action on finish.
     ''' </summary>
-    Public Class ActionOnFinishSettings
+    Public NotInheritable Class ActionOnFinishSettings
         Private Sub New()
         End Sub
 
@@ -301,7 +301,7 @@
     ''' <summary>
     ''' Contains constants for each possible DVD menu action.
     ''' </summary>
-    Public Class NavigationActions
+    Public NotInheritable Class NavigationActions
         Private Sub New()
         End Sub
 
@@ -320,7 +320,7 @@
     ''' These languages are installed by default.
     ''' It is possible to install supplemental languages, in which case this enumeration becomes incomplete.
     ''' </remarks>
-    Public Class InterfaceLanguages
+    Public NotInheritable Class InterfaceLanguages
         Private Sub New()
         End Sub
 
@@ -351,7 +351,7 @@
     ''' Contains constants for each supported remote control and a helper function to retrieve the right codes.
     ''' </summary>
     ''' <remarks>Many of the buttons have overlapping values, but it is in our best interest to keep redundant copies or things get too complicated.</remarks>
-    Public Class RemoteControls
+    Public NotInheritable Class RemoteControls
         Private Sub New()
         End Sub
 
@@ -539,7 +539,7 @@
     ''' <summary>
     ''' Contains constants for each possible parameter that you can supply with a DVD or Blu-ray navigation command.
     ''' </summary>
-    Public Class NavigationParameters
+    Public NotInheritable Class NavigationParameters
         Private Sub New()
         End Sub
 
@@ -549,7 +549,7 @@
     ''' <summary>
     ''' Contains constants for each possible parameter that you can supply with an infrared code command.
     ''' </summary>
-    Public Class InfraredCodeParameters
+    Public NotInheritable Class InfraredCodeParameters
         Private Sub New()
         End Sub
 

@@ -78,13 +78,14 @@
     <Compile Include="ApiWrappers\DuneCommands\SetPlaybackStateCommand.vb" />
     <Compile Include="ApiWrappers\DuneCommands\SetPlayerStateCommand.vb" />
     <Compile Include="ApiWrappers\DuneCommands\SetVideoOutputCommand.vb" />
-    <Compile Include="ApiWrappers\FirmwareInfo.vb" />
+    <Compile Include="ApiWrappers\FirmwareProperties.vb" />
     <Compile Include="ApiWrappers\Folder\Folder.vb" />
     <Compile Include="ApiWrappers\Storage\LocalStorage.vb" />
     <Compile Include="ApiWrappers\Storage\NamedShare.vb" />
     <Compile Include="ApiWrappers\Storage\NfsShare.vb" />
     <Compile Include="ApiWrappers\Storage\SmbShare.vb" />
     <Compile Include="ApiWrappers\Storage\Storage.vb" />
+    <Compile Include="ApiWrappers\SystemInformation.vb" />
     <Compile Include="Extensions\BitConverterExtensions.vb" />
     <Compile Include="Extensions\BooleanExtensions.vb" />
     <Compile Include="Extensions\FileSystemInfoExtensions.vb" />
@@ -92,14 +93,12 @@
     <Compile Include="Extensions\StringExtensions.vb" />
     <Compile Include="Interfaces\IRemoteControl.vb" />
     <Compile Include="Constants.vb" />
-    <Compile Include="ApiWrappers\PlaybackType.vb" />
     <Compile Include="Interfaces\IProtocolVersion1.vb" />
     <Compile Include="Interfaces\IProtocolVersion2.vb" />
     <Compile Include="ApiWrappers\DuneCommands\StartPlaybackCommand.vb" />
-    <Compile Include="NetworkDevice.vb" />
+    <Compile Include="Networking\NetworkDevice.vb" />
     <Compile Include="RemoteControl.vb" />
     <Compile Include="Extensions\IPAddressExtensions.vb" />
-    <Compile Include="ApiWrappers\UrlConverter.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -117,8 +116,8 @@
     </Compile>
     <Compile Include="NativeMethods\NativeMethods.vb" />
     <Compile Include="Dune.vb" />
-    <Compile Include="NetworkAdapterInfo.vb" />
-    <Compile Include="NetworkCardVendor.vb" />
+    <Compile Include="Networking\NetworkAdapterInfo.vb" />
+    <Compile Include="Networking\NetworkCardVendor.vb" />
     <Compile Include="Playlist.vb" />
     <Compile Include="Telnet\TelnetClient.vb" />
   </ItemGroup>

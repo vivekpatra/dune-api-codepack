@@ -46,7 +46,7 @@ Namespace DuneUtilities.ApiWrappers
         Public Property Timeout As UInteger?
             Get
                 If Not _timeout.HasValue Then
-                    _timeout = 20
+                    _timeout = Target.Timeout
                 End If
                 Return _timeout
             End Get
@@ -155,11 +155,10 @@ Namespace DuneUtilities.ApiWrappers
         Friend Function GetResponse() As WebResponse
             Dim request As WebRequest = GetRequest()
 
-            If request.Method = WebRequestMethods.Http.Post Then
-                WritePostData(request, GetQueryString)
-            End If
-
             Try
+                If request.Method = WebRequestMethods.Http.Post Then
+                    WritePostData(request, GetQueryString)
+                End If
                 Return request.GetResponse
             Catch ex As WebException
                 Console.WriteLine(ex.Message)

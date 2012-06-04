@@ -1,21 +1,27 @@
-﻿Public Class Folder
-    Inherits IO.FileSystemInfo
+﻿Namespace ApiWrappers
 
-    ' TODO: implement dune_folder.txt
+    Public Class Folder
+        Inherits IO.FileSystemInfo
 
-    Public Overrides Sub Delete()
+        ' TODO: implement dune_folder.txt functionallity
+        ' http://dune-hd.com/firmware/misc/dune_folder_howto.txt
 
-    End Sub
 
-    Public Overrides ReadOnly Property Exists As Boolean
-        Get
+        Public Overrides Sub Delete()
+            Throw New NotImplementedException
+        End Sub
 
-        End Get
-    End Property
+        Public Overrides ReadOnly Property Exists As Boolean
+            Get
+                Throw New NotImplementedException
+            End Get
+        End Property
 
-    Public Overrides ReadOnly Property Name As String
-        Get
+        Public Overrides ReadOnly Property Name As String
+            Get
+                Throw New NotImplementedException
+            End Get
+        End Property
+    End Class
 
-        End Get
-    End Property
-End Class
+End Namespace
