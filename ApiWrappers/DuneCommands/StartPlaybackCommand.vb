@@ -21,7 +21,8 @@ Namespace DuneUtilities.ApiWrappers
         Public Sub New(ByRef dune As Dune, ByVal mediaUrl As String)
             MyBase.New(dune)
             Type = PlaybackType.File
-            _mediaUrl = UrlConverter.FormatUrl(dune, mediaUrl)
+            _mediaUrl = mediaUrl
+            '_mediaUrl = UrlConverter.FormatUrl(dune, mediaUrl)
         End Sub
 
         ''' <summary>

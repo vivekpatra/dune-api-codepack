@@ -192,7 +192,7 @@ Namespace DuneUtilities.ApiWrappers
             End If
 
             If Repeat.HasValue Then
-                If Repeat = True Then
+                If Repeat.Value.IsTrue Then
                     query.Add(Constants.SetPlaybackStateParameters.ActionOnFinish, Constants.ActionOnFinishSettings.RestartPlayback)
                 Else
                     query.Add(Constants.SetPlaybackStateParameters.ActionOnFinish, Constants.ActionOnFinishSettings.Exit)

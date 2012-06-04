@@ -1,5 +1,6 @@
 ﻿Imports System.Net
 Imports System.IO
+Imports SL.DuneApiCodePack.NativeMethods.Networking
 
 Namespace Storage
 
@@ -24,41 +25,43 @@ Namespace Storage
         Public Sub New(ByVal host As IPHostEntry, ByVal path As DirectoryInfo)
             MyBase.New(host)
             _root = path.Root
+            _name = path.Root.Name
+
 
             If _root.Exists Then
                 Dim settings As Dictionary(Of String, String) = GetDuneFolderSettings()
 
-                If settings.Keys.Contains("storage_name") Then
-                    settings.TryGetValue("storage_name", _name)
-                Else
-                    _name = path.Root.Name
-                End If
+                If settings IsNot Nothing Then
 
-                If settings.Keys.Contains("storage_caption") Then
-                    settings.TryGetValue("storage_caption", _caption)
+                    If settings.Keys.Contains("storage_caption") Then
+                        settings.TryGetValue("storage_caption", _caption)
+                    End If
+
+                    If settings.Keys.Contains("storage_name") Then
+                        settings.TryGetValue("storage_name", _name)
+                        Exit Sub ' because additional parsing wouldn't make sense
+                    End If
                 End If
-            Else
-                _name = path.Root.Name
             End If
 
             If _name.Contains("usb_storage") Or _name.Contains("optical_disk") Then
                 Dim uuidIndex As Integer
                 Dim pieces() As String = _name.Split("_"c)
 
-                If IsNumeric(pieces(2)) Then
+                If IsNumeric(pieces(2)) Then ' this is not the first usb_storage or optical_disk without a label
                     uuidIndex = pieces(0).Length + pieces(1).Length + pieces(2).Length + 3
-                Else
+                Else ' everything after the second underscore is a UUID
                     uuidIndex = pieces(0).Length + pieces(1).Length + 2
                 End If
 
-                If uuidIndex > _name.Length Then
+                If uuidIndex > _name.Length Then ' there isn't actually a UUID
                     uuidIndex = _name.Length
                 End If
 
-                _label = _name.Substring(0, uuidIndex - 1)
+                _label = _name.Left(uuidIndex - 1)
                 _uuid = _name.Substring(uuidIndex)
             ElseIf _name.Contains("_") Then
-                _label = Left(_name, _name.IndexOf("_"c))
+                _label = _name.Left(_name.IndexOf("_"c))
                 _uuid = _name.Substring(_label.Length + 1)
             End If
         End Sub
@@ -115,7 +118,7 @@ Namespace Storage
         ''' Gets the media URL for the specified path.
         ''' </summary>
         ''' <param name="path">The UNC path which needs to be converted.</param>
-        ''' <returns>The media URL in 'storage_name://actual_value/path[/file.extension]' format.</returns>
+        ''' <returns>The media URL in 'storage_name://actual_value/path[/file[.extension]]' format.</returns>
         Public Function GetMediaUrlFromStorageName(ByVal path As FileSystemInfo) As String
             If String.IsNullOrWhiteSpace(StorageName) Then
                 Throw New NullReferenceException("Storage name is not specified!")
@@ -147,7 +150,7 @@ Namespace Storage
         ''' Gets the media URL for the specified path.
         ''' </summary>
         ''' <param name="path">The UNC path which needs to be converted.</param>
-        ''' <returns>The media URL in 'storage_label://actual_value/path[/file.extension]' format.</returns>
+        ''' <returns>The media URL in 'storage_label://actual_value/path[/file[.extension]]' format.</returns>
         Public Function GetMediaUrlFromStorageLabel(ByVal path As FileSystemInfo) As String
             If String.IsNullOrWhiteSpace(StorageLabel) Then
                 Throw New NullReferenceException("Storage label is not specified!")
@@ -179,7 +182,7 @@ Namespace Storage
         ''' Gets the media URL for the specified path.
         ''' </summary>
         ''' <param name="path">The UNC path which needs to be converted.</param>
-        ''' <returns>The media URL in 'storage_uuid://actual_value/path[/file.extension]' format.</returns>
+        ''' <returns>The media URL in 'storage_uuid://actual_value/path[/file[.extension]]' format.</returns>
         Public Function GetMediaUrlFromStorageUuid(ByVal path As FileSystemInfo) As String
             If String.IsNullOrWhiteSpace(StorageUuid) Then
                 Throw New NullReferenceException("Storage UUID is not specified!")
@@ -238,6 +241,53 @@ Namespace Storage
             Return settings
         End Function
 
+        ''' <summary>
+        ''' Scans and retrieves storage devices on the specified Dune device.
+        ''' </summary>
+        ''' <param name="host">The host Dune device.</param>
+        Public Shared Function FromHost(ByVal host As DuneApiCodePack.DuneUtilities.Dune) As List(Of LocalStorage)
+            Dim shares As ShareCollection = ShareCollection.GetShares(host.Hostname)
+            Dim localStorages As New List(Of LocalStorage)
+
+            For Each share As Share In shares
+                If share.ShareType = ShareType.Disk Then
+                    Dim localStorage As New LocalStorage(host.HostEntry, share.Root)
+                    localStorages.Add(localStorage)
+                End If
+            Next
+
+            Return localStorages
+        End Function
+
+        ''' <summary>
+        ''' Gets the best possible media URL for the root of this storage device.
+        ''' </summary>
+        ''' <remarks>
+        ''' This method tries to generate a media url until it succeeds in the following order:
+        ''' storage_uuid:// -> storage_name:// -> storage_label:// -> null.</remarks>
+        Public Overrides Function GetMediaUrl() As String
+            Return Me.GetMediaUrl(Root)
+        End Function
+
+        ''' <summary>
+        ''' Gets the best possible media URL for the specified path.
+        ''' </summary>
+        ''' <remarks>
+        ''' This method tries to generate a media url until it succeeds in the following order:
+        ''' storage_uuid:// -> storage_name:// -> storage_label:// -> null.</remarks>
+        Public Overloads Function GetMediaUrl(ByVal path As FileSystemInfo) As String
+            Dim mediaUrl As String = Nothing
+
+            If TryGetMediaUrlFromStorageUuid(path, mediaUrl) Then
+                Return mediaUrl
+            ElseIf TryGetMediaUrlFromStorageName(path, mediaUrl) Then
+                Return mediaUrl
+            ElseIf TryGetMediaUrlFromStorageLabel(path, mediaUrl) Then
+                Return mediaUrl
+            Else
+                Return String.Empty
+            End If
+        End Function
     End Class
 
 End Namespace

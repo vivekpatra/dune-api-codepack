@@ -3,6 +3,7 @@ Imports System.Globalization
 Imports System.Net
 Imports System.Collections.Specialized
 Imports System.Threading.Tasks
+Imports SL.DuneApiCodePack.Extensions
 
 Namespace DuneUtilities.ApiWrappers
 
@@ -55,8 +56,10 @@ Namespace DuneUtilities.ApiWrappers
             Using response As WebResponse = command.GetResponse
                 stopwatch.Stop()
                 _roundTripTime = stopwatch.Elapsed
-                Dim document As XDocument = XDocument.Load(response.GetResponseStream)
-                ParseResults(document)
+                If response IsNot Nothing Then
+                    Dim document As XDocument = XDocument.Load(response.GetResponseStream)
+                    ParseResults(document)
+                End If
             End Using
         End Sub
 
@@ -69,8 +72,6 @@ Namespace DuneUtilities.ApiWrappers
             For Each XElement In parameters
                 ProcessParameter(XElement.FirstAttribute.Value, XElement.LastAttribute.Value)
             Next
-
-            'Parallel.ForEach(parameters, Sub(parameter As XElement) ProcessParameter(parameter.FirstAttribute.Value, parameter.LastAttribute.Value))
         End Sub
 
         ''' <summary>
@@ -198,9 +199,6 @@ Namespace DuneUtilities.ApiWrappers
         ''' </summary>
         Public ReadOnly Property PlayerState As String
             Get
-                If _playerState = Nothing Then
-                    _playerState = String.Empty
-                End If
                 Return _playerState
             End Get
         End Property

@@ -1,5 +1,6 @@
 ﻿Imports System.Text
 Imports System.Collections.Specialized
+Imports SL.DuneApiCodePack.Extensions
 
 Namespace DuneUtilities.ApiWrappers
 
@@ -105,7 +106,7 @@ Namespace DuneUtilities.ApiWrappers
 
             query.Add("cmd", Constants.Commands.SetPlaybackState)
 
-            If _fullscreen.HasValue AndAlso _fullscreen.Value = True Then
+            If _fullscreen.HasValue AndAlso _fullscreen.Value.IsTrue Then
                 query.Add(Constants.SetPlaybackStateParameters.VideoFullscreen, "1")
             Else
                 query.Add(Constants.SetPlaybackStateParameters.VideoFullscreen, "0")
@@ -115,7 +116,7 @@ Namespace DuneUtilities.ApiWrappers
                 query.Add(Constants.SetPlaybackStateParameters.VideoHeight, VideoHeight.Value.ToString)
             End If
 
-            If Zoom <> String.Empty Then
+            If Zoom.IsNotNullOrEmpty Then
                 query.Add(Constants.SetPlaybackStateParameters.VideoZoom, Zoom.ToString)
             End If
 

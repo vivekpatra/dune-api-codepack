@@ -7,7 +7,7 @@ Namespace Extensions
     ''' This is because BitConverter is a static type, and extensions are driven by instances of types.
     ''' In other words: call these methods directly.
     ''' </summary>
-    Module BitConverterExtensions
+    Public Module BitConverterExtensions
         Public Function ToString(ByVal value() As Byte, ByVal delimiter As Char) As String
             Return BitConverterExtensions.ToString(value, 0, value.Length, delimiter)
         End Function

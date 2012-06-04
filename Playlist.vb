@@ -84,7 +84,7 @@ Namespace DuneUtilities
             End Get
             Set(value As Integer)
                 If value >= Files.Count Then
-                    If Repeat = True Then
+                    If Repeat.IsTrue Then
                         value = 0
                     Else
                         value = -1
@@ -111,7 +111,7 @@ Namespace DuneUtilities
                 If value <> _shuffle Then
                     _shuffle = value
                     RaisePropertyChanged("Shuffle")
-                    If value = True Then
+                    If value .IsTrue Then
                         Position = _random.Next(0, Files.Count - 1)
                     End If
                 End If
@@ -223,13 +223,13 @@ Namespace DuneUtilities
 
 
                 If Shuffle = False Then
-                    If RemoveLastFile = True Then
+                    If RemoveLastFile.IsTrue Then
                         Files.RemoveAt(Position)
                     Else
                         Position += 1
                     End If
                 Else
-                    If RemoveLastFile = True Then
+                    If RemoveLastFile.IsTrue Then
                         Files.RemoveAt(Position)
                     End If
                     Position = _random.Next(0, Files.Count - 1)

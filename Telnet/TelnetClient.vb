@@ -16,6 +16,7 @@ Namespace Telnet
 
         Private _loginRegex As Regex
         Private _promptRegex As Regex
+        Private _passwordRegx As Regex
 
 
 #Region "Constructors"
@@ -27,13 +28,9 @@ Namespace Telnet
         Public Sub New(ByVal address As IPAddress, ByVal port As Integer)
             Client.Connect(address, port)
 
-
-            'Receive()
             _telnetLock = New Object
             _loginRegex = New Regex("^tango3 login: $", RegexOptions.Multiline)
             _promptRegex = New Regex("^tango3.*# $", RegexOptions.Multiline)
-
-
         End Sub
 
 #End Region ' Constructors
@@ -72,18 +69,29 @@ Namespace Telnet
 #Region "Methods"
 
         ''' <summary>
-        ''' Blocks until the host asks for login and responds with the specified username. TODO: add timeout.
+        ''' Blocks until the host asks for login and responds with the specified username.
         ''' </summary>
         Public Sub login(ByVal username As String)
-            'Dim prompt As String = String.empty
-            'Do Until prompt.ToLower.Contains("login")
-            '    prompt = Receive()
-            'Loop
-
             ReadUntilRegex(_loginRegex)
             ExecuteCommand(username)
         End Sub
 
+        ''' <summary>
+        ''' Blocks until the host asks for login and responds with the specified username.
+        ''' Blocks again until the host asks for a password and responds with the specified password.
+        ''' </summary>
+        Public Sub login(ByVal username As String, ByVal password As String)
+            login(username)
+            ReadUntilRegex(_passwordRegx)
+            ExecuteCommand(password)
+        End Sub
+
+        ''' <summary>
+        ''' Reads bytes from the network stream until a match is found. TODO: add a timeout of some sort.
+        ''' </summary>
+        ''' <param name="expression"></param>
+        ''' <returns></returns>
+        ''' <remarks></remarks>
         Public Function ReadUntilRegex(ByVal expression As Regex) As String
             Dim prompt As String = String.Empty
             Do
@@ -91,22 +99,6 @@ Namespace Telnet
             Loop Until expression.IsMatch(prompt)
             Return expression.Replace(prompt, String.Empty)
         End Function
-
-        ''' <summary>
-        ''' Blocks until the host asks for login details and responds with the specified username and password. TODO: add timeout.
-        ''' </summary>
-        Public Sub login(ByVal username As String, ByVal password As String)
-            Dim prompt As String = String.Empty
-            Do Until prompt.ToLower.Contains("login")
-                prompt = ReadAndNegotiate()
-            Loop
-            prompt = ExecuteCommand(username)
-            prompt = String.Empty
-            Do Until prompt.ToLower.Contains("password")
-                prompt += ReadAndNegotiate()
-            Loop
-            prompt = ExecuteCommand(password)
-        End Sub
 
         ''' <summary>
         ''' Returns plain text from the stream and also takes care of option negotiations.
@@ -212,14 +204,14 @@ Namespace Telnet
         Public Function ExecuteCommand(ByVal command As String) As String
             SyncLock _telnetLock
 
-            Write(command)
+                Write(command)
 
-            'Do Until Client.Available > Encoding.ASCII.GetBytes(command + vbCrLf).Length
-            '    Threading.Thread.Sleep(100)
-            'Loop
-            Dim response As String = ReadUntilRegex(_promptRegex)
+                'Do Until Client.Available > Encoding.ASCII.GetBytes(command + vbCrLf).Length
+                '    Threading.Thread.Sleep(100)
+                'Loop
+                Dim response As String = ReadUntilRegex(_promptRegex)
 
-            ' Dim response As String = Receive()
+                ' Dim response As String = Receive()
                 Return response.Substring(command.Length).TrimStart
             End SyncLock
 

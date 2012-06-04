@@ -6,7 +6,7 @@ Namespace Extensions
     ''' <summary>
     ''' Extensions for the <see cref="IPAddress"/> type.
     ''' </summary>
-    Module IPAddressExtensions
+    Public Module IPAddressExtensions
 
         <Extension()>
         Public Function GetBroadcastAddress(address As IPAddress, subnetMask As IPAddress) As IPAddress

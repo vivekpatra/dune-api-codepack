@@ -90,7 +90,7 @@ Public NotInheritable Class NativeMethods
             ' If the function fails, the return value is zero.
             Dim ReturnValue As Boolean = GetDiskFreeSpace(uncPath.LocalPath, sectorsPerCluster, bytesPerSector, numberOfFreeClusters, totalNumberOfClusters)
 
-            If ReturnValue = True Then ' create a dictionary of the returned values
+            If ReturnValue.IsTrue Then ' create a dictionary of the returned values
                 info = New ShareInfo(sectorsPerCluster, bytesPerSector, numberOfFreeClusters, totalNumberOfClusters)
             Else
                 Throw New Win32Exception(Marshal.GetLastWin32Error)

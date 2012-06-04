@@ -1,6 +1,7 @@
 ﻿Imports System.Net
 Imports System.IO
 Imports System.Collections.Specialized
+Imports SL.DuneApiCodePack.Extensions
 
 Namespace DuneUtilities.ApiWrappers
 
@@ -88,7 +89,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' </summary>
         Public Property Method As String
             Get
-                If _httpMethod = String.Empty Then
+                If _httpMethod.IsNullOrEmpty Then
                     _httpMethod = WebRequestMethods.Http.Post
                 End If
                 Return _httpMethod
@@ -128,7 +129,7 @@ Namespace DuneUtilities.ApiWrappers
 
         Private Sub SetTimeout(ByVal request As WebRequest)
             If Timeout > 0 Then
-                request.Timeout = Convert.ToInt32((Timeout + 10) * 1000)
+                request.Timeout = Integer.MaxValue
             End If
         End Sub
 

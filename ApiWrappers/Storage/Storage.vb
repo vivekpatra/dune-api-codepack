@@ -27,6 +27,10 @@ Namespace Storage
             End Get
         End Property
 
+        Public Overridable Function GetMediaUrl() As String
+            Return Root.FullName
+        End Function
+
     End Class
 
 End Namespace

@@ -12,13 +12,21 @@ Public Class NetworkAdapterInfo ' TODO: test with local interfaces.
 
     Private _ipAddress As IPAddress
     Private _physicalAddress As PhysicalAddress
-    Private _connection As ConnectionType?
     Private _vendor As NetworkCardVendor
 
 
     Public Sub New(ByVal address As IPAddress)
         _ipAddress = address
-        _physicalAddress = NativeMethods.Networking.GetMacAddress(address)
+
+        For Each nic In NetworkInterface.GetAllNetworkInterfaces
+            If nic.GetIPProperties.UnicastAddresses.Where(Function(unicastAddress) unicastAddress.Address.Equals(address)).Count > 0 Then
+                _physicalAddress = nic.GetPhysicalAddress
+            End If
+        Next
+
+        If _physicalAddress Is Nothing Then
+            _physicalAddress = NativeMethods.Networking.GetMacAddress(address)
+        End If
 
         _vendor = New NetworkCardVendor(_physicalAddress)
     End Sub
@@ -29,42 +37,6 @@ Public Class NetworkAdapterInfo ' TODO: test with local interfaces.
     Public ReadOnly Property Address As IPAddress
         Get
             Return _ipAddress
-        End Get
-    End Property
-
-    ''' <summary>
-    ''' Gets the connection type.
-    ''' </summary>
-    Public ReadOnly Property Connection As ConnectionType
-        Get
-            If Not _connection.HasValue Then
-                Dim nic As NetworkInterface = GetBestInterfaceManaged(Address, 80)
-
-                If nic IsNot Nothing Then
-
-
-                    Dim IPv4Info As UnicastIPAddressInformation = Nothing
-
-                    For Each UnicastIPAddressInformation In nic.GetIPProperties.UnicastAddresses
-                        If UnicastIPAddressInformation.Address.AddressFamily = Sockets.AddressFamily.InterNetwork Then
-                            IPv4Info = UnicastIPAddressInformation
-                            Exit For
-                        End If
-                    Next
-
-                    If Address.IsInSameSubnet(IPv4Info.Address, IPv4Info.IPv4Mask) Then
-                        If _physicalAddress.ToString.Contains("0016E8") Then ' it's made by Sigma Designs
-                            _connection = ConnectionType.Wired
-                        Else ' it must be a wifi dongle
-                            _connection = ConnectionType.Wireless
-                        End If
-                    Else
-                        _connection = ConnectionType.Unknown
-                    End If
-                End If
-            End If
-
-            Return _connection.Value
         End Get
     End Property
 
@@ -94,12 +66,6 @@ Public Class NetworkAdapterInfo ' TODO: test with local interfaces.
             Return GetTraceRoute("dune").Count
         End Get
     End Property
-
-    Public Enum ConnectionType
-        Unknown = 0
-        Wired = 1
-        Wireless = 2
-    End Enum
 
     ''' <summary>
     ''' Calculates the amount of hops between the client and the server.
@@ -175,7 +141,6 @@ Public Class NetworkAdapterInfo ' TODO: test with local interfaces.
     Public Overrides Function ToString() As String
         Dim text As New Text.StringBuilder
 
-        text.AppendLine("Connection type: " + Connection.ToString)
         text.AppendLine("IP address: " + Address.ToString)
         text.Append("MAC address: " + PhysicalAddress.ToDelimitedString)
 

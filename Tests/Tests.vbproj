@@ -55,6 +55,7 @@
     </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.DirectoryServices" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
@@ -76,9 +77,11 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DuneTest.vb" />
     <Compile Include="LocalStorageTest.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="NamedShareTest.vb" />
+    <Compile Include="NetworkDeviceTest.vb" />
     <Compile Include="NfsShareTest.vb" />
     <Compile Include="SmbShareTest.vb" />
   </ItemGroup>

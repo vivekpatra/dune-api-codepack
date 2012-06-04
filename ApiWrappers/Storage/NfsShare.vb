@@ -33,6 +33,8 @@ Namespace Storage
         Public Sub New(ByVal host As IPHostEntry, ByVal exportPath As String, ByVal path As String, ByVal mountPoint As DriveInfo)
             MyBase.New(host)
 
+            _root = mountPoint.RootDirectory
+
             Me.MountPoint = mountPoint
             Me.ExportPath = exportPath
             Me.Path = path
@@ -110,8 +112,8 @@ Namespace Storage
         ''' Gets the media URL for the specified absolute path where absolute path is a file or directory on this NFS share.
         ''' </summary>
         ''' <param name="absolutePath">The full path, including the full share <see cref="Path"/>.</param>
-        ''' <returns>The media URL in nfs://[export_path:/]share_path:/path[/file.extension] format.</returns>
-        Public Function GetMediaUrl(ByVal absolutePath As FileSystemInfo) As String
+        ''' <returns>The media URL in nfs://host[:/export_path]:/share_path:/relative_path[/file[.extension]] format.</returns>
+        Public Overloads Function GetMediaUrl(ByVal absolutePath As FileSystemInfo) As String
             Dim container As New DirectoryInfo(absolutePath.FullName)
 
             Dim relativePath As String
@@ -138,8 +140,23 @@ Namespace Storage
         ''' Gets the media URL for the specified relative path where relative path is a file or directory on this NFS share.
         ''' </summary>
         ''' <param name="relativePath">The relative path, relative to the share <see cref="Path"/>.</param>
-        ''' <returns>The media URL in nfs://[export_path:/]share_path:/path[/file.extension] format.</returns>
-        Public Function GetMediaUrl(ByVal relativePath As String) As String
+        ''' <returns>The media URL in nfs://host[:/export_path]:/share_path/relative_path[/file[.extension]] format.</returns>
+        Public Overloads Function GetMediaUrl(ByVal relativePath As String) As String
+            Dim mediaUrl As New Text.StringBuilder
+
+            mediaUrl.Append(Me.GetMediaUrl())
+
+            mediaUrl.Append("/")
+            mediaUrl.Append(relativePath.TrimStart("/"c))
+
+            Return mediaUrl.ToString
+        End Function
+
+        ''' <summary>
+        ''' Gets the media URL for the root of this NFS share.
+        ''' </summary>
+        ''' <returns>The media URL in nfs://host[:/export_path]:/share_path format.</returns>
+        Public Overrides Function GetMediaUrl() As String
             Dim mediaUrl As New Text.StringBuilder
 
             mediaUrl.Append("nfs://")
@@ -149,14 +166,12 @@ Namespace Storage
             Else ' use hostname
                 mediaUrl.Append(Me.Host.HostName)
             End If
-            mediaUrl.Append(":/")
             If Not String.IsNullOrWhiteSpace(ExportPath) Then
-                mediaUrl.Append(ExportPath)
                 mediaUrl.Append(":/")
+                mediaUrl.Append(ExportPath)
             End If
+            mediaUrl.Append(":/")
             mediaUrl.Append(Path)
-            mediaUrl.Append("/")
-            mediaUrl.Append(relativePath.TrimStart("/"c))
 
             Return mediaUrl.ToString
         End Function

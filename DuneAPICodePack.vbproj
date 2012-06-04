@@ -51,6 +51,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.DirectoryServices" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
@@ -58,6 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.VisualBasic" />
+    <Import Include="SL.DuneApiCodePack.Extensions" />
     <Import Include="System" />
     <Import Include="System.Collections" />
     <Import Include="System.Collections.Generic" />
@@ -87,12 +89,14 @@
     <Compile Include="Extensions\BooleanExtensions.vb" />
     <Compile Include="Extensions\FileSystemInfoExtensions.vb" />
     <Compile Include="Extensions\PhysicalAddressExtensions.vb" />
+    <Compile Include="Extensions\StringExtensions.vb" />
     <Compile Include="Interfaces\IRemoteControl.vb" />
     <Compile Include="Constants.vb" />
     <Compile Include="ApiWrappers\PlaybackType.vb" />
     <Compile Include="Interfaces\IProtocolVersion1.vb" />
     <Compile Include="Interfaces\IProtocolVersion2.vb" />
     <Compile Include="ApiWrappers\DuneCommands\StartPlaybackCommand.vb" />
+    <Compile Include="NetworkDevice.vb" />
     <Compile Include="RemoteControl.vb" />
     <Compile Include="Extensions\IPAddressExtensions.vb" />
     <Compile Include="ApiWrappers\UrlConverter.vb" />

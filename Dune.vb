@@ -9,6 +9,7 @@ Imports System.Net.NetworkInformation
 Imports System.Collections.ObjectModel
 Imports SL.DuneApiCodePack.Storage
 Imports SL.DuneApiCodePack.Telnet
+Imports SL.DuneApiCodePack.Extensions
 
 Namespace DuneUtilities
 
@@ -23,9 +24,8 @@ Namespace DuneUtilities
 #Region "Private Fields"
 
         ' Custom fields
-        Private _shares As List(Of SmbShare)
+        Private _shares As List(Of LocalStorage)
         Private _productID As String
-        Private _playlist As Playlist
         Private _connected As Boolean
         Private _networkAdapterInfo As NetworkAdapterInfo
         Private _sshServerEnabled As Boolean?
@@ -39,9 +39,8 @@ Namespace DuneUtilities
         Private _telnetEnabled As Boolean?
 
         ' Connection details
-        Private _tcpClient As TcpClient
+        Private _hostentry As IPHostEntry
         Private _endpoint As IPEndPoint
-        Private _hostname As String
         Private _timeout As UInteger
         Private _updateTimer As Timer ' Responsible for status updates
 
@@ -137,15 +136,16 @@ Namespace DuneUtilities
         ''' <exception cref="SocketException">: An error is encountered when resolving address.</exception>
         ''' <exception cref="WebException">: An error is encountered when trying to query the API.</exception>
         Public Sub New(ByVal address As IPHostEntry, ByVal port As Integer)
-            Dim delimiter As Char = Convert.ToChar(46) ' 46 = period
-
+            _hostentry = address
             _networkAdapterInfo = New NetworkAdapterInfo(address.AddressList.First)
             _endpoint = New IPEndPoint(NetworkAdapterInfo.Address, port)
-            _hostname = address.HostName.Split(delimiter).FirstOrDefault
+
             Connect(_endpoint)
 
-            If TelnetClient IsNot Nothing Then
-                GetSysinfo()
+            If Connected Then
+                If TelnetClient IsNot Nothing Then
+                    GetSysinfo()
+                End If
             End If
         End Sub
 
@@ -176,13 +176,29 @@ Namespace DuneUtilities
         End Property
 
         ''' <summary>
+        ''' Gets the host entry details returned from the DNS server.
+        ''' </summary>
+        ''' <value></value>
+        ''' <returns></returns>
+        ''' <remarks></remarks>
+        Public ReadOnly Property HostEntry As IPHostEntry
+            Get
+                Return _hostentry
+            End Get
+        End Property
+
+        ''' <summary>
         ''' Gets the hostname of the device.
         ''' </summary>
         <DisplayName("Hostname")>
         <Description("The device's hostname.")>
         Public ReadOnly Property Hostname As String
             Get
-                Return _hostname
+                If HostEntry.HostName.Contains(".") Then
+                    Return HostEntry.HostName.Left(HostEntry.HostName.IndexOf("."c))
+                Else
+                    Return HostEntry.HostName
+                End If
             End Get
         End Property
 
@@ -216,10 +232,10 @@ Namespace DuneUtilities
         ''' </summary>
         <DisplayName("Network shares")>
         <Description("Collection of network shares exposed by the device's SMB server.")>
-        Public ReadOnly Property NetworkShares As ReadOnlyCollection(Of SmbShare)
+        Public ReadOnly Property NetworkShares As ReadOnlyCollection(Of LocalStorage)
             Get
                 If _shares Is Nothing Then
-                    _shares = SmbShare.FromHost(Dns.GetHostEntry(Me.Address))
+                    _shares = LocalStorage.FromHost(Me)
                 End If
                 Return _shares.AsReadOnly
             End Get
@@ -291,7 +307,7 @@ Namespace DuneUtilities
             End Get
             Set(value As Boolean)
                 If _connected <> value Then
-                    If value = True Then
+                    If value.IsTrue Then
                         Reconnect()
                     Else
                         Interval = 0
@@ -310,7 +326,7 @@ Namespace DuneUtilities
                 If _connected <> value Then
                     _connected = value
                     RaisePropertyChanged("Connected")
-                    If value = True Then
+                    If value.IsTrue Then
                         CommandStatusUpdate = "connected"
                     Else
                         CommandStatusUpdate = "disconnected"
@@ -395,7 +411,7 @@ Namespace DuneUtilities
         Public ReadOnly Property AvailableFirmwares As ReadOnlyCollection(Of FirmwareProperties)
             Get
                 If _firmwares Is Nothing Then
-                    If ProductID <> String.Empty Then
+                    If ProductID.IsNotNullOrEmpty Then
                         _firmwares = New List(Of FirmwareProperties)
                         _firmwares = FirmwareProperties.GetAvailableFirmwaresAsync(ProductID).Result
                     Else
@@ -478,6 +494,22 @@ Namespace DuneUtilities
 #Region "App methods"
 
         ''' <summary>
+        ''' Scans the network and retrieves a collection of all Dune devices.
+        ''' </summary>
+        ''' <param name="ignoreNonSigmaNic">Specifies whether to ignore devices whose network card is not made by Sigma Designs.</param>
+        Public Shared Function Scan(ByVal ignoreNonSigmaNic As Boolean) As Collection(Of Dune)
+            Dim dunes As New Collection(Of Dune)
+
+            For Each device As Networking.NetworkDevice In Networking.NetworkDevice.Scan
+                If device.IsDune(ignoreNonSigmaNic) Then
+                    dunes.Add(New Dune(device.Host))
+                End If
+            Next
+
+            Return dunes
+        End Function
+
+        ''' <summary>
         ''' Attempts to initiate a connection with the target.
         ''' </summary>
         Private Sub Connect(ByVal target As IPEndPoint)
@@ -486,6 +518,8 @@ Namespace DuneUtilities
                     CommandStatusUpdate = "connected"
                     Interval = 900
                     ConnectedUpdate = True
+                Else
+                    Throw New ArgumentException("The target host is not a Dune device!")
                 End If
             Catch connectionError As SocketException
                 Throw connectionError
@@ -499,11 +533,17 @@ Namespace DuneUtilities
         ''' </summary>
         Private Function TargetIsValid(ByVal target As IPEndPoint) As Boolean
             Try
-                _tcpClient = New TcpClient()
-                _tcpClient.Connect(target) ' can throw a SocketException
+                Using client As New TcpClient()
+                    client.Connect(target) ' can throw a SocketException
 
-                GetStatus() ' can throw a WebException
+                    If client.Connected Then ' try to get the device status
+                        Dim commandResult As CommandResult = GetStatus() ' can throw a WebException
 
+                        If commandResult.ProtocolVersion = Byte.MaxValue Then
+                            Return False
+                        End If
+                    End If
+                End Using
             Catch tcpClientException As SocketException ' if the connection failed
                 Throw tcpClientException
             Catch serviceException As WebException ' if the API didn't properly respond (errors 404, 401, 403 etc.)
@@ -516,6 +556,7 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Updates the status properties.
         ''' </summary>
+        <DebuggerStepThrough()>
         Private Sub _updateTimer_elapsed(sender As Object, e As System.Timers.ElapsedEventArgs)
             If Connected Then
                 Try
@@ -576,7 +617,7 @@ Namespace DuneUtilities
         ''' Updates the player status properties.
         ''' </summary>
         Private Sub UpdateValues(ByVal commandResult As CommandResult)
-            If commandResult.CommandStatus <> String.Empty Then
+            If commandResult.CommandStatus.IsNotNullOrEmpty Then
                 CommandStatusUpdate = commandResult.CommandStatus
             End If
             If commandResult.CommandError IsNot Nothing Then
@@ -658,17 +699,21 @@ Namespace DuneUtilities
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub GetSysinfo()
-            Dim file As String = TelnetClient.ExecuteCommand("cat /tmp/sysinfo.txt")
-            Dim split() As String = {"product_id: ", "serial_number: ", "firmware_version: "}
+            Try
+                Dim file As String = TelnetClient.ExecuteCommand("cat /tmp/sysinfo.txt")
+                Dim split() As String = {"product_id: ", "serial_number: ", "firmware_version: "}
 
-            Dim info() As String = file.Split(split, StringSplitOptions.RemoveEmptyEntries)
+                Dim info() As String = file.Split(split, StringSplitOptions.RemoveEmptyEntries)
 
-            _productID = info(0).TrimEnd
-            RaisePropertyChanged("ProductID")
-            _serialNumber = info(1).TrimEnd
-            RaisePropertyChanged("SerialNumber")
-            _installedFirmware = info(2).TrimEnd
-            RaisePropertyChanged("InstalledFirmware")
+                _productID = info(0).TrimEnd
+                RaisePropertyChanged("ProductID")
+                _serialNumber = info(1).TrimEnd
+                RaisePropertyChanged("SerialNumber")
+                _installedFirmware = info(2).TrimEnd
+                RaisePropertyChanged("InstalledFirmware")
+            Catch ex As Exception
+                Console.WriteLine("GetSysinfo error: " + ex.Message)
+            End Try
         End Sub
 
         ''' <summary>
