@@ -626,4 +626,11 @@
 
     End Class
 
+    Public NotInheritable Class SetTextParameters
+        Private Sub New()
+        End Sub
+
+        Public Const Text As String = "text"
+    End Class
+
 End Class

@@ -68,7 +68,9 @@
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApiWrappers\DuneCommands\GetTextCommand.vb" />
     <Compile Include="ApiWrappers\DuneCommands\LaunchWebsiteCommand.vb" />
+    <Compile Include="ApiWrappers\DuneCommands\SetTextCommand.vb" />
     <Compile Include="ApiWrappers\LanguageTrack.vb" />
     <Compile Include="ApiWrappers\DuneCommands\Command.vb" />
     <Compile Include="ApiWrappers\DuneCommands\CommandException.vb" />
