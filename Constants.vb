@@ -633,4 +633,16 @@
         Public Const Text As String = "text"
     End Class
 
+    Public NotInheritable Class WebbrowserParameters
+        Private Sub New()
+        End Sub
+
+        Public Const Fullscreen As String = "fullscreen"
+        Public Const WebappKeys As String = "webapp_keys"
+        Public Const ZoomLevel As String = "zoom_level"
+        Public Const Overscan As String = "overscan"
+        Public Const UserAgent As String = "user_agent"
+        Public Const BackgroundColor As String = "background_color"
+    End Class
+
 End Class

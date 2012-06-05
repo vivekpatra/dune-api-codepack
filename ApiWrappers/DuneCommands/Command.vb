@@ -76,7 +76,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the command query string.
         ''' </summary>
-        Private Function GetQueryString() As String
+        Protected Overridable Function GetQueryString() As String
             Dim request As NameValueCollection = Web.HttpUtility.ParseQueryString(String.Empty)
             request.Add(GetQuery)
             request.Add("timeout", Timeout.Value.ToString)
