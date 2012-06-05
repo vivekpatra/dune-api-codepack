@@ -69,6 +69,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiWrappers\DuneCommands\GetTextCommand.vb" />
+    <Compile Include="ApiWrappers\DuneCommands\LaunchFlashLiteCommand.vb" />
     <Compile Include="ApiWrappers\DuneCommands\LaunchWebsiteCommand.vb" />
     <Compile Include="ApiWrappers\DuneCommands\SetTextCommand.vb" />
     <Compile Include="ApiWrappers\LanguageTrack.vb" />

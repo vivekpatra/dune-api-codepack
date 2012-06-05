@@ -23,7 +23,6 @@ Namespace DuneUtilities.ApiWrappers
             MyBase.New(target)
             Type = PlaybackType.File
             _mediaUrl = mediaUrl
-            '_mediaUrl = UrlConverter.FormatUrl(dune, mediaUrl)
         End Sub
 
         ''' <summary>
