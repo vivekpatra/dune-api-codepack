@@ -32,7 +32,7 @@ Namespace DuneUtilities
         ''' Use the methods and properties on the <see cref="Files"/> list to populate it.
         ''' </summary>
         ''' <param name="dune">The target device.</param>
-        Public Sub New(ByVal dune As Dune)
+        Public Sub New(dune As Dune)
             _dune = dune
             _files = New ObservableCollection(Of FileInfo)
             _random = New Random
@@ -44,7 +44,7 @@ Namespace DuneUtilities
         ''' </summary>
         ''' <param name="dune">The target device.</param>
         ''' <param name="files">The collection of files to add to the playlist.</param>
-        Public Sub New(ByVal dune As Dune, ByVal files As Collection(Of FileInfo))
+        Public Sub New(dune As Dune, files As Collection(Of FileInfo))
             Me.New(dune)
 
             For Each file As FileInfo In files
@@ -57,7 +57,7 @@ Namespace DuneUtilities
         ''' </summary>
         ''' <param name="dune">The target device.</param>
         ''' <param name="path">Path to a playlist file.</param>
-        Public Sub New(ByVal dune As Dune, ByVal path As Uri)
+        Public Sub New(dune As Dune, path As Uri)
             Me.New(dune)
 
             ' TODO: implement playlist parsers
@@ -111,7 +111,7 @@ Namespace DuneUtilities
                 If value <> _shuffle Then
                     _shuffle = value
                     RaisePropertyChanged("Shuffle")
-                    If value .IsTrue Then
+                    If value.IsTrue Then
                         Position = _random.Next(0, Files.Count - 1)
                     End If
                 End If
@@ -248,7 +248,7 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Helper method for the INotifyPropertyChanged implementation.
         ''' </summary>
-        Private Sub RaisePropertyChanged(ByVal propertyName As String)
+        Private Sub RaisePropertyChanged(propertyName As String)
             RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(propertyName))
         End Sub
 

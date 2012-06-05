@@ -1,4 +1,4 @@
-﻿Namespace ApiWrappers
+﻿Namespace DuneUtilities.ApiWrappers
 
     Public Class Folder
         Inherits IO.FileSystemInfo

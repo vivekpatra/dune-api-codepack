@@ -1,6 +1,6 @@
 ﻿Imports SL.DuneApiCodePack.DuneUtilities
 
-Namespace ApiWrappers
+Namespace DuneUtilities.ApiWrappers
 
     Public Class SystemInformation
 
@@ -45,7 +45,7 @@ Namespace ApiWrappers
             End Get
         End Property
 
-        Public Shared Function FromHost(ByVal host As Dune) As SystemInformation
+        Public Shared Function FromHost(host As Dune) As SystemInformation
             If host.TelnetEnabled Then
                 Dim info As New SystemInformation(host)
                 info.GetSysinfo()
@@ -53,7 +53,7 @@ Namespace ApiWrappers
                 Return info
             Else
                 Throw New ArgumentException("The specified host does not have telnet enabled.")
-            End If   
+            End If
         End Function
 
         Private Sub ClearInfo()

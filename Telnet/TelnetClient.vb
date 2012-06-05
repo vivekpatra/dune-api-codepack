@@ -21,11 +21,11 @@ Namespace Telnet
 
 #Region "Constructors"
 
-        Public Sub New(ByVal address As IPAddress)
+        Public Sub New(address As IPAddress)
             Me.New(address, 23)
         End Sub
 
-        Public Sub New(ByVal address As IPAddress, ByVal port As Integer)
+        Public Sub New(address As IPAddress, port As Integer)
             Client.Connect(address, port)
 
             _telnetLock = New Object
@@ -71,7 +71,7 @@ Namespace Telnet
         ''' <summary>
         ''' Blocks until the host asks for login and responds with the specified username.
         ''' </summary>
-        Public Sub login(ByVal username As String)
+        Public Sub login(username As String)
             ReadUntilRegex(_loginRegex)
             ExecuteCommand(username)
         End Sub
@@ -80,7 +80,7 @@ Namespace Telnet
         ''' Blocks until the host asks for login and responds with the specified username.
         ''' Blocks again until the host asks for a password and responds with the specified password.
         ''' </summary>
-        Public Sub login(ByVal username As String, ByVal password As String)
+        Public Sub login(username As String, password As String)
             login(username)
             ReadUntilRegex(_passwordRegx)
             ExecuteCommand(password)
@@ -92,7 +92,7 @@ Namespace Telnet
         ''' <param name="expression"></param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Public Function ReadUntilRegex(ByVal expression As Regex) As String
+        Public Function ReadUntilRegex(expression As Regex) As String
             Dim prompt As String = String.Empty
 
             For retries As Integer = 1 To 5
@@ -120,7 +120,7 @@ Namespace Telnet
                     If read > -1 Then
                         Select Case read
                             Case OptionCodes.IAC ' first 3 bytes represents a negotiation
-                                Dim request As Byte = CByte(Client.GetStream.ReadByte)
+                                Dim request As UShort = CByte(Client.GetStream.ReadByte)
                                 Dim action As Byte = CByte(Client.GetStream.ReadByte)
 
                                 Dim response As Byte
@@ -160,7 +160,7 @@ Namespace Telnet
         ''' <summary>
         ''' Sends the specified command.
         ''' </summary>
-        Public Sub Write(ByVal command As String)
+        Public Sub Write(command As String)
             Dim sendData() As Byte = Encoding.ASCII.GetBytes(command + CrLf)
             Client.GetStream.Write(sendData, 0, sendData.Length)
         End Sub
@@ -168,7 +168,7 @@ Namespace Telnet
         ''' <summary>
         ''' Sends the specified command and returns the response.
         ''' </summary>
-        Public Function ExecuteCommand(ByVal command As String) As String
+        Public Function ExecuteCommand(command As String) As String
             SyncLock _telnetLock
                 Write(command)
                 Dim response As String = ReadUntilRegex(_promptRegex)

@@ -4,21 +4,20 @@ Namespace DuneUtilities
 
     ''' <summary>This class represents a standard remote control, much like the physical remote that comes with the box.</summary>
     Public Class RemoteControl
-        Implements IRemoteControl
 
         Private _target As Dune
         Private _lastButton As UShort
 
-        ''' <param name="dune">The target device.</param>
-        Public Sub New(ByRef dune As Dune)
-            _target = dune
+        ''' <param name="target">The target device.</param>
+        Public Sub New(target As Dune)
+            _target = target
         End Sub
 
         ''' <summary>
         ''' Emulates a button press.
         ''' </summary>
         ''' <param name="button">The button to emulate. Possible values are enumerated in <see cref="Constants.RemoteControls"/>.</param>
-        Public Function PushButton(button As UShort) As CommandResult Implements IRemoteControl.Push
+        Public Function PushButton(button As UShort) As CommandResult
             _lastButton = button
             Dim command As New RemoteControlCommand(_target, button)
             Dim result As CommandResult = Target.ProcessCommand(command)

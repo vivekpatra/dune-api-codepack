@@ -18,19 +18,19 @@ Namespace Storage
         Private _path As String
         Private _exportPath As String
 
-        Public Sub New(ByVal host As IPHostEntry, ByVal path As String)
+        Public Sub New(host As IPHostEntry, path As String)
             Me.New(host, String.Empty, path, Nothing)
         End Sub
 
-        Public Sub New(ByVal host As IPHostEntry, ByVal exportPath As String, ByVal path As String)
+        Public Sub New(host As IPHostEntry, exportPath As String, path As String)
             Me.New(host, exportPath, path, Nothing)
         End Sub
 
-        Public Sub New(ByVal host As IPHostEntry, ByVal path As String, ByVal mountPoint As DriveInfo)
+        Public Sub New(host As IPHostEntry, path As String, mountPoint As DriveInfo)
             Me.New(host, String.Empty, path, mountPoint)
         End Sub
 
-        Public Sub New(ByVal host As IPHostEntry, ByVal exportPath As String, ByVal path As String, ByVal mountPoint As DriveInfo)
+        Public Sub New(host As IPHostEntry, exportPath As String, path As String, mountPoint As DriveInfo)
             MyBase.New(host)
 
             _root = mountPoint.RootDirectory
@@ -94,7 +94,7 @@ Namespace Storage
         ''' <param name="absolutePath">The full path, including the full share <see cref="Path"/>.</param>
         ''' <param name="mediaUrl">The string variable that will contain the media URL if the method call is successful.</param>
         ''' <returns>True if the call was successful; otherwise false.</returns>
-        Public Function TryGetMediaUrl(ByVal absolutePath As DirectoryInfo, ByRef mediaUrl As String) As Boolean
+        Public Function TryGetMediaUrl(absolutePath As DirectoryInfo, ByRef mediaUrl As String) As Boolean
             If MountPoint IsNot Nothing Then
                 If MountPoint.RootDirectory.FullName <> absolutePath.Root.FullName Then
                     Return False
@@ -113,7 +113,7 @@ Namespace Storage
         ''' </summary>
         ''' <param name="absolutePath">The full path, including the full share <see cref="Path"/>.</param>
         ''' <returns>The media URL in nfs://host[:/export_path]:/share_path:/relative_path[/file[.extension]] format.</returns>
-        Public Overloads Function GetMediaUrl(ByVal absolutePath As FileSystemInfo) As String
+        Public Overloads Function GetMediaUrl(absolutePath As FileSystemInfo) As String
             Dim container As New DirectoryInfo(absolutePath.FullName)
 
             Dim relativePath As String
@@ -141,7 +141,7 @@ Namespace Storage
         ''' </summary>
         ''' <param name="relativePath">The relative path, relative to the share <see cref="Path"/>.</param>
         ''' <returns>The media URL in nfs://host[:/export_path]:/share_path/relative_path[/file[.extension]] format.</returns>
-        Public Overloads Function GetMediaUrl(ByVal relativePath As String) As String
+        Public Overloads Function GetMediaUrl(relativePath As String) As String
             Dim mediaUrl As New Text.StringBuilder
 
             mediaUrl.Append(Me.GetMediaUrl())

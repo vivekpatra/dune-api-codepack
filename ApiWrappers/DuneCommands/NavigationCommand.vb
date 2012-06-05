@@ -13,8 +13,8 @@ Namespace DuneUtilities.ApiWrappers
 
         Private _action As String
 
-        Public Sub New(ByRef dune As Dune, ByVal action As String)
-            MyBase.New(dune)
+        Public Sub New(target As Dune, action As String)
+            MyBase.New(target)
             _action = action
         End Sub
 

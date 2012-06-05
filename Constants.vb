@@ -32,12 +32,15 @@
         ''' <summary>Sends a bluray navigation command. It takes only one parameter: "action". Possible values are enumerated in <see cref="NavigationActions"/>.</summary>
         Public Const BlurayNavigation As String = "bluray_navigation"
 
-        ' Protocol version 3
+        ' New in protocol version 3
         ''' <summary>Start playback of a playlist file.</summary>
         Public Const StartPlaylistPlayback As String = "start_playlist_playback"
         ''' <summary>Detect media url type.</summary>
         Public Const LaunchMediaUrl As String = "launch_media_url"
-
+        ''' <summary>Gets text from an input box (UTF-8).</summary>
+        Public Const GetText As String = "get_text"
+        ''' <summary>Sets text in an input box (UTF-8).</summary>
+        Public Const SetText As String = "set_text"
     End Class
 
     ''' <summary>
@@ -48,7 +51,7 @@
         End Sub
 
         ''' <summary>Path to a valid media location (mandatory).</summary>
-        Public Const MediaLocation As String = "media_url"
+        Public Const MediaUrl As String = "media_url"
         ''' <summary>Playback speed in decimal form. Possible values are enumerated in <see cref="Constants.PlaybackSpeedSettings"/>.</summary>
         Public Const PlaybackSpeed As String = "speed"
         ''' <summary>Playback position in seconds (defaults to 0).</summary>
@@ -60,6 +63,8 @@
         Public Const HideOnScreenDisplay As String = "hide_osd"
         ''' <summary>Action to take on playback finish. Possible values are enumerated in <see cref="Constants.ActionOnFinishSettings" />.</summary>
         Public Const ActionOnFinish As String = "action_on_finish"
+        ''' <summary>The zero-based index number of a media URL in a playlist file.</summary>
+        Public Const StartIndex As String = "start_index"
     End Class
 
     ''' <summary>
@@ -94,13 +99,26 @@
         ''' <summary>0 to enable custom video output dimensions; otherwise 1.</summary>
         Public Const VideoFullscreen As String = "video_fullscreen"
         ''' <summary>The horizontal video output position in pixels.</summary>
-        Public Const VideoHorizontalPosition As String = "video_x"
+        Public Const VideoHorizontalOffset As String = "video_x"
         ''' <summary>The vertical video output position in pixels.</summary>
-        Public Const VideoVerticalPosition As String = "video_y"
+        Public Const VideoVerticalOffset As String = "video_y"
         ''' <summary>The horizontal video output width in pixels.</summary>
         Public Const VideoWidth As String = "video_width"
         ''' <summary>The vertical video output height in pixels.</summary>
         Public Const VideoHeight As String = "video_height"
+
+        ' new in protocol version 3
+        Public Const WindowFullscreen As String = "window_fullscreen"
+        Public Const WindowRectangleHorizontalOffset As String = "window_rect_x"
+        Public Const WindowRectangleVerticalOffset As String = "window_rect_y"
+        Public Const WindowRectangleWidth As String = "window_rect_width"
+        Public Const WindowRectangleHeight As String = "window_rect_height"
+        Public Const ClipRectangleHorizontalOffset As String = "clip_rect_x"
+        Public Const ClipRectangleVerticalOffset As String = "clip_rect_y"
+        Public Const ClipRectangleWidth As String = "clip_rect_width"
+        Public Const ClipRectangleHeight As String = "clip_rect_height"
+        Public Const VideoOnTop As String = "video_on_top"
+
     End Class
 
     ''' <summary>
@@ -155,6 +173,28 @@
         Public Const ErrorDescription As String = "error_description"
         ''' <summary>1 if a DVD menu is currently shown; otherwise 0.</summary>
         Public Const PlaybackDvdMenu As String = "playback_dvd_menu"
+
+        ' New in protocol version 3
+        ' TODO: add summaries
+        Public Const PlaybackState As String = "playback_state"
+        Public Const PreviousPlaybackState As String = "previous_playback_state"
+        Public Const LastPlaybackEvent As String = "last_playback_event"
+        Public Const PlaybackUrl As String = "playback_url"
+        Public Const PlaybackVideoWidth As String = "playback_video_width"
+        Public Const PlaybackVideoHeight As String = "playback_video_height"
+        Public Const SubtitlesTrack As String = "subtitles_track"
+        Public Const PlaybackWindowFullscreen As String = "playback_window_fullscreen"
+        Public Const PlaybackWindowRectangleX As String = "playback_window_rect_x"
+        Public Const PlaybackWindowRectangleY As String = "playback_window_rect_y"
+        Public Const PlaybackWindowRectangleWidth As String = "playback_window_rect_width"
+        Public Const PlaybackWindowRectangleHeight As String = "playback_window_rect_height"
+        Public Const PlaybackClipRectangleX As String = "playback_clip_rect_x"
+        Public Const PlaybackClipRectangleY As String = "playback_clip_rect_y"
+        Public Const PlaybackClipRectangleWidth As String = "playback_clip_rect_width"
+        Public Const PlaybackClipRectangleHeight As String = "playback_clip_rect_height"
+        Public Const OnScreenDisplayWidth As String = "osd_width"
+        Public Const OnScreenDisplayHeight As String = "osd_height"
+        Public Const VideoOnTop As String = "video_on_top"
     End Class
 
     ''' <summary>
@@ -252,9 +292,9 @@
         Rewind1_4x = -CShort(2 ^ 6)
         Rewind1_8x = -CShort(2 ^ 5)
         Rewind1_16x = -CShort(2 ^ 4)
-        ' Rewind1_32x = -CShort(2 ^ 3) uncomment if and when this becomes supported
+        Rewind1_32x = -CShort(2 ^ 3)
         Pause = 0
-        ' Slowdown1_32x = CShort(2 ^ 3) uncomment if and when this becomes supported
+        Slowdown1_32x = CShort(2 ^ 3)
         Slowdown1_16x = CShort(2 ^ 4)
         Slowdown1_8x = CShort(2 ^ 5)
         Slowdown1_4x = CShort(2 ^ 6)
@@ -364,7 +404,7 @@
         ''' </summary>
         ''' <param name="button">The 16-bit value that represents a button.</param>
         ''' <returns>The 32-bit value that represents a NEC code.</returns>
-        Public Shared Function GetButtonCode(ByVal button As UShort) As String
+        Public Shared Function GetButtonCode(button As UShort) As String
             Dim control() As Byte = BitConverter.GetBytes(CustomerCode)
             Dim suffix() As Byte = BitConverter.GetBytes(button)
 
@@ -563,5 +603,27 @@
         Previous = -1
         [Next] = 1
     End Enum
+
+    Public NotInheritable Class PlaybackStateSettings
+        Private Sub New()
+        End Sub
+
+        Public Const Playing As String = "playing"
+        Public Const Stopped As String = "stopped"
+        Public Const Buffering As String = "buffering"
+        Public Const Initializing As String = "initializing"
+        Public Const Deinitializing As String = "deinitializing"
+        Public Const Seeking As String = "seeking"
+    End Class
+
+    Public NotInheritable Class LastPlaybackEventSettings
+        Private Sub New()
+        End Sub
+
+        Public Const NoEvent As String = "no_event"
+        Public Const ExternalAction As String = "external_action"
+        Public Const MediaFormatNotSupported As String = "media_format_not_supported"
+
+    End Class
 
 End Class

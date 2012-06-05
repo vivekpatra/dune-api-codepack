@@ -2,25 +2,24 @@
 
 Namespace DuneUtilities.ApiWrappers
 
-    ''' <summary>
-    ''' This command gets the player status without changing the player state in any way.
-    ''' </summary>
-    Public Class GetStatusCommand
+    Public Class LaunchWebsiteCommand
         Inherits Command
 
+        Private _website As Uri
 
-        Public Sub New(target As Dune)
+        Public Sub New(target As Dune, website As Uri)
             MyBase.New(target)
+            _website = website
         End Sub
 
         Protected Overrides Function GetQuery() As NameValueCollection
             Dim query As New NameValueCollection
 
-            query.Add("cmd", Constants.Commands.Status)
+            query.Add("cmd", Constants.Commands.LaunchMediaUrl)
+            query.Add(Constants.StartPlaybackParameters.MediaUrl, "www://" + _website.AbsoluteUri)
 
             Return query
         End Function
-
     End Class
 
 End Namespace

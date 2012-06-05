@@ -8,10 +8,10 @@ Namespace DuneUtilities.ApiWrappers
 
         Private _state As String
 
-        ''' <param name="dune">The target device.</param>
+        ''' <param name="target">The target device.</param>
         ''' <param name="state">The requested player state.</param>
-        Public Sub New(ByRef dune As Dune, ByVal state As String)
-            MyBase.New(dune)
+        Public Sub New(target As Dune, state As String)
+            MyBase.New(target)
             _state = state
         End Sub
 

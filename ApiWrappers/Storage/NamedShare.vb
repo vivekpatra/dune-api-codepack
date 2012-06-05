@@ -12,7 +12,7 @@ Namespace Storage
         ''' <param name="name">The name of the network folder as defined on the Dune device.</param>
         ''' <param name="path">The path to the named network folder.</param>
         ''' <remarks></remarks>
-        Public Sub New(ByVal host As IPHostEntry, ByVal name As String, ByVal path As IO.DirectoryInfo)
+        Public Sub New(host As IPHostEntry, name As String, path As IO.DirectoryInfo)
             MyBase.New(host)
             _name = name
             _share = path
@@ -46,7 +46,7 @@ Namespace Storage
             Return mediaUrl.ToString
         End Function
 
-        Public Overloads Function GetMediaUrl(ByVal path As IO.DirectoryInfo) As String
+        Public Overloads Function GetMediaUrl(path As IO.DirectoryInfo) As String
             If Not path.FullName.Contains(Share.FullName) Then
                 Throw New ArgumentException("The specified path is not a member of this network share.", "path")
             Else
@@ -63,7 +63,7 @@ Namespace Storage
             End If
         End Function
 
-        Public Function TryGetMediaUrl(ByVal path As IO.DirectoryInfo, ByRef mediaUrl As String) As Boolean
+        Public Function TryGetMediaUrl(path As IO.DirectoryInfo, ByRef mediaUrl As String) As Boolean
             If Not path.FullName.Contains(Share.FullName) Then
                 Return False
             Else

@@ -17,10 +17,18 @@ Namespace Extensions
         End Sub
 
         ''' <summary>
+        ''' Returns "1" if true; otherwise "0".
+        ''' </summary>
+        <Extension()>
+        Public Function ToNumberString(value As Boolean) As String
+            Return Math.Abs(CInt(value)).ToString
+        End Function
+
+        ''' <summary>
         ''' Gets whether the value is True.
         ''' </summary>
         <Extension()>
-        Public Function IsTrue(ByVal value As Boolean) As Boolean
+        Public Function IsTrue(value As Boolean) As Boolean
             Return value = True
         End Function
 
@@ -28,7 +36,7 @@ Namespace Extensions
         ''' Gets whether the value is False.
         ''' </summary>
         <Extension()>
-        Public Function IsFalse(ByVal value As Boolean) As Boolean
+        Public Function IsFalse(value As Boolean) As Boolean
             Return value = False
         End Function
 

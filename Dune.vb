@@ -10,7 +10,6 @@ Imports System.Collections.ObjectModel
 Imports SL.DuneApiCodePack.Storage
 Imports SL.DuneApiCodePack.Telnet
 Imports SL.DuneApiCodePack.Extensions
-Imports SL.DuneApiCodePack.ApiWrappers
 Imports SL.DuneApiCodePack.Networking
 
 Namespace DuneUtilities
@@ -20,8 +19,6 @@ Namespace DuneUtilities
     ''' </summary>
     Public Class Dune
         Implements INotifyPropertyChanged
-        Implements IProtocolVersion1
-        Implements IProtocolVersion2
 
 #Region "Private Fields"
 
@@ -47,7 +44,7 @@ Namespace DuneUtilities
 
         Private _commandStatus As String
         Private _commandError As CommandException
-        Private _protocolVersion As Byte
+        Private _protocolVersion As UShort
         Private _playerState As String
         Private _playbackSpeed As Constants.PlaybackSpeedSettings
         Private _playbackDuration As TimeSpan?
@@ -57,19 +54,21 @@ Namespace DuneUtilities
         Private _playbackDvdMenu As Boolean
 
         ' Protocol version 2 and up
-        Private _playbackVolume As Byte?
+        Private _playbackVolume As UShort?
         Private _playbackMute As Boolean?
-        Private _audioTrack As Byte?
-        Private _videoFullscreen As Boolean?
-        Private _videoX As UShort?
-        Private _videoY As UShort?
-        Private _videoWidth As UShort?
-        Private _videoHeight As UShort?
-        Private _videoTotalDisplayWidth As UShort?
-        Private _videoTotalDisplayHeight As UShort?
+        Private _audioTrack As UShort?
+        Private _playbackWindowFullscreen As Boolean?
+        Private _playbackWindowRectangleHorizontalOffset As UShort?
+        Private _playbackWindowRectangleVerticalOffset As UShort?
+        Private _playbackWindowRectangleWidth As UShort?
+        Private _playbackWindowRectangleHeight As UShort?
+        Private _onScreenDisplayWidth As UShort?
+        Private _onScreenDisplayHeight As UShort?
         Private _videoEnabled As Boolean?
         Private _videoZoom As String
-        Private _audioTracks As SortedDictionary(Of Byte, CultureInfo)
+        Private _audioTracks As SortedList(Of UShort, LanguageTrack)
+        Private _subtitles As SortedList(Of UShort, LanguageTrack)
+
 
 #End Region ' Private Fields
 
@@ -80,7 +79,7 @@ Namespace DuneUtilities
         ''' </summary>
         ''' <param name="address">The IP address or hostname of the target device.</param>
         ''' <exception cref="System.Net.Sockets.SocketException">: An error is encountered when resolving address.</exception>
-        Public Sub New(ByVal address As String)
+        Public Sub New(address As String)
             Me.New(Dns.GetHostEntry(address), 80)
         End Sub
 
@@ -89,7 +88,7 @@ Namespace DuneUtilities
         ''' </summary>
         ''' <param name="address">The IP address of the target device.</param>
         ''' <exception cref="System.Net.Sockets.SocketException">: An error is encountered when resolving address.</exception>
-        Public Sub New(ByVal address As IPAddress)
+        Public Sub New(address As IPAddress)
             Me.New(Dns.GetHostEntry(address), 80)
         End Sub
 
@@ -97,7 +96,7 @@ Namespace DuneUtilities
         ''' Gets a Dune object that represents a Dune device on the network at the specified address on the default port (80).
         ''' </summary>
         ''' <param name="address">The host entry of the target device.</param>
-        Public Sub New(ByVal address As IPHostEntry)
+        Public Sub New(address As IPHostEntry)
             Me.New(address, 80)
         End Sub
 
@@ -108,7 +107,7 @@ Namespace DuneUtilities
         ''' <exception cref="ArgumentOutOfRangeException">: port is less than System.Net.IPEndPoint.MinPort.-or- port is greater than System.Net.IPEndPoint.MaxPort.-or- address is less than 0 or greater than 0x00000000FFFFFFFF.</exception>       
         ''' <exception cref="SocketException">: An error is encountered when resolving address.</exception>
         ''' <exception cref="WebException">: An error is encountered when trying to query the API.</exception>
-        Public Sub New(ByVal address As String, ByVal port As Integer)
+        Public Sub New(address As String, port As Integer)
             Me.New(Dns.GetHostEntry(address), port)
         End Sub
 
@@ -120,7 +119,7 @@ Namespace DuneUtilities
         ''' <exception cref="ArgumentOutOfRangeException">: port is less than System.Net.IPEndPoint.MinPort.-or- port is greater than System.Net.IPEndPoint.MaxPort.-or- address is less than 0 or greater than 0x00000000FFFFFFFF.</exception>
         ''' <exception cref="SocketException">: An error is encountered when resolving address.</exception>
         ''' <exception cref="WebException">: An error is encountered when trying to query the API.</exception>
-        Public Sub New(ByVal address As IPAddress, ByVal port As Integer)
+        Public Sub New(address As IPAddress, port As Integer)
             Me.New(Dns.GetHostEntry(address), port)
         End Sub
 
@@ -132,7 +131,7 @@ Namespace DuneUtilities
         ''' <exception cref="System.ArgumentOutOfRangeException">: port is less than System.Net.IPEndPoint.MinPort.-or- port is greater than System.Net.IPEndPoint.MaxPort.-or- address is less than 0 or greater than 0x00000000FFFFFFFF.</exception>
         ''' <exception cref="SocketException">: An error is encountered when resolving address.</exception>
         ''' <exception cref="WebException">: An error is encountered when trying to query the API.</exception>
-        Public Sub New(ByVal address As IPHostEntry, ByVal port As Integer)
+        Public Sub New(address As IPHostEntry, port As Integer)
             _hostentry = address
             _networkAdapterInfo = New NetworkAdapterInfo(address.AddressList.First)
             _endpoint = New IPEndPoint(NetworkAdapterInfo.Address, port)
@@ -489,7 +488,7 @@ Namespace DuneUtilities
         ''' Scans the network and retrieves a collection of all Dune devices.
         ''' </summary>
         ''' <param name="ignoreNonSigmaNic">Specifies whether to ignore devices whose network card is not made by Sigma Designs.</param>
-        Public Shared Function Scan(ByVal ignoreNonSigmaNic As Boolean) As Collection(Of Dune)
+        Public Shared Function Scan(ignoreNonSigmaNic As Boolean) As Collection(Of Dune)
             Dim dunes As New Collection(Of Dune)
 
             For Each device As Networking.NetworkDevice In Networking.NetworkDevice.Scan
@@ -504,7 +503,7 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Attempts to initiate a connection with the target.
         ''' </summary>
-        Private Sub Connect(ByVal target As IPEndPoint)
+        Private Sub Connect(target As IPEndPoint)
             Try
                 If TargetIsValid(_endpoint) Then
                     Interval = 900
@@ -522,7 +521,7 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Verifies the target as a valid device.
         ''' </summary>
-        Private Function TargetIsValid(ByVal target As IPEndPoint) As Boolean
+        Private Function TargetIsValid(target As IPEndPoint) As Boolean
             Try
                 Dim commandResult As CommandResult = GetStatus() ' can throw a WebException
 
@@ -558,8 +557,8 @@ Namespace DuneUtilities
         ''' Executes commands and processes results.
         ''' </summary>
         ''' <param name="command">The command to execute.</param>
-        ''' <exception cref="CommandException">: The device could not successfully  complete the command.</exception>
-        Public Function ProcessCommand(ByVal command As Command) As CommandResult
+        ''' <exception cref="CommandException">: command execution failed.</exception>
+        Public Function ProcessCommand(command As Command) As CommandResult
             If Not command.Timeout.HasValue Then
                 command.Timeout = Me.Timeout
             End If
@@ -581,8 +580,8 @@ Namespace DuneUtilities
         ''' Executes commands and processes results asynchronously.
         ''' </summary>
         ''' <param name="command">The command to execute.</param>
-        ''' <exception cref="CommandException">: The device could not successfully  complete the command.</exception>
-        Public Function ProcessCommandAsync(ByVal command As Command) As Task(Of CommandResult)
+        ''' <exception cref="CommandException">: command execution failed.</exception>
+        Public Function ProcessCommandAsync(command As Command) As Task(Of CommandResult)
             Dim resultTask As Task(Of CommandResult)
 
             resultTask = Task(Of CommandResult).Factory.StartNew(Function()
@@ -600,7 +599,7 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Updates the player status properties.
         ''' </summary>
-        Private Sub UpdateValues(ByVal commandResult As CommandResult)
+        Private Sub UpdateValues(commandResult As CommandResult)
             If commandResult.CommandStatus.IsNotNullOrEmpty Then
                 CommandStatusUpdate = commandResult.CommandStatus
             End If
@@ -617,17 +616,31 @@ Namespace DuneUtilities
             If ProtocolVersion >= 2 Then
                 VideoEnabledUpdate = commandResult.VideoEnabled
                 VideoZoomUpdate = commandResult.VideoZoom
-                VideoFullscreenUpdate = commandResult.VideoFullscreen
-                VideoXUpdate = commandResult.VideoX
-                VideoYUpdate = commandResult.VideoY
-                VideoWidthUpdate = commandResult.VideoWidth
-                VideoHeightUpdate = commandResult.VideoHeight
-                VideoTotalDisplayWidthUpdate = commandResult.VideoTotalDisplayWidth
-                VideoTotalDisplayHeightUpdate = commandResult.VideoTotalDisplayHeight
+                PlaybackWindowFullscreenUpdate = commandResult.PlaybackWindowFullscreen
+                PlaybackWindowRectangleHorizontalOffsetUpdate = commandResult.PlaybackWindowRectangleHorizontalOffset
+                PlaybackWindowRectangleVerticalOffsetUpdate = commandResult.PlaybackWindowRectangleVerticalOffset
+                PlaybackWindowRectangleWidthUpdate = commandResult.PlaybackWindowRectangleWidth
+                PlaybackWindowRectangleHeightUpdate = commandResult.PlaybackWindowRectangleHeight
+                OnScreenDisplayWidthUpdate = commandResult.OnScreenDisplayWidth
+                OnScreenDisplayHeightUpdate = commandResult.OnScreenDisplayHeight
                 PlaybackVolumeUpdate = commandResult.PlaybackVolume
                 PlaybackMuteUpdate = commandResult.PlaybackMute
                 AudioTracksUpdate = commandResult.AudioTracks
                 AudioTrackUpdate = commandResult.AudioTrack
+                If ProtocolVersion >= 3 Then
+                    PlaybackStateUpdate = commandResult.PlaybackState
+                    PreviousPlaybackStateUpdate = commandResult.PreviousPlaybackState
+                    LastPlaybackEventUpdate = commandResult.LastPlaybackEvent
+                    PlaybackUrlUpdate = commandResult.PlaybackUrl
+                    PlaybackVideoWidthUpdate = commandResult.PlaybackVideoWidth
+                    PlaybackVideoHeightUpdate = commandResult.PlaybackVideoHeight
+                    PlaybackClipRectangleHorizontalOffsetUpdate = commandResult.PlaybackWindowRectangleHorizontalOffset
+                    PlaybackClipRectangleVerticalOffsetUpdate = commandResult.PlaybackWindowRectangleVerticalOffset
+                    PlaybackClipRectangleWidthUpdate = commandResult.PlaybackClipRectangleWidth
+                    PlaybackClipRectangleHeightUpdate = commandResult.PlaybackClipRectangleHeight
+                    VideoOnTopUpdate = commandResult.VideoOnTop
+                    SubtitlesUpdate = commandResult.Subtitles
+                End If
             End If
         End Sub
 
@@ -717,7 +730,7 @@ Namespace DuneUtilities
         ''' </summary>
         <DisplayName("Command status")>
         <Description("The status of the last command")>
-        Public ReadOnly Property CommandStatus As String Implements IProtocolVersion1.CommandStatus
+        Public ReadOnly Property CommandStatus As String
             Get
                 Return _commandStatus
             End Get
@@ -726,7 +739,7 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Sets the status of the last command.
         ''' </summary>
-        Private WriteOnly Property CommandStatusUpdate As String Implements IProtocolVersion1.CommandStatusUpdate
+        Private WriteOnly Property CommandStatusUpdate As String
             Set(value As String)
                 If CommandStatus <> value Then
                     _commandStatus = value
@@ -740,7 +753,7 @@ Namespace DuneUtilities
         ''' </summary>
         <DisplayName("Playback duration")>
         <Description("The current playback duration.")>
-        Public ReadOnly Property PlaybackDuration As System.TimeSpan? Implements IProtocolVersion1.PlaybackDuration
+        Public ReadOnly Property PlaybackDuration As System.TimeSpan?
             Get
                 Return _playbackDuration
             End Get
@@ -749,7 +762,7 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Sets the playback duration.
         ''' </summary>
-        Private WriteOnly Property PlaybackDurationUpdate As System.TimeSpan? Implements IProtocolVersion1.PlaybackDurationUpdate
+        Private WriteOnly Property PlaybackDurationUpdate As System.TimeSpan?
             Set(value As System.TimeSpan?)
                 If Not Nullable.Equals(PlaybackDuration, value) Then
                     _playbackDuration = value
@@ -761,10 +774,9 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Gets or sets the playback position.
         ''' </summary>
-        ''' <exception cref="CommandException">: Command execution failed.</exception>
         <DisplayName("Playback position")>
         <Description("The current playback position.")>
-        Public Property PlaybackPosition As System.TimeSpan? Implements IProtocolVersion1.PlaybackPosition
+        Public Property PlaybackPosition As System.TimeSpan?
             Get
                 Return _playbackPosition
             End Get
@@ -774,24 +786,15 @@ Namespace DuneUtilities
                 End If
 
                 Dim command As New SetPlaybackStateCommand(Me)
-                command.Position = value
-                command.Timeout = Timeout
-
-
-                Dim processTask As Task = ProcessCommandAsync(command)
-
-                Try
-                    processTask.Wait()
-                Catch ex As AggregateException
-                    Throw ex.InnerException
-                End Try
+                command.PlaybackPosition = value
+                ProcessCommand(command)
             End Set
         End Property
 
         ''' <summary>
         ''' Sets the playback position.
         ''' </summary>
-        Private WriteOnly Property PlaybackPositionUpdate As System.TimeSpan? Implements IProtocolVersion1.PlaybackPositionUpdate
+        Private WriteOnly Property PlaybackPositionUpdate As System.TimeSpan?
             Set(value As System.TimeSpan?)
                 If Not Nullable.Equals(PlaybackPosition, value) Then
                     _playbackPosition = value
@@ -804,33 +807,23 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Gets or sets the playback speed.
         ''' </summary>
-        ''' <exception cref="CommandException">: Command execution failed.</exception>
         <DisplayName("Playback speed")>
         <Description("The playback speed.")>
-        Public Property PlaybackSpeed As Constants.PlaybackSpeedSettings Implements IProtocolVersion1.PlaybackSpeed
+        Public Property PlaybackSpeed As Constants.PlaybackSpeedSettings
             Get
                 Return _playbackSpeed
             End Get
             Set(value As Constants.PlaybackSpeedSettings)
                 Dim command As New SetPlaybackStateCommand(Me)
-                command.Speed = value
-                command.Timeout = Timeout
-
-
-                Dim processTask As Task = ProcessCommandAsync(command)
-
-                Try
-                    processTask.Wait()
-                Catch ex As AggregateException
-                    Throw ex.InnerException
-                End Try
+                command.PlaybackSpeed = value
+                ProcessCommand(command)
             End Set
         End Property
 
         ''' <summary>
         ''' Sets the playback speed.
         ''' </summary>
-        Private WriteOnly Property PlaybackSpeedUpdate As Short Implements IProtocolVersion1.PlaybackSpeedUpdate
+        Private WriteOnly Property PlaybackSpeedUpdate As Short
             Set(value As Short)
                 If PlaybackSpeed <> value Then
                     _playbackSpeed = DirectCast(value, Constants.PlaybackSpeedSettings)
@@ -844,28 +837,20 @@ Namespace DuneUtilities
         ''' </summary>
         <DisplayName("Player state")>
         <Description("The player state. Accepted values are ""main_screen"", ""black_screen"" or ""standby"".")>
-        Public Property PlayerState As String Implements IProtocolVersion1.PlayerState
+        Public Property PlayerState As String
             Get
                 Return _playerState
             End Get
             Set(value As String)
                 Dim command As New SetPlayerStateCommand(Me, value)
-                command.Timeout = Timeout
-
-                Dim processTask As Task = ProcessCommandAsync(command)
-
-                Try
-                    processTask.Wait()
-                Catch ex As AggregateException
-                    Throw ex.InnerException
-                End Try
+                ProcessCommand(command)
             End Set
         End Property
 
         ''' <summary>
         ''' Sets the player state.
         ''' </summary>
-        Private WriteOnly Property PlayerStateUpdate As String Implements IProtocolVersion1.PlayerStateUpdate
+        Private WriteOnly Property PlayerStateUpdate As String
             Set(value As String)
                 If PlayerState <> value Then
                     _playerState = value
@@ -879,7 +864,7 @@ Namespace DuneUtilities
         ''' </summary>
         <DisplayName("Protocol version")>
         <Description("The API version. The latest supported version number is 2.")>
-        Public ReadOnly Property ProtocolVersion As Byte Implements IProtocolVersion1.ProtocolVersion
+        Public ReadOnly Property ProtocolVersion As UShort
             Get
                 If _protocolVersion = 0 Then
                     _protocolVersion = Byte.MaxValue
@@ -891,8 +876,8 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Sets the protocol version number.
         ''' </summary>
-        Private WriteOnly Property ProtocolVersionUpdate As Byte Implements IProtocolVersion1.ProtocolVersionUpdate
-            Set(value As Byte)
+        Private WriteOnly Property ProtocolVersionUpdate As UShort
+            Set(value As UShort)
                 If ProtocolVersion <> value Then
                     _protocolVersion = value
                     RaisePropertyChanged("ProtocolVersion")
@@ -905,7 +890,7 @@ Namespace DuneUtilities
         ''' </summary>
         <DisplayName("Command error")>
         <Description("The last command error.")>
-        Public ReadOnly Property CommandError As CommandException Implements IProtocolVersion1.CommandError
+        Public ReadOnly Property CommandError As CommandException
             Get
                 Return _commandError
             End Get
@@ -914,7 +899,7 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Sets the last command error.
         ''' </summary>
-        Private WriteOnly Property CommandErrorUpdate As CommandException Implements IProtocolVersion1.CommandErrorUpdate
+        Private WriteOnly Property CommandErrorUpdate As CommandException
             Set(value As CommandException)
                 If value IsNot Nothing AndAlso _commandError IsNot value Then
                     _commandError = value
@@ -928,7 +913,7 @@ Namespace DuneUtilities
         ''' </summary>
         <DisplayName("DVD menu")>
         <Description("Displays whether the player is showing a DVD menu.")>
-        Public ReadOnly Property PlaybackDvdMenu As Boolean Implements IProtocolVersion1.PlaybackDvdMenu
+        Public ReadOnly Property PlaybackDvdMenu As Boolean
             Get
                 Return _playbackDvdMenu
             End Get
@@ -937,7 +922,7 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Sets whether a DVD menu is shown.
         ''' </summary>
-        Private WriteOnly Property PlaybackDvdMenuUpdate As Boolean Implements IProtocolVersion1.PlaybackDvdMenuUpdate
+        Private WriteOnly Property PlaybackDvdMenuUpdate As Boolean
             Set(value As Boolean)
                 If Not Nullable.Equals(PlaybackDvdMenu, value) Then
                     _playbackDvdMenu = value
@@ -951,7 +936,7 @@ Namespace DuneUtilities
         ''' </summary>
         <DisplayName("Playback buffering")>
         <Description("Displays whether the playback is buffering.")>
-        Public ReadOnly Property PlaybackIsBuffering As Boolean Implements IProtocolVersion1.PlaybackIsBuffering
+        Public ReadOnly Property PlaybackIsBuffering As Boolean
             Get
                 Return _playbackIsBuffering
             End Get
@@ -960,7 +945,7 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Sets whether the playback is buffering.
         ''' </summary>
-        Private WriteOnly Property PlaybackIsBufferingUpdate As Boolean Implements IProtocolVersion1.PlaybackIsBufferingUpdate
+        Private WriteOnly Property PlaybackIsBufferingUpdate As Boolean
             Set(value As Boolean)
                 If Not Nullable.Equals(PlaybackIsBuffering, value) Then
                     _playbackIsBuffering = value
@@ -972,10 +957,9 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Sets whether to show a black screen during playback.
         ''' </summary>
-        ''' <exception cref="CommandException">: Command execution failed.</exception>
         <DisplayName("Black screen")>
         <Description("Disables both the OSD and video output.")>
-        Public Property BlackScreen As Boolean? Implements IProtocolVersion1.BlackScreen
+        Public Property BlackScreen As Boolean?
             Get
                 Return Nothing
             End Get
@@ -984,15 +968,7 @@ Namespace DuneUtilities
 
                 Dim command As New SetPlaybackStateCommand(Me)
                 command.BlackScreen = value
-                command.Timeout = Timeout
-
-                Dim processTask As Task = ProcessCommandAsync(command)
-
-                Try
-                    processTask.Wait()
-                Catch ex As AggregateException
-                    Throw ex.InnerException
-                End Try
+                ProcessCommand(command)
             End Set
 
         End Property
@@ -1000,10 +976,9 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Sets whether to hide the OSD during playback.
         ''' </summary>
-        ''' <exception cref="CommandException">: Command execution failed.</exception>
         <DisplayName("Hide on-screen display")>
         <Description("Disables all overlay menu items such as the pop-up menu.")>
-        Public Property HideOnScreenDisplay As Boolean? Implements IProtocolVersion1.HideOnScreenDisplay
+        Public Property HideOnScreenDisplay As Boolean?
             Get
                 Return Nothing
             End Get
@@ -1012,19 +987,826 @@ Namespace DuneUtilities
 
                 Dim command As New SetPlaybackStateCommand(Me)
                 command.HideOnScreenDisplay = value
-                command.Timeout = Timeout
-
-                Dim processTask As Task = ProcessCommandAsync(command)
-
-                Try
-                    processTask.Wait()
-                Catch ex As AggregateException
-                    Throw ex.InnerException
-                End Try
+                ProcessCommand(command)
             End Set
         End Property
 
 #End Region ' Properties v1
+
+#Region "Properties v2"
+
+        ''' <summary>
+        ''' Gets or sets the current language track number.
+        ''' </summary>
+        <DisplayName("Audio track")>
+        <Description("The language track number that is currently playing. Not to be confused with the track number in a playlist.")>
+        Public Property AudioTrack As UShort?
+            Get
+                Return _audioTrack
+            End Get
+            Set(value As UShort?)
+                If value.HasValue AndAlso ProtocolVersion >= 2 Then
+                    Dim command As New SetPlaybackStateCommand(Me)
+                    command.AudioTrack = value
+                    ProcessCommand(command)
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Sets the current language track number
+        ''' </summary>
+        Private WriteOnly Property AudioTrackUpdate As UShort?
+            Set(value As UShort?)
+                If Not Nullable.Equals(value, Nothing) Then
+                    _audioTrack = value
+                    RaisePropertyChanged("AudioTrack")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets whether the video output is fullscreen.
+        ''' </summary>
+        <DisplayName("Fullscreen")>
+        <Description("Displays whether the video is in full screen or if custom video output settings are applied. Note that custom settings can mimic fullscreen.")>
+        Public Property PlaybackWindowFullscreen As Boolean?
+            Get
+                Return _playbackWindowFullscreen
+            End Get
+            Set(value As Boolean?)
+                If value.HasValue AndAlso ProtocolVersion >= 2 Then
+                    Dim command As New SetPlaybackWindowZoomCommand(Me, value.Value)
+                    ProcessCommand(command)
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Sets whether the video output is fullscreen.
+        ''' </summary>
+        Private WriteOnly Property PlaybackWindowFullscreenUpdate As Boolean?
+            Set(value As Boolean?)
+                If Not Nullable.Equals(PlaybackWindowFullscreen, value) Then
+                    _playbackWindowFullscreen = value
+                    RaisePropertyChanged("PlaybackWindowFullscreen")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets the list of available audio tracks for the current playback.
+        ''' </summary>
+        ''' <returns>An instance of a <see cref="SortedDictionary(Of UShort, CultureInfo)" /> object that represents the list of available audio tracks.</returns>
+        <DisplayName("Audio tracks")>
+        <Description("The collection of language tracks in the current playback. Not to be confused with the amount of tracks in a playlist.")>
+        Public ReadOnly Property AudioTracks As SortedList(Of UShort, LanguageTrack)
+            Get
+                Return _audioTracks
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Sets the list of available audio tracks for the current playback.
+        ''' </summary>
+        Private WriteOnly Property AudioTracksUpdate As SortedList(Of UShort, LanguageTrack)
+            Set(value As SortedList(Of UShort, LanguageTrack))
+                If AudioTracks Is Nothing OrElse Object.ReferenceEquals(AudioTracks, value).IsFalse Then
+                    _audioTracks = value
+                    RaisePropertyChanged("AudioTracks")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets the list of available subtitles for the current playback.
+        ''' </summary>
+        <DisplayName("Subtitles")>
+        <Description("The collection of subtitle tracks in the current playback.")>
+        Public ReadOnly Property Subtitles As SortedList(Of UShort, LanguageTrack)
+            Get
+                Return _subtitles
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Sets the list of available subtitles for the current playback.
+        ''' </summary>
+        Private WriteOnly Property SubtitlesUpdate As SortedList(Of UShort, LanguageTrack)
+            Set(value As SortedList(Of UShort, LanguageTrack))
+                If Subtitles Is Nothing OrElse Object.ReferenceEquals(Subtitles, value).IsFalse Then
+                    _audioTracks = value
+                    RaisePropertyChanged("Subtitles")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets or sets the mute status for the current playback.
+        ''' </summary>
+        ''' <remarks>Setting this property does nothing if the protocol version is 1.</remarks>
+        <DisplayName("Playback mute")>
+        <Description("Enables or disables audio output.")>
+        Public Property PlaybackMute As Boolean?
+            Get
+                Return _playbackMute
+            End Get
+            Set(value As Boolean?)
+                If value.HasValue AndAlso ProtocolVersion >= 2 Then
+                    Dim command As New SetPlaybackStateCommand(Me)
+                    command.PlaybackMute = value
+                    ProcessCommand(command)
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Sets the mute status for the current playback.
+        ''' </summary>
+        Private WriteOnly Property PlaybackMuteUpdate As Boolean?
+            Set(value As Boolean?)
+                If Not Nullable.Equals(PlaybackMute, value) Then
+                    _playbackMute = value
+                    RaisePropertyChanged("PlaybackMute")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets or sets whether the video output is enabled.
+        ''' </summary>
+        ''' <remarks>Setting this property does nothing if the protocol version is 1.</remarks>
+        <DisplayName("Video enabled")>
+        <Description("Disabling the video does not hide the on-screen display.")>
+        Public Property VideoEnabled As Boolean?
+            Get
+                Return _videoEnabled
+            End Get
+            Set(value As Boolean?)
+                If value.HasValue AndAlso ProtocolVersion >= 2 Then
+                    Dim command As New SetPlaybackStateCommand(Me)
+                    command.VideoEnabled = value
+                    ProcessCommand(command)
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Sets whether the video output is enabled.
+        ''' </summary>
+        Private WriteOnly Property VideoEnabledUpdate As Boolean?
+            Set(value As Boolean?)
+                If Not Nullable.Equals(VideoEnabled, value) Then
+                    _videoEnabled = value
+                    RaisePropertyChanged("VideoEnabled")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets or sets the playback window rectangle height.
+        ''' </summary>
+        <DisplayName("Playback window height")>
+        <Description("The video playback window rectangle height.")>
+        Public Property PlaybackWindowRectangleHeight As UShort?
+            Get
+                If Not _playbackWindowRectangleHeight.HasValue Then
+                    _playbackWindowRectangleHeight = OnScreenDisplayHeight
+                End If
+                Return _playbackWindowRectangleHeight
+            End Get
+            Set(value As UShort?)
+                If value.HasValue Then
+                    Dim command As SetPlaybackWindowZoomCommand
+
+                    If value >= OnScreenDisplayHeight Then
+                        command = New SetPlaybackWindowZoomCommand(Me, PlaybackWindowRectangleHorizontalOffset, 0, PlaybackWindowRectangleWidth, OnScreenDisplayHeight)
+                    ElseIf value + PlaybackWindowRectangleVerticalOffset > OnScreenDisplayHeight Then
+                        command = New SetPlaybackWindowZoomCommand(Me, PlaybackWindowRectangleHorizontalOffset, (OnScreenDisplayHeight - value), PlaybackWindowRectangleWidth, value)
+                    Else
+                        command = New SetPlaybackWindowZoomCommand(Me, PlaybackWindowRectangleHorizontalOffset, PlaybackWindowRectangleVerticalOffset, PlaybackWindowRectangleWidth, value)
+                    End If
+
+                    ProcessCommand(command)
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Sets the playback window rectangle height.
+        ''' </summary>
+        Private WriteOnly Property PlaybackWindowRectangleHeightUpdate As UShort?
+            Set(value As UShort?)
+                If Not Nullable.Equals(PlaybackWindowRectangleHeight, value) Then
+                    _playbackWindowRectangleHeight = value
+                    RaisePropertyChanged("PlaybackWindowRectangleHeight")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets the total display height.
+        ''' </summary>
+        <DisplayName("Display height")>
+        <Description("The total amount of pixels in the display height.")>
+        Public ReadOnly Property OnScreenDisplayHeight As UShort?
+            Get
+                Return _onScreenDisplayHeight
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Sets the total display height.
+        ''' </summary>
+        Private WriteOnly Property OnScreenDisplayHeightUpdate As UShort?
+            Set(value As UShort?)
+                If Not Nullable.Equals(OnScreenDisplayHeight, value) Then
+                    _onScreenDisplayHeight = value
+                    RaisePropertyChanged("OnScreenDisplayHeight")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets the total display width.
+        ''' </summary>
+        <DisplayName("Display width")>
+        <Description("The total amount of pixels in the display width.")>
+        Public ReadOnly Property OnScreenDisplayWidth As UShort?
+            Get
+                Return _onScreenDisplayWidth
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Sets the total display width.
+        ''' </summary>
+        Private WriteOnly Property OnScreenDisplayWidthUpdate As UShort?
+            Set(value As UShort?)
+                If Not Nullable.Equals(OnScreenDisplayWidth, value) Then
+                    _onScreenDisplayWidth = value
+                    RaisePropertyChanged("OnScreenDisplayWidth")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets or sets the playback window rectangle width.
+        ''' </summary>
+        <DisplayName("Playback window width")>
+        <Description("The playback window rectangle width.")>
+        Public Property PlaybackWindowRectangleWidth As UShort?
+            Get
+                If Not _playbackWindowRectangleWidth.HasValue Then
+                    _playbackWindowRectangleWidth = OnScreenDisplayWidth
+                End If
+                Return _playbackWindowRectangleWidth
+            End Get
+            Set(value As UShort?)
+                If value.HasValue Then
+                    Dim command As SetPlaybackWindowZoomCommand
+
+                    If value >= OnScreenDisplayWidth Then
+                        command = New SetPlaybackWindowZoomCommand(Me, 0, PlaybackWindowRectangleVerticalOffset, OnScreenDisplayWidth, PlaybackWindowRectangleHeight)
+                    ElseIf value + PlaybackWindowRectangleHorizontalOffset > OnScreenDisplayWidth Then
+                        command = New SetPlaybackWindowZoomCommand(Me, (OnScreenDisplayWidth - value), PlaybackWindowRectangleVerticalOffset, value, PlaybackWindowRectangleHeight)
+                    Else
+                        command = New SetPlaybackWindowZoomCommand(Me, PlaybackWindowRectangleHorizontalOffset, PlaybackWindowRectangleVerticalOffset, value, PlaybackWindowRectangleHeight)
+                    End If
+
+                    ProcessCommand(command)
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Sets the playback window rectangle width.
+        ''' </summary>
+        Private WriteOnly Property PlaybackWindowRectangleWidthUpdate As UShort?
+            Set(value As UShort?)
+                If Not Nullable.Equals(PlaybackWindowRectangleWidth, value) Then
+                    _playbackWindowRectangleWidth = value
+                    RaisePropertyChanged("PlaybackWindowRectangleWidth")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets the playback window rectangle's horizontal offset.
+        ''' </summary>
+        <DisplayName("Playback window horizontal offset")>
+        <Description("The offset between the left border of the display and the video output.")>
+        Public Property PlaybackWindowRectangleHorizontalOffset As UShort?
+            Get
+                If Not _playbackWindowRectangleHorizontalOffset.HasValue Then
+                    _playbackWindowRectangleHorizontalOffset = 0
+                End If
+                Return _playbackWindowRectangleHorizontalOffset
+            End Get
+            Set(value As UShort?)
+                If value.HasValue Then
+                    Dim command As SetPlaybackWindowZoomCommand
+
+                    If value >= OnScreenDisplayWidth Then
+                        command = New SetPlaybackWindowZoomCommand(Me, OnScreenDisplayWidth, PlaybackWindowRectangleVerticalOffset, 0, PlaybackWindowRectangleHeight)
+                    ElseIf value + PlaybackWindowRectangleWidth > OnScreenDisplayWidth Then
+                        command = New SetPlaybackWindowZoomCommand(Me, value, PlaybackWindowRectangleVerticalOffset, (OnScreenDisplayWidth - value), PlaybackWindowRectangleHeight)
+                    Else
+                        command = New SetPlaybackWindowZoomCommand(Me, value, PlaybackWindowRectangleVerticalOffset, PlaybackWindowRectangleWidth, PlaybackWindowRectangleHeight)
+                    End If
+
+                    ProcessCommand(command)
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Sets the playback window rectangle's horizontal offset.
+        ''' </summary>
+        Private WriteOnly Property PlaybackWindowRectangleHorizontalOffsetUpdate As UShort?
+            Set(value As UShort?)
+                If Not Nullable.Equals(PlaybackWindowRectangleHorizontalOffset, value) Then
+                    _playbackWindowRectangleHorizontalOffset = value
+                    RaisePropertyChanged("PlaybackWindowRectangleHorizontalOffset")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets or sets the playback window rectangle's vertical offset.
+        ''' </summary>
+        <DisplayName("Playback window vertical offset")>
+        <Description("The offset between the top border of the display and the video output.")>
+        Public Property PlaybackWindowRectangleVerticalOffset As UShort?
+            Get
+                If Not _playbackWindowRectangleVerticalOffset.HasValue Then
+                    _playbackWindowRectangleVerticalOffset = 0
+                End If
+                Return _playbackWindowRectangleVerticalOffset
+            End Get
+            Set(value As UShort?)
+                If value.HasValue Then
+                    Dim command As SetPlaybackWindowZoomCommand
+
+                    If value >= OnScreenDisplayHeight Then
+                        command = New SetPlaybackWindowZoomCommand(Me, PlaybackWindowRectangleHorizontalOffset, OnScreenDisplayHeight, PlaybackWindowRectangleWidth, 0)
+                    ElseIf value + PlaybackWindowRectangleHeight > OnScreenDisplayHeight Then
+                        command = New SetPlaybackWindowZoomCommand(Me, PlaybackWindowRectangleHorizontalOffset, value, PlaybackWindowRectangleWidth, (OnScreenDisplayHeight - value))
+                    Else
+                        command = New SetPlaybackWindowZoomCommand(Me, PlaybackWindowRectangleHorizontalOffset, value, PlaybackWindowRectangleWidth, PlaybackWindowRectangleHeight)
+                    End If
+
+                    ProcessCommand(command)
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Sets the playback window rectangle's vertical offset..
+        ''' </summary>
+        Private WriteOnly Property PlaybackWindowRectangleVerticalOffsetUpdate As UShort?
+            Set(value As UShort?)
+                If Not Nullable.Equals(PlaybackWindowRectangleVerticalOffset, value) Then
+                    _playbackWindowRectangleVerticalOffset = value
+                    RaisePropertyChanged("PlaybackWindowRectangleVerticalOffset")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets or sets the playback volume
+        ''' </summary>
+        ''' <value>A positive integer value between 0 and 100.</value>
+        ''' <remarks>A maximum volume of 150 can be set using the remote control by holding 'volume up' for longer than usual.</remarks>
+        <DisplayName("Playback volume")>
+        <Description("The playback volume percentage.")>
+        Public Property PlaybackVolume As UShort?
+            Get
+                Return _playbackVolume
+            End Get
+            Set(value As UShort?)
+                If Not value.HasValue Then
+                    value = 0
+                ElseIf value > 100 Then
+                    value = 100
+                End If
+
+                Dim command As New SetPlaybackStateCommand(Me)
+                command.PlaybackVolume = value
+
+                ProcessCommand(command)
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Sets the playback volume.
+        ''' </summary>
+        Private WriteOnly Property PlaybackVolumeUpdate As UShort?
+            Set(value As UShort?)
+                If Not Nullable.Equals(PlaybackVolume, value) Then
+                    _playbackVolume = value
+                    RaisePropertyChanged("PlaybackVolume")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets or sets the video zoom.
+        ''' </summary>
+        <DisplayName("Video zoom")>
+        <Description("The video output's zoom mode. Accepted values are ""normal"", ""enlarge"", ""make_wider"", ""fill_screen"", ""full_fill_screen"", ""make_taller"" or ""cut_edges"".")>
+        Public Property VideoZoom As String
+            Get
+                Return _videoZoom
+            End Get
+            Set(value As String)
+                Dim command As New SetPlaybackStateCommand(Me)
+                command.VideoZoom = value
+                ProcessCommand(command)
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Sets the video zoom
+        ''' </summary>
+        Private WriteOnly Property VideoZoomUpdate As String
+            Set(value As String)
+                If Not VideoZoom = value Then
+                    _videoZoom = value
+                    RaisePropertyChanged("VideoZoom")
+                End If
+            End Set
+        End Property
+
+#End Region 'Properties v2
+
+#Region "Properties v3"
+
+        Private _playbackState As String
+        Private _previousPlaybackState As String
+        Private _lastPlaybackEvent As String
+        Private _playbackUrl As String
+        Private _playbackVideoWidth As UShort?
+        Private _playbackVideoHeight As UShort?
+        Private _playbackClipRectangleHorizontalOffset As UShort?
+        Private _playbackClipRectangleVerticalOffset As UShort?
+        Private _playbackClipRectangleWidth As UShort?
+        Private _playbackClipRectangleHeight As UShort?
+        Private _videoOnTop As Boolean?
+        Private _subtitlesTrack As UShort?
+
+        ''' <summary>
+        ''' Gets the current playback state.
+        ''' </summary>
+        <DisplayName("Playback state")>
+        <Description("The current playback state.")>
+        Public ReadOnly Property PlaybackState As String
+            Get
+                Return _playbackState
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Sets the current playback state.
+        ''' </summary>
+        Private WriteOnly Property PlaybackStateUpdate As String
+            Set(value As String)
+                If value <> _playbackState Then
+                    _playbackState = value
+                    RaisePropertyChanged("PlaybackState")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets the previous playback state.
+        ''' </summary>
+        <DisplayName("Previous playback state")>
+        <Description("The previous playback state.")>
+        Public ReadOnly Property PreviousPlaybackState As String
+            Get
+                Return _previousPlaybackState
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Sets the previous playback state.
+        ''' </summary>
+        Private WriteOnly Property PreviousPlaybackStateUpdate As String
+            Set(value As String)
+                If value <> _previousPlaybackState Then
+                    _previousPlaybackState = value
+                    RaisePropertyChanged("PreviousPlaybackState")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets the last playback event.
+        ''' </summary>
+        <DisplayName("Last playback event")>
+        <Description("The last playback event.")>
+        Public ReadOnly Property LastPlaybackEvent As String
+            Get
+                Return _lastPlaybackEvent
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Sets the last playback event.
+        ''' </summary>
+        Private WriteOnly Property LastPlaybackEventUpdate As String
+            Set(value As String)
+                If value <> _lastPlaybackEvent Then
+                    _lastPlaybackEvent = value
+                    RaisePropertyChanged("LastPlaybackEvent")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets the media URL for the current playback.
+        ''' </summary>
+        <DisplayName("Playback URL")>
+        <Description("The media URL that is currently playing.")>
+        Public ReadOnly Property PlaybackUrl As String
+            Get
+                Return _playbackUrl
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Sets the media URL for the current playback.
+        ''' </summary>
+        Private WriteOnly Property PlaybackUrlUpdate As String
+            Set(value As String)
+                If value <> _playbackUrl Then
+                    _playbackUrl = value
+                    RaisePropertyChanged("PlaybackUrl")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets the video width of the current playback.
+        ''' </summary>
+        <DisplayName("Video width")>
+        <Description("The video width of the file that is currently playing.")>
+        Public ReadOnly Property PlaybackVideoWidth As UShort?
+            Get
+                Return _playbackVideoWidth
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Sets the video width of the current playback.
+        ''' </summary>
+        Private WriteOnly Property PlaybackVideoWidthUpdate As UShort?
+            Set(value As UShort?)
+                If Not Nullable.Equals(value, _playbackVideoWidth) Then
+                    _playbackVideoWidth = value
+                    RaisePropertyChanged("PlaybackVideoWidth")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets the video height of the current playback.
+        ''' </summary>
+        <DisplayName("Video height")>
+        <Description("The video height of the file that is currently playing.")>
+        Public ReadOnly Property PlaybackVideoHeight As UShort?
+            Get
+                Return _playbackVideoHeight
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Sets the video height of the current playback.
+        ''' </summary>
+        Private WriteOnly Property PlaybackVideoHeightUpdate As UShort?
+            Set(value As UShort?)
+                If Not Nullable.Equals(value, _playbackVideoHeight) Then
+                    _playbackVideoHeight = value
+                    RaisePropertyChanged("PlaybackVideoHeight")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets or sets the playback clip rectangle's horizontal offset.
+        ''' </summary>
+        <DisplayName("Playback clip horizontal offset")>
+        <Description("The playback clip rectangle's horizontal offset.")>
+        Public Property PlaybackClipRectangleHorizontalOffset As UShort?
+            Get
+                Return _playbackClipRectangleHorizontalOffset
+            End Get
+            Set(value As UShort?)
+                If value.HasValue Then
+                    Dim command As SetPlaybackClipZoomCommand
+
+                    If value >= OnScreenDisplayWidth Then
+                        command = New SetPlaybackClipZoomCommand(Me, OnScreenDisplayWidth, PlaybackClipRectangleVerticalOffset, 0, PlaybackClipRectangleHeight)
+                    ElseIf value + PlaybackClipRectangleWidth > OnScreenDisplayWidth Then
+                        command = New SetPlaybackClipZoomCommand(Me, value, PlaybackClipRectangleVerticalOffset, (OnScreenDisplayWidth - value), PlaybackClipRectangleHeight)
+                    Else
+                        command = New SetPlaybackClipZoomCommand(Me, value, PlaybackClipRectangleVerticalOffset, PlaybackClipRectangleWidth, PlaybackClipRectangleHeight)
+                    End If
+
+                    ProcessCommand(command)
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Sets the playback clip rectangle's horizontal offset.
+        ''' </summary>
+        Private WriteOnly Property PlaybackClipRectangleHorizontalOffsetUpdate As UShort?
+            Set(value As UShort?)
+                If Not Nullable.Equals(value, _playbackClipRectangleHorizontalOffset) Then
+                    _playbackClipRectangleHorizontalOffset = value
+                    RaisePropertyChanged("PlaybackClipRectangleHorizontalOffset")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets or sets the playback clip rectangle's vertical offset.
+        ''' </summary>
+        <DisplayName("Playback clip vertical offset")>
+        <Description("The playback clip rectangle's vertical offset.")>
+        Public Property PlaybackClipRectangleVerticalOffset As UShort?
+            Get
+                Return _playbackClipRectangleVerticalOffset
+            End Get
+            Set(value As UShort?)
+                If value.HasValue Then
+                    If value.HasValue Then
+                        Dim command As SetPlaybackClipZoomCommand
+
+                        If value >= OnScreenDisplayHeight Then
+                            command = New SetPlaybackClipZoomCommand(Me, PlaybackClipRectangleHorizontalOffset, OnScreenDisplayHeight, PlaybackClipRectangleWidth, 0)
+                        ElseIf value + PlaybackClipRectangleHeight > OnScreenDisplayHeight Then
+                            command = New SetPlaybackClipZoomCommand(Me, PlaybackClipRectangleHorizontalOffset, value, PlaybackClipRectangleWidth, (OnScreenDisplayHeight - value))
+                        Else
+                            command = New SetPlaybackClipZoomCommand(Me, PlaybackClipRectangleHorizontalOffset, value, PlaybackClipRectangleWidth, PlaybackClipRectangleHeight)
+                        End If
+
+                        ProcessCommand(command)
+                    End If
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Sets the playback clip rectangle's horizontal offset.
+        ''' </summary>
+        Private WriteOnly Property PlaybackClipRectangleVerticalOffsetUpdate As UShort?
+            Set(value As UShort?)
+                If Not Nullable.Equals(value, _playbackClipRectangleVerticalOffset) Then
+                    _playbackClipRectangleVerticalOffset = value
+                    RaisePropertyChanged("PlaybackClipRectangleVerticalOffset")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets or sets the playback clip rectangle's width.
+        ''' </summary>
+        <DisplayName("Playback clip width")>
+        <Description("The playback clip rectangle's width.")>
+        Public Property PlaybackClipRectangleWidth As UShort?
+            Get
+                Return _playbackClipRectangleWidth
+            End Get
+            Set(value As UShort?)
+                If value.HasValue Then
+                    Dim command As SetPlaybackClipZoomCommand
+
+                    If value >= OnScreenDisplayWidth Then
+                        command = New SetPlaybackClipZoomCommand(Me, 0, PlaybackClipRectangleVerticalOffset, OnScreenDisplayWidth, PlaybackClipRectangleHeight)
+                    ElseIf value + PlaybackClipRectangleHorizontalOffset > OnScreenDisplayWidth Then
+                        command = New SetPlaybackClipZoomCommand(Me, (OnScreenDisplayWidth - value), PlaybackClipRectangleVerticalOffset, value, PlaybackClipRectangleHeight)
+                    Else
+                        command = New SetPlaybackClipZoomCommand(Me, PlaybackClipRectangleHorizontalOffset, PlaybackClipRectangleVerticalOffset, value, PlaybackClipRectangleHeight)
+                    End If
+
+                    ProcessCommand(command)
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Sets the playback clip rectangle's width.
+        ''' </summary>
+        Private WriteOnly Property PlaybackClipRectangleWidthUpdate As UShort?
+            Set(value As UShort?)
+                If Not Nullable.Equals(value, _playbackClipRectangleWidth) Then
+                    _playbackClipRectangleWidth = value
+                    RaisePropertyChanged("PlaybackClipRectangleWidth")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets or sets the playback clip rectangle's height.
+        ''' </summary>
+        <DisplayName("Playback clip height")>
+        <Description("The playback clip rectangle's height.")>
+        Public Property PlaybackClipRectangleHeight As UShort?
+            Get
+                Return _playbackClipRectangleHeight
+            End Get
+            Set(value As UShort?)
+                If value.HasValue Then
+                    Dim command As SetPlaybackClipZoomCommand
+
+                    If value >= OnScreenDisplayHeight Then
+                        command = New SetPlaybackClipZoomCommand(Me, PlaybackClipRectangleHorizontalOffset, 0, PlaybackClipRectangleWidth, OnScreenDisplayHeight)
+                    ElseIf value + PlaybackClipRectangleVerticalOffset > OnScreenDisplayHeight Then
+                        command = New SetPlaybackClipZoomCommand(Me, PlaybackClipRectangleHorizontalOffset, (OnScreenDisplayHeight - value), PlaybackClipRectangleWidth, value)
+                    Else
+                        command = New SetPlaybackClipZoomCommand(Me, PlaybackClipRectangleHorizontalOffset, PlaybackClipRectangleVerticalOffset, PlaybackClipRectangleWidth, value)
+                    End If
+
+                    ProcessCommand(command)
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Sets the playback clip rectangle's width.
+        ''' </summary>
+        Private WriteOnly Property PlaybackClipRectangleHeightUpdate As UShort?
+            Set(value As UShort?)
+                If Not Nullable.Equals(value, _playbackClipRectangleHeight) Then
+                    _playbackClipRectangleHeight = value
+                    RaisePropertyChanged("PlaybackClipRectangleHeight")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets or sets whether to show video on top.
+        ''' </summary>
+        Public Property VideoOnTop As Boolean?
+            Get
+                Return _videoOnTop
+            End Get
+            Set(value As Boolean?)
+                If Not value.HasValue Then
+                    value = False
+                End If
+
+                Dim command As New SetPlaybackStateCommand(Me)
+                command.VideoOnTop = value
+                ProcessCommand(command)
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Sets whether to show video on top
+        ''' </summary>
+        Private WriteOnly Property VideoOnTopUpdate As Boolean?
+            Set(value As Boolean?)
+                If Not Nullable.Equals(value, _videoOnTop) Then
+                    _videoOnTop = value
+                    RaisePropertyChanged("VideoOnTop")
+                End If
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets or sets the active subtitle track.
+        ''' </summary>
+        Public Property SubtitlesTrack As UShort?
+            Get
+                Return _subtitlesTrack
+            End Get
+            Set(value As UShort?)
+                If Not value.HasValue Then
+                    value = 0
+                End If
+                Dim command As New SetPlaybackStateCommand(Me)
+                command.SubtitleTrack = value
+                ProcessCommand(command)
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Sets the active subtitle track.
+        ''' </summary>
+        Private WriteOnly Property SubtitlesTrackUpdate As UShort?
+            Set(value As UShort?)
+                If Not Nullable.Equals(value, _subtitlesTrack) Then
+                    _subtitlesTrack = value
+                    RaisePropertyChanged("SubtitlesTrack")
+                End If
+            End Set
+        End Property
+
+#End Region ' Properties v3
 
 #Region "Methods v1"
 
@@ -1078,7 +1860,7 @@ Namespace DuneUtilities
         ''' Similarly, a 'bluray_navigation' command is sent when the device is in blu-ray playback mode.
         ''' In all other cases, a remote control button is emulated ('ir_code' command).
         ''' </remarks>
-        Public Function NavigateMenu(ByVal action As String) As CommandResult
+        Public Function NavigateMenu(action As String) As CommandResult
             Dim command As New NavigationCommand(Me, action)
             Return ProcessCommand(command)
         End Function
@@ -1093,527 +1875,29 @@ Namespace DuneUtilities
 
 #End Region ' Methods v1
 
-#Region "Properties v2"
+#Region "Methods v3"
 
-        ''' <summary>
-        ''' Gets or sets the current language track number.
-        ''' </summary>
-        ''' <exception cref="CommandException">: Command execution failed.</exception>
-        ''' <remarks>Setting this property does nothing if the protocol version is 1.</remarks>
-        <DisplayName("Audio track")>
-        <Description("The language track number that is currently playing. Not to be confused with the track number in a playlist.")>
-        Public Property AudioTrack As Byte? Implements IProtocolVersion2.AudioTrack
-            Get
-                Return _audioTrack
-            End Get
-            Set(value As Byte?)
-                If value.HasValue AndAlso ProtocolVersion >= 2 Then
-                    Dim command As New SetPlaybackStateCommand(Me)
-                    command.AudioTrack = value
-                    command.Timeout = Timeout
+        Public Function GetText() As CommandResult
+            Throw New NotImplementedException
+        End Function
 
+        Public Function SetText(text As String) As CommandResult
+            Throw New NotImplementedException
+        End Function
 
-                    Dim processTask As Task = ProcessCommandAsync(command)
+#End Region ' Methods v3
 
-                    Try
-                        processTask.Wait()
-                    Catch ex As AggregateException
-                        Throw ex.InnerException
-                    End Try
-                End If
-            End Set
-        End Property
-
-        ''' <summary>
-        ''' Sets the current language track number
-        ''' </summary>
-        Private WriteOnly Property AudioTrackUpdate As Byte? Implements IProtocolVersion2.AudioTrackUpdate
-            Set(value As Byte?)
-                If Not Nullable.Equals(AudioTrack, value) Then
-                    _audioTrack = value
-                    RaisePropertyChanged("AudioTrack")
-                End If
-            End Set
-        End Property
-
-        ''' <summary>
-        ''' Gets whether the video output is fullscreen.
-        ''' </summary>
-        <DisplayName("Fullscreen")>
-        <Description("Displays whether the video is in full screen or if custom video output settings are applied. Note that custom settings can mimic fullscreen.")>
-        Public Property VideoFullscreen As Boolean? Implements IProtocolVersion2.VideoFullscreen
-            Get
-                Return _videoFullscreen
-            End Get
-            Set(value As Boolean?)
-                If value.HasValue AndAlso ProtocolVersion >= 2 Then
-                    Dim command As New SetVideoOutputCommand(Me, value.Value)
-                    command.Timeout = Timeout
-
-
-                    Dim processTask As Task = ProcessCommandAsync(command)
-
-                    Try
-                        processTask.Wait()
-                    Catch ex As AggregateException
-                        Throw ex.InnerException
-                    End Try
-                End If
-            End Set
-        End Property
-
-        ''' <summary>
-        ''' Sets whether the video output is fullscreen.
-        ''' </summary>
-        Private WriteOnly Property VideoFullscreenUpdate As Boolean? Implements IProtocolVersion2.VideoFullscreenUpdate
-            Set(value As Boolean?)
-                If Not Nullable.Equals(VideoFullscreen, value) Then
-                    _videoFullscreen = value
-                    RaisePropertyChanged("VideoFullscreen")
-                End If
-            End Set
-        End Property
-
-        ''' <summary>
-        ''' Gets the list of available audio tracks for the current playback.
-        ''' </summary>
-        ''' <returns>An instance of a <see cref="SortedDictionary(Of Byte, CultureInfo)" /> object that represents the list of available audio tracks.</returns>
-        <DisplayName("Audio tracks")>
-        <Description("The collection of language tracks in the current playback. Not to be confused with the amount of tracks in a playlist.")>
-        Public ReadOnly Property AudioTracks As SortedDictionary(Of Byte, CultureInfo) Implements IProtocolVersion2.AudioTracks
-            Get
-                Return _audioTracks
-            End Get
-        End Property
-
-        ''' <summary>
-        ''' Sets the list of available audio tracks for the current playback.
-        ''' </summary>
-        Private WriteOnly Property AudioTracksUpdate As SortedDictionary(Of Byte, CultureInfo) Implements IProtocolVersion2.AudioTracksUpdate
-            Set(value As SortedDictionary(Of Byte, CultureInfo))
-                If AudioTracks Is Nothing OrElse Not Enumerable.SequenceEqual(AudioTracks, value) Then
-                    _audioTracks = value
-                    RaisePropertyChanged("AudioTracks")
-                End If
-            End Set
-        End Property
-
-        ''' <summary>
-        ''' Gets or sets the mute status for the current playback.
-        ''' </summary>
-        ''' <remarks>Setting this property does nothing if the protocol version is 1.</remarks>
-        <DisplayName("Playback mute")>
-        <Description("Enables or disables audio output.")>
-        Public Property PlaybackMute As Boolean? Implements IProtocolVersion2.PlaybackMute
-            Get
-                Return _playbackMute
-            End Get
-            Set(value As Boolean?)
-                If value.HasValue AndAlso ProtocolVersion >= 2 Then
-                    Dim command As New SetPlaybackStateCommand(Me)
-                    command.Mute = value
-                    command.Timeout = Timeout
-
-
-                    Dim processTask As Task = ProcessCommandAsync(command)
-
-                    Try
-                        processTask.Wait()
-                    Catch ex As AggregateException
-                        Throw ex.InnerException
-                    End Try
-                End If
-            End Set
-        End Property
-
-        ''' <summary>
-        ''' Sets the mute status for the current playback.
-        ''' </summary>
-        Private WriteOnly Property PlaybackMuteUpdate As Boolean? Implements IProtocolVersion2.PlaybackMuteUpdate
-            Set(value As Boolean?)
-                If Not Nullable.Equals(PlaybackMute, value) Then
-                    _playbackMute = value
-                    RaisePropertyChanged("PlaybackMute")
-                End If
-            End Set
-        End Property
-
-        ''' <summary>
-        ''' Gets or sets whether the video output is enabled.
-        ''' </summary>
-        ''' <remarks>Setting this property does nothing if the protocol version is 1.</remarks>
-        <DisplayName("Video enabled")>
-        <Description("Disabling the video does not hide the on-screen display.")>
-        Public Property VideoEnabled As Boolean? Implements IProtocolVersion2.VideoEnabled
-            Get
-                Return _videoEnabled
-            End Get
-            Set(value As Boolean?)
-                If value.HasValue AndAlso ProtocolVersion >= 2 Then
-                    Dim command As New SetPlaybackStateCommand(Me)
-                    command.VideoEnabled = value
-                    command.Timeout = Timeout
-
-
-                    Dim processTask As Task = ProcessCommandAsync(command)
-
-                    Try
-                        processTask.Wait()
-                    Catch ex As AggregateException
-                        Throw ex.InnerException
-                    End Try
-                End If
-            End Set
-        End Property
-
-        ''' <summary>
-        ''' Sets whether the video output is enabled.
-        ''' </summary>
-        Private WriteOnly Property VideoEnabledUpdate As Boolean? Implements IProtocolVersion2.VideoEnabledUpdate
-            Set(value As Boolean?)
-                If Not Nullable.Equals(VideoEnabled, value) Then
-                    _videoEnabled = value
-                    RaisePropertyChanged("VideoEnabled")
-                End If
-            End Set
-        End Property
-
-        ''' <summary>
-        ''' Gets the video display height.
-        ''' </summary>
-        <DisplayName("Video height")>
-        <Description("The video output's height in pixels.")>
-        Public Property VideoHeight As UShort? Implements IProtocolVersion2.VideoHeight
-            Get
-                If Not _videoHeight.HasValue Then
-                    _videoHeight = VideoTotalDisplayHeight
-                End If
-                Return _videoHeight
-            End Get
-            Set(value As UShort?)
-                If value.HasValue And ProtocolVersion >= 2 Then
-                    Dim command As SetVideoOutputCommand
-
-                    If value >= VideoTotalDisplayHeight Then
-                        command = New SetVideoOutputCommand(Me, Nothing, VideoX, 0, VideoWidth, VideoTotalDisplayHeight)
-                    ElseIf value + VideoY > VideoTotalDisplayHeight Then
-                        command = New SetVideoOutputCommand(Me, Nothing, VideoX, (VideoTotalDisplayHeight - value), VideoWidth, value)
-                    Else
-                        command = New SetVideoOutputCommand(Me, Nothing, VideoX, VideoY, VideoWidth, value)
-                    End If
-
-                    command.Timeout = Timeout
-
-
-                    Dim processTask As Task = ProcessCommandAsync(command)
-
-                    Try
-                        processTask.Wait()
-                    Catch ex As AggregateException
-                        Throw ex.InnerException
-                    End Try
-                End If
-            End Set
-        End Property
-
-        ''' <summary>
-        ''' Sets the video display height.
-        ''' </summary>
-        Private WriteOnly Property VideoHeightUpdate As UShort? Implements IProtocolVersion2.VideoHeightUpdate
-            Set(value As UShort?)
-                If Not Nullable.Equals(VideoHeight, value) Then
-                    _videoHeight = value
-                    RaisePropertyChanged("VideoHeight")
-                End If
-            End Set
-        End Property
-
-        ''' <summary>
-        ''' Gets the total video display height.
-        ''' </summary>
-        <DisplayName("Display height")>
-        <Description("The total amount of pixels in the display height.")>
-        Public ReadOnly Property VideoTotalDisplayHeight As UShort? Implements IProtocolVersion2.VideoTotalDisplayHeight
-            Get
-                Return _videoTotalDisplayHeight
-            End Get
-        End Property
-
-        ''' <summary>
-        ''' Sets the total video display height.
-        ''' </summary>
-        Private WriteOnly Property VideoTotalDisplayHeightUpdate As UShort? Implements IProtocolVersion2.VideoTotalDisplayHeightUpdate
-            Set(value As UShort?)
-                If Not Nullable.Equals(VideoTotalDisplayHeight, value) Then
-                    _videoTotalDisplayHeight = value
-                    RaisePropertyChanged("VideoTotalDisplayHeight")
-                End If
-            End Set
-        End Property
-
-        ''' <summary>
-        ''' Gets the total video display width.
-        ''' </summary>
-        <DisplayName("Display width")>
-        <Description("The total amount of pixels in the display width.")>
-        Public ReadOnly Property VideoTotalDisplayWidth As UShort? Implements IProtocolVersion2.VideoTotalDisplayWidth
-            Get
-                Return _videoTotalDisplayWidth
-            End Get
-        End Property
-
-        ''' <summary>
-        ''' Sets the total video display width.
-        ''' </summary>
-        Private WriteOnly Property VideoTotalDisplayWidthUpdate As UShort? Implements IProtocolVersion2.VideoTotalDisplayWidthUpdate
-            Set(value As UShort?)
-                If Not Nullable.Equals(VideoTotalDisplayWidth, value) Then
-                    _videoTotalDisplayWidth = value
-                    RaisePropertyChanged("VideoTotalDisplayWidth")
-                End If
-            End Set
-        End Property
-
-        ''' <summary>
-        ''' Gets the video display width.
-        ''' </summary>
-        <DisplayName("Video width")>
-        <Description("The video output's width in pixels.")>
-        Public Property VideoWidth As UShort? Implements IProtocolVersion2.VideoWidth
-            Get
-                If Not _videoWidth.HasValue Then
-                    _videoWidth = VideoTotalDisplayWidth
-                End If
-                Return _videoWidth
-            End Get
-            Set(value As UShort?)
-                If value.HasValue AndAlso ProtocolVersion >= 2 Then
-
-                    Dim command As SetVideoOutputCommand
-
-                    If value >= VideoTotalDisplayWidth Then
-                        command = New SetVideoOutputCommand(Me, Nothing, 0, VideoY, VideoTotalDisplayWidth, VideoHeight)
-                    ElseIf value + VideoX > VideoTotalDisplayWidth Then
-                        command = New SetVideoOutputCommand(Me, Nothing, (VideoTotalDisplayWidth - value), VideoY, value, VideoHeight)
-                    Else
-                        command = New SetVideoOutputCommand(Me, Nothing, VideoX, VideoY, value, VideoHeight)
-                    End If
-
-                    command.Timeout = Timeout
-
-                    Dim processTask As Task = ProcessCommandAsync(command)
-
-                    Try
-                        processTask.Wait()
-                    Catch ex As AggregateException
-                        Throw ex.InnerException
-                    End Try
-                End If
-            End Set
-        End Property
-
-        ''' <summary>
-        ''' Sets the video display width.
-        ''' </summary>
-        Private WriteOnly Property VideoWidthUpdate As UShort? Implements IProtocolVersion2.VideoWidthUpdate
-            Set(value As UShort?)
-                If Not Nullable.Equals(VideoWidth, value) Then
-                    _videoWidth = value
-                    RaisePropertyChanged("VideoWidth")
-                End If
-            End Set
-        End Property
-
-        ''' <summary>
-        ''' Gets the video's horizontal position.
-        ''' </summary>
-        <DisplayName("Video horizontal position")>
-        <Description("The amount of pixels between the left border of the display and the video output.")>
-        Public Property VideoX As UShort? Implements IProtocolVersion2.VideoX
-            Get
-                If Not _videoX.HasValue Then
-                    _videoX = 0
-                End If
-                Return _videoX
-            End Get
-            Set(value As UShort?)
-                If value.HasValue AndAlso ProtocolVersion >= 2 Then
-                    Dim command As SetVideoOutputCommand
-
-                    If value >= VideoTotalDisplayWidth Then
-                        command = New SetVideoOutputCommand(Me, Nothing, VideoTotalDisplayWidth, VideoY, 0, VideoHeight)
-                    ElseIf value + VideoWidth > VideoTotalDisplayWidth Then
-                        command = New SetVideoOutputCommand(Me, Nothing, value, VideoY, (VideoTotalDisplayWidth - value), VideoHeight)
-                    Else
-                        command = New SetVideoOutputCommand(Me, Nothing, value, VideoY, VideoWidth, VideoHeight)
-                    End If
-
-                    command.Timeout = Timeout
-
-                    Dim processTask As Task = ProcessCommandAsync(command)
-
-                    Try
-                        processTask.Wait()
-                    Catch ex As AggregateException
-                        Throw ex.InnerException
-                    End Try
-                End If
-            End Set
-        End Property
-
-        ''' <summary>
-        ''' Sets the video's horizontal position.
-        ''' </summary>
-        Private WriteOnly Property VideoXUpdate As UShort? Implements IProtocolVersion2.VideoXUpdate
-            Set(value As UShort?)
-                If Not Nullable.Equals(VideoX, value) Then
-                    _videoX = value
-                    RaisePropertyChanged("VideoX")
-                End If
-            End Set
-        End Property
-
-        ''' <summary>
-        ''' Gets the video's vertical position.
-        ''' </summary>
-        <DisplayName("Video vertical position")>
-        <Description("The amount of pixels between the top border of the display and the video output.")>
-        Public Property VideoY As UShort? Implements IProtocolVersion2.VideoY
-            Get
-                If Not _videoY.HasValue Then
-                    _videoY = 0
-                End If
-                Return _videoY
-            End Get
-            Set(value As UShort?)
-                If value.HasValue AndAlso ProtocolVersion >= 2 Then
-                    Dim command As SetVideoOutputCommand
-
-                    If value >= VideoTotalDisplayHeight Then
-                        command = New SetVideoOutputCommand(Me, Nothing, VideoX, VideoTotalDisplayHeight, VideoWidth, 0)
-                    ElseIf value + VideoHeight > VideoTotalDisplayHeight Then
-                        command = New SetVideoOutputCommand(Me, Nothing, VideoX, value, VideoWidth, (VideoTotalDisplayHeight - value))
-                    Else
-                        command = New SetVideoOutputCommand(Me, Nothing, VideoX, value, VideoWidth, VideoHeight)
-                    End If
-
-                    command.Timeout = Timeout
-
-                    Dim processTask As Task = ProcessCommandAsync(command)
-
-                    Try
-                        processTask.Wait()
-                    Catch ex As AggregateException
-                        Throw ex.InnerException
-                    End Try
-                End If
-            End Set
-        End Property
-
-        ''' <summary>
-        ''' Sets the video's vertical position.
-        ''' </summary>
-        Private WriteOnly Property VideoYUpdate As UShort? Implements IProtocolVersion2.VideoYUpdate
-            Set(value As UShort?)
-                If Not Nullable.Equals(VideoY, value) Then
-                    _videoY = value
-                    RaisePropertyChanged("VideoY")
-                End If
-            End Set
-        End Property
-
-        ''' <summary>
-        ''' Gets or sets the playback volume
-        ''' </summary>
-        ''' <value>A positive value between 0 and 100.</value>
-        ''' <remarks>Setting this property does nothing if the protocol version is 1.
-        ''' A maximum volume of 150 can be set using the remote control by holding 'volume up' for longer than usual.</remarks>
-        <DisplayName("Playback volume")>
-        <Description("The playback volume percentage.")>
-        Public Property PlaybackVolume As Byte? Implements IProtocolVersion2.PlaybackVolume
-            Get
-                Return _playbackVolume
-            End Get
-            Set(value As Byte?)
-                ' Let's do a little validation first.
-                If Not value.HasValue Then
-                    value = 0
-                ElseIf value > 100 Then
-                    value = 100
-                End If
-                ' Now we're ready for the real work.
-                If ProtocolVersion >= 2 Then
-                    Dim command As New SetPlaybackStateCommand(Me)
-                    command.Volume = value
-                    command.Timeout = Timeout
-
-                    Dim processTask As Task = ProcessCommandAsync(command)
-                    Try
-                        processTask.Wait()
-                    Catch ex As AggregateException
-                        Throw ex.InnerException
-                    End Try
-
-                End If
-            End Set
-        End Property
-
-        ''' <summary>
-        ''' Sets the playback volume.
-        ''' </summary>
-        Private WriteOnly Property PlaybackVolumeUpdate As Byte? Implements IProtocolVersion2.PlaybackVolumeUpdate
-            Set(value As Byte?)
-                If Not Nullable.Equals(PlaybackVolume, value) Then
-                    _playbackVolume = value
-                    RaisePropertyChanged("PlaybackVolume")
-                End If
-            End Set
-        End Property
-
-        ''' <summary>
-        ''' Gets or sets the video zoom.
-        ''' </summary>
-        <DisplayName("Video zoom")>
-        <Description("The video output's zoom mode. Accepted values are ""normal"", ""enlarge"", ""make_wider"", ""fill_screen"", ""full_fill_screen"", ""make_taller"" or ""cut_edges"".")>
-        Public Property VideoZoom As String Implements IProtocolVersion2.VideoZoom
-            Get
-                Return _videoZoom
-            End Get
-            Set(value As String)
-                Dim fullscreen As Boolean = CBool(IIf(VideoFullscreen.HasValue, VideoFullscreen, False))
-                Dim command As New SetVideoOutputCommand(Me, fullscreen)
-                command.Zoom = value
-                command.Timeout = Timeout
-
-                Dim processTask As Task = ProcessCommandAsync(command)
-
-                Try
-                    processTask.Wait()
-                Catch ex As AggregateException
-                    Throw ex.InnerException
-                End Try
-            End Set
-        End Property
-
-        ''' <summary>
-        ''' Sets the video zoom
-        ''' </summary>
-        Private WriteOnly Property VideoZoomUpdate As String Implements IProtocolVersion2.VideoZoomUpdate
-            Set(value As String)
-                If Not VideoZoom = value Then
-                    _videoZoom = value
-                    RaisePropertyChanged("VideoZoom")
-                End If
-            End Set
-        End Property
-
-#End Region 'Properties v2
+#Region "Interface implementations"
 
         ''' <summary>
         ''' INotifyPropertyChanged implementation.
         ''' </summary>
         Public Event PropertyChanged(sender As Object, e As System.ComponentModel.PropertyChangedEventArgs) Implements System.ComponentModel.INotifyPropertyChanged.PropertyChanged
 
+#End Region
+
+
+        
     End Class
 
 End Namespace

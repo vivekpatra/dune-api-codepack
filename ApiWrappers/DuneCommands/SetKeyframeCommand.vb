@@ -16,7 +16,7 @@ Namespace DuneUtilities.ApiWrappers
 
         ''' <param name="dune">The target device.</param>
         ''' <param name="keyframe">The action that needs to be performed.</param>
-        Public Sub New(ByVal dune As Dune, ByVal keyframe As Constants.SetKeyframeSettings)
+        Public Sub New(dune As Dune, keyframe As Constants.SetKeyframeSettings)
             MyBase.New(dune)
             _keyframe = keyframe
         End Sub

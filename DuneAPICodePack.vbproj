@@ -68,6 +68,8 @@
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApiWrappers\DuneCommands\LaunchWebsiteCommand.vb" />
+    <Compile Include="ApiWrappers\LanguageTrack.vb" />
     <Compile Include="ApiWrappers\DuneCommands\Command.vb" />
     <Compile Include="ApiWrappers\DuneCommands\CommandException.vb" />
     <Compile Include="ApiWrappers\DuneCommands\CommandResult.vb" />
@@ -75,9 +77,10 @@
     <Compile Include="ApiWrappers\DuneCommands\GetStatusCommand.vb" />
     <Compile Include="ApiWrappers\DuneCommands\RemoteControlCommand.vb" />
     <Compile Include="ApiWrappers\DuneCommands\SetKeyframeCommand.vb" />
+    <Compile Include="ApiWrappers\DuneCommands\SetPlaybackClipZoomCommand.vb" />
     <Compile Include="ApiWrappers\DuneCommands\SetPlaybackStateCommand.vb" />
     <Compile Include="ApiWrappers\DuneCommands\SetPlayerStateCommand.vb" />
-    <Compile Include="ApiWrappers\DuneCommands\SetVideoOutputCommand.vb" />
+    <Compile Include="ApiWrappers\DuneCommands\SetPlaybackWindowZoomCommand.vb" />
     <Compile Include="ApiWrappers\FirmwareProperties.vb" />
     <Compile Include="ApiWrappers\Folder\Folder.vb" />
     <Compile Include="ApiWrappers\Storage\LocalStorage.vb" />
@@ -91,10 +94,7 @@
     <Compile Include="Extensions\FileSystemInfoExtensions.vb" />
     <Compile Include="Extensions\PhysicalAddressExtensions.vb" />
     <Compile Include="Extensions\StringExtensions.vb" />
-    <Compile Include="Interfaces\IRemoteControl.vb" />
     <Compile Include="Constants.vb" />
-    <Compile Include="Interfaces\IProtocolVersion1.vb" />
-    <Compile Include="Interfaces\IProtocolVersion2.vb" />
     <Compile Include="ApiWrappers\DuneCommands\StartPlaybackCommand.vb" />
     <Compile Include="Networking\NetworkDevice.vb" />
     <Compile Include="RemoteControl.vb" />

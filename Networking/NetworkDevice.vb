@@ -9,7 +9,7 @@ Namespace Networking
         Private _host As IPHostEntry
         Private _networkAdapter As NetworkAdapterInfo
 
-        Public Sub New(ByVal host As IPHostEntry)
+        Public Sub New(host As IPHostEntry)
             _host = host
         End Sub
 

@@ -11,10 +11,10 @@ Namespace DuneUtilities.ApiWrappers
         Private _button As UShort
         Private _code As String
 
-        ''' <param name="dune">The target device.</param>
+        ''' <param name="target">The target device.</param>
         ''' <param name="button">The button to send.</param>
-        Public Sub New(ByRef dune As Dune, ByVal button As UShort)
-            MyBase.New(dune)
+        Public Sub New(target As Dune, button As UShort)
+            MyBase.New(target)
             _button = button
         End Sub
 

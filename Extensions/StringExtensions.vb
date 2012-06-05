@@ -8,7 +8,7 @@ Namespace Extensions
         ''' Indicates whether the instance is null or a System.String.Empty string.
         ''' </summary>
         <Extension()>
-        Public Function IsNullOrEmpty(ByVal text As String) As Boolean
+        Public Function IsNullOrEmpty(text As String) As Boolean
             Return String.IsNullOrEmpty(text)
         End Function
 
@@ -16,7 +16,7 @@ Namespace Extensions
         ''' Indicates whether the instance is not null or not a System.String.Empty string.
         ''' </summary>
         <Extension()>
-        Public Function IsNotNullOrEmpty(ByVal text As String) As Boolean
+        Public Function IsNotNullOrEmpty(text As String) As Boolean
             Return Not String.IsNullOrEmpty(text)
         End Function
 
@@ -24,7 +24,7 @@ Namespace Extensions
         ''' Indicates whether the instance is null, empty or consists only of white-space characters.
         ''' </summary>
         <Extension()>
-        Public Function IsNullOrWhiteSpace(ByVal text As String) As Boolean
+        Public Function IsNullOrWhiteSpace(text As String) As Boolean
             Return String.IsNullOrWhiteSpace(text)
         End Function
 
@@ -32,7 +32,7 @@ Namespace Extensions
         ''' Indicates whether the instance is not null, not empty or does not consist only of white-space characters.
         ''' </summary>
         <Extension()>
-        Public Function IsNotNullOrWhiteSpace(ByVal text As String) As Boolean
+        Public Function IsNotNullOrWhiteSpace(text As String) As Boolean
             Return Not String.IsNullOrWhiteSpace(text)
         End Function
 
@@ -48,7 +48,7 @@ Namespace Extensions
         ''' Returns a substring, starting from the left.
         ''' </summary>
         <Extension()>
-        Public Function Left(ByVal text As String, ByVal length As Integer) As String
+        Public Function Left(text As String, length As Integer) As String
             Return text.Substring(0, length)
         End Function
 
@@ -56,7 +56,7 @@ Namespace Extensions
         ''' Returns a substring, starting from the right.
         ''' </summary>
         <Extension()>
-        Public Function Right(ByVal text As String, ByVal length As Integer) As String
+        Public Function Right(text As String, length As Integer) As String
             Return text.Substring(text.Length - length)
         End Function
 

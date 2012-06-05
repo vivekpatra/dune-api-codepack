@@ -21,7 +21,7 @@ Namespace DuneUtilities.ApiWrappers
         Private _beta As Boolean
         Private _number As Integer
 
-        Private Sub New(ByVal firmware As String)
+        Private Sub New(firmware As String)
             Dim pieces() As String = firmware.Split(Convert.ToChar(32))
             Dim client As New WebClient
 
@@ -141,7 +141,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' </summary>
         ''' <param name="file">The link to the file.</param>
         ''' <returns>The filesize in bytes.</returns>
-        Private Function GetSize(ByVal file As Uri) As Long
+        Private Function GetSize(file As Uri) As Long
             Dim request As WebRequest = DirectCast(HttpWebRequest.Create(file), WebRequest)
             request.Method = "HEAD"
 
@@ -160,7 +160,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' </summary>
         ''' <param name="product">The device's product ID (see <see cref="Constants.ProductIDs"/> for a list of constants that you can use).</param>
         ''' <returns>A list of FirmwareInfo objects.</returns>
-        Public Shared Function GetAvailableFirmwares(ByVal product As String) As List(Of FirmwareProperties)
+        Public Shared Function GetAvailableFirmwares(product As String) As List(Of FirmwareProperties)
             Dim client As New WebClient
             Dim firmwares As New List(Of FirmwareProperties)
 
@@ -185,7 +185,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' </summary>
         ''' <param name="product">The device's product ID (see <see cref="Constants.ProductIDs"/> for a list of constants that you can use).</param>
         ''' <returns>A list of FirmwareInfo objects.</returns>
-        Public Shared Function GetAvailableFirmwaresAsync(ByVal product As String) As Task(Of List(Of FirmwareProperties))
+        Public Shared Function GetAvailableFirmwaresAsync(product As String) As Task(Of List(Of FirmwareProperties))
             Dim client As New WebClient
             Dim firmwares As New List(Of FirmwareProperties)
             Dim request As WebRequest = WebRequest.Create(New Uri(BaseUri + product + ".txt"))

@@ -22,9 +22,9 @@ Public NotInheritable Class NativeMethods
         ''' </summary>
         <DllImport("iphlpapi.dll", SetLastError:=True)>
         Private Shared Function SendARP(
-         ByVal DestIP As UInt32,
-         ByVal SrcIP As UInt32,
-         ByVal pMacAddr() As Byte,
+         DestIP As UInt32,
+         SrcIP As UInt32,
+         pMacAddr() As Byte,
          ByRef PhyAddrLen As Int32) As UInt32
         End Function
 
@@ -42,7 +42,7 @@ Public NotInheritable Class NativeMethods
         ''' Gets the MAC address that belongs to the specified IP address.
         ''' </summary>
         ''' <remarks>This uses a native method and should be replaced when a managed alternative becomes available.</remarks>
-        Public Shared Function GetMacAddress(ByVal address As IPAddress) As PhysicalAddress
+        Public Shared Function GetMacAddress(address As IPAddress) As PhysicalAddress
             Dim IP As UInteger = BitConverter.ToUInt32(address.GetAddressBytes(), 0)
             Dim mac() As Byte = New Byte(5) {}
 
@@ -65,7 +65,7 @@ Public NotInheritable Class NativeMethods
         ''' </summary>
         <DllImport("kernel32.dll", SetLastError:=True)> _
         Private Shared Function GetDiskFreeSpace( _
-        ByVal lpRootPathName As String,
+        lpRootPathName As String,
         ByRef lpSectorsPerCluster As UInt32,
         ByRef lpBytesPerSector As UInt32,
         ByRef lpNumberOfFreeClusters As UInt32,
@@ -76,7 +76,7 @@ Public NotInheritable Class NativeMethods
         ''' Gets disk information about a network share.
         ''' </summary>
         ''' <remarks>This uses a native method and should be replaced when a managed alternative becomes available.</remarks>
-        Public Shared Function GetShareInfo(ByVal uncPath As Uri) As ShareInfo
+        Public Shared Function GetShareInfo(uncPath As Uri) As ShareInfo
             Dim info As ShareInfo
 
             ' Variables to store seperate parameters
@@ -435,7 +435,7 @@ Public NotInheritable Class NativeMethods
                 <MarshalAs(UnmanagedType.ByValTStr, SizeConst:=13)> _
                 Public NetName As String
 
-                Public bShareType As Byte
+                Public bShareType As UShort
                 Public Flags As UShort
 
                 <MarshalAs(UnmanagedType.LPTStr)> _
@@ -460,7 +460,7 @@ Public NotInheritable Class NativeMethods
             Protected Structure SHARE_INFO_1_9x
                 <MarshalAs(UnmanagedType.ByValTStr, SizeConst:=13)> _
                 Public NetName As String
-                Public Padding As Byte
+                Public Padding As UShort
 
                 Public bShareType As UShort
 

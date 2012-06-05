@@ -17,7 +17,7 @@ Namespace Networking
         Private _vendor As NetworkCardVendor
 
 
-        Public Sub New(ByVal address As IPAddress)
+        Public Sub New(address As IPAddress)
             _ipAddress = address
 
             For Each nic In NetworkInterface.GetAllNetworkInterfaces
@@ -72,11 +72,11 @@ Namespace Networking
         ''' <summary>
         ''' Calculates the amount of hops between the client and the server.
         ''' </summary>
-        Public Shared Function GetTraceRoute(ByVal hostNameOrAddress As String) As IEnumerable(Of IPAddress)
+        Public Shared Function GetTraceRoute(hostNameOrAddress As String) As IEnumerable(Of IPAddress)
             Return GetTraceRoute(hostNameOrAddress, 1)
         End Function
 
-        Private Shared Function GetTraceRoute(ByVal hostNameOrAddress As String, ByVal ttl As Integer) As IEnumerable(Of IPAddress)
+        Private Shared Function GetTraceRoute(hostNameOrAddress As String, ttl As Integer) As IEnumerable(Of IPAddress)
             Dim pinger As Ping = New Ping
             Dim pingerOptions As PingOptions = New PingOptions(ttl, True)
             Dim timeout As Integer = 10000
@@ -104,7 +104,7 @@ Namespace Networking
         ''' <summary>
         ''' Gets the outgoing network interface that connects to the specified endpoint.
         ''' </summary>
-        Private Function GetBestInterfaceManaged(ByVal address As IPAddress, ByVal port As Integer) As NetworkInterface
+        Private Function GetBestInterfaceManaged(address As IPAddress, port As Integer) As NetworkInterface
 
             Dim socket As Socket = New Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP)
             Dim outgoingInterface As NetworkInterface = Nothing

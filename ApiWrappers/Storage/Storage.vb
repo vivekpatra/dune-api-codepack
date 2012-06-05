@@ -11,7 +11,7 @@ Namespace Storage
         Protected _host As IPHostEntry
         Protected _root As DirectoryInfo
 
-        Public Sub New(ByVal host As IPHostEntry)
+        Public Sub New(host As IPHostEntry)
             _host = host
         End Sub
 

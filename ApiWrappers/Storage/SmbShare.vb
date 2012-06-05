@@ -11,7 +11,7 @@ Namespace Storage
         Private _credentials As NetworkCredential
         Private _diskInfo As ShareInfo
 
-        Public Sub New(ByVal uncPath As Uri)
+        Public Sub New(uncPath As Uri)
             MyBase.New(Dns.GetHostEntry(uncPath.Host.ToUpper))
             _root = New IO.DirectoryInfo(uncPath.OriginalString).Root
             _credentials = New NetworkCredential
@@ -82,7 +82,7 @@ Namespace Storage
         ''' <param name="path">The path in UNC notation.</param>
         ''' <returns>The media URL in smb://[username[:password]@]host/share/path[/file[.extension]] format</returns>
         ''' <remarks>Mounted shares are not supported, the path must be in UNC notation.</remarks>
-        Public Overloads Function GetMediaUrl(ByVal path As IO.FileSystemInfo) As String
+        Public Overloads Function GetMediaUrl(path As IO.FileSystemInfo) As String
             If Not path.GetUri.IsUnc Then
                 Throw New ArgumentException("The path must be a valid UNC notation, mounted shares are not supported.", "path")
             ElseIf New IO.DirectoryInfo(path.FullName).Root.FullName <> Root.FullName Then
@@ -105,7 +105,7 @@ Namespace Storage
         ''' <param name="path">Path in valid UNC notation.</param>
         ''' <param name="mediaUrl">The string variable that will contain the media URL if the method call is successful.</param>
         ''' <returns>True if the call was successful; otherwise false.</returns>
-        Public Function TryGetMediaUrl(ByVal path As IO.FileSystemInfo, ByRef mediaUrl As String) As Boolean
+        Public Function TryGetMediaUrl(path As IO.FileSystemInfo, ByRef mediaUrl As String) As Boolean
             If New IO.DirectoryInfo(path.FullName).Root.FullName <> Root.FullName Or path.GetUri.IsUnc.IsFalse Then
                 Return False
             Else
@@ -119,7 +119,7 @@ Namespace Storage
         ''' </summary>
         ''' <param name="host">The host to scan for network shares.</param>
         ''' <remarks>This method can only be used to return disk shares. Printer shares (or otherwise) are ignored.</remarks>
-        Public Shared Function FromHost(ByVal host As IPHostEntry) As List(Of SmbShare)
+        Public Shared Function FromHost(host As IPHostEntry) As List(Of SmbShare)
             Dim shares As ShareCollection = ShareCollection.GetShares(host.HostName)
             Dim smbShares As New List(Of SmbShare)
 
@@ -133,7 +133,7 @@ Namespace Storage
             Return smbShares
         End Function
 
-        Public Shared Function Parse(ByVal path As String) As SmbShare
+        Public Shared Function Parse(path As String) As SmbShare
             Dim share As SmbShare
             Dim credentials As String = String.Empty
 

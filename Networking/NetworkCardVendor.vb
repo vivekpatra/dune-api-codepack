@@ -15,7 +15,7 @@ Namespace Networking
         Private _address2 As String
         Private _country As String
 
-        Public Sub New(ByVal physicalAddress As PhysicalAddress)
+        Public Sub New(physicalAddress As PhysicalAddress)
             GetResults(physicalAddress)
         End Sub
 
@@ -23,7 +23,7 @@ Namespace Networking
         ''' Gets vendor information from the OUI database based on the supplied hardware address.
         ''' </summary>
         ''' <param name="physicalAddress">The MAC address to look up.</param>
-        Private Sub GetResults(ByVal physicalAddress As PhysicalAddress)
+        Private Sub GetResults(physicalAddress As PhysicalAddress)
             Dim delimiter As Char = "|"c
 
             Dim client As New WebClient()

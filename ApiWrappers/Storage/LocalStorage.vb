@@ -22,7 +22,7 @@ Namespace Storage
         ''' This constructor tries to derive the storage name, storage caption and storage UUID from the specified path.
         ''' The path does not have to be existent so it can be spoofed.
         ''' </remarks>
-        Public Sub New(ByVal host As IPHostEntry, ByVal path As DirectoryInfo)
+        Public Sub New(host As IPHostEntry, path As DirectoryInfo)
             MyBase.New(host)
             _root = path.Root
             _name = path.Root.Name
@@ -119,7 +119,7 @@ Namespace Storage
         ''' </summary>
         ''' <param name="path">The UNC path which needs to be converted.</param>
         ''' <returns>The media URL in 'storage_name://actual_value/path[/file[.extension]]' format.</returns>
-        Public Function GetMediaUrlFromStorageName(ByVal path As FileSystemInfo) As String
+        Public Function GetMediaUrlFromStorageName(path As FileSystemInfo) As String
             If String.IsNullOrWhiteSpace(StorageName) Then
                 Throw New NullReferenceException("Storage name is not specified!")
             Else
@@ -137,7 +137,7 @@ Namespace Storage
         ''' <param name="path">The UNC path which needs to be converted.</param>
         ''' <param name="mediaUrl">The string variable that will contain the media URL if the method call is successful.</param>
         ''' <returns>True if the call was successful; otherwise false.</returns>
-        Public Function TryGetMediaUrlFromStorageName(ByVal path As FileSystemInfo, ByRef mediaUrl As String) As Boolean
+        Public Function TryGetMediaUrlFromStorageName(path As FileSystemInfo, ByRef mediaUrl As String) As Boolean
             If String.IsNullOrWhiteSpace(StorageName) Then
                 Return False
             Else
@@ -151,7 +151,7 @@ Namespace Storage
         ''' </summary>
         ''' <param name="path">The UNC path which needs to be converted.</param>
         ''' <returns>The media URL in 'storage_label://actual_value/path[/file[.extension]]' format.</returns>
-        Public Function GetMediaUrlFromStorageLabel(ByVal path As FileSystemInfo) As String
+        Public Function GetMediaUrlFromStorageLabel(path As FileSystemInfo) As String
             If String.IsNullOrWhiteSpace(StorageLabel) Then
                 Throw New NullReferenceException("Storage label is not specified!")
             Else
@@ -169,7 +169,7 @@ Namespace Storage
         ''' <param name="path">The UNC path which needs to be converted.</param>
         ''' <param name="mediaUrl">The string variable that will contain the media URL if the method call is successful.</param>
         ''' <returns>True if the call was successful; otherwise false.</returns>
-        Public Function TryGetMediaUrlFromStorageLabel(ByVal path As FileSystemInfo, ByRef mediaUrl As String) As Boolean
+        Public Function TryGetMediaUrlFromStorageLabel(path As FileSystemInfo, ByRef mediaUrl As String) As Boolean
             If String.IsNullOrWhiteSpace(StorageLabel) Then
                 Return False
             Else
@@ -183,7 +183,7 @@ Namespace Storage
         ''' </summary>
         ''' <param name="path">The UNC path which needs to be converted.</param>
         ''' <returns>The media URL in 'storage_uuid://actual_value/path[/file[.extension]]' format.</returns>
-        Public Function GetMediaUrlFromStorageUuid(ByVal path As FileSystemInfo) As String
+        Public Function GetMediaUrlFromStorageUuid(path As FileSystemInfo) As String
             If String.IsNullOrWhiteSpace(StorageUuid) Then
                 Throw New NullReferenceException("Storage UUID is not specified!")
             Else
@@ -201,7 +201,7 @@ Namespace Storage
         ''' <param name="path">The UNC path which needs to be converted.</param>
         ''' <param name="mediaUrl">The string variable that will contain the media URL if the method call is successful.</param>
         ''' <returns>True if the call was successful; otherwise false.</returns>
-        Public Function TryGetMediaUrlFromStorageUuid(ByVal path As FileSystemInfo, ByRef mediaUrl As String) As Boolean
+        Public Function TryGetMediaUrlFromStorageUuid(path As FileSystemInfo, ByRef mediaUrl As String) As Boolean
             If String.IsNullOrWhiteSpace(StorageUuid) Then
                 Return False
             Else
@@ -245,7 +245,7 @@ Namespace Storage
         ''' Scans and retrieves storage devices on the specified Dune device.
         ''' </summary>
         ''' <param name="host">The host Dune device.</param>
-        Public Shared Function FromHost(ByVal host As DuneApiCodePack.DuneUtilities.Dune) As List(Of LocalStorage)
+        Public Shared Function FromHost(host As DuneApiCodePack.DuneUtilities.Dune) As List(Of LocalStorage)
             Dim shares As ShareCollection = ShareCollection.GetShares(host.Hostname)
             Dim localStorages As New List(Of LocalStorage)
 
@@ -275,7 +275,7 @@ Namespace Storage
         ''' <remarks>
         ''' This method tries to generate a media url until it succeeds in the following order:
         ''' storage_uuid:// -> storage_name:// -> storage_label:// -> null.</remarks>
-        Public Overloads Function GetMediaUrl(ByVal path As FileSystemInfo) As String
+        Public Overloads Function GetMediaUrl(path As FileSystemInfo) As String
             Dim mediaUrl As String = Nothing
 
             If TryGetMediaUrlFromStorageUuid(path, mediaUrl) Then

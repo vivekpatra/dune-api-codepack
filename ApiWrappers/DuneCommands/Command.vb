@@ -17,8 +17,8 @@ Namespace DuneUtilities.ApiWrappers
         Private _commandType As String
         Private _query As NameValueCollection
 
-        Public Sub New(ByRef dune As Dune)
-            _target = dune
+        Public Sub New(target As Dune)
+            _target = target
         End Sub
 
         ''' <summary>
@@ -127,17 +127,17 @@ Namespace DuneUtilities.ApiWrappers
             Return request
         End Function
 
-        Private Sub SetTimeout(ByVal request As WebRequest)
+        Private Sub SetTimeout(request As WebRequest)
             If Timeout > 0 Then
                 request.Timeout = Integer.MaxValue
             End If
         End Sub
 
-        Private Sub SetUserAgent(ByVal request As WebRequest)
+        Private Sub SetUserAgent(request As WebRequest)
             DirectCast(request, HttpWebRequest).UserAgent = String.Concat(My.Application.Info.ProductName, "/", My.Application.Info.Version.ToString)
         End Sub
 
-        Private Sub WritePostData(ByVal request As WebRequest, ByVal query As String)
+        Private Sub WritePostData(request As WebRequest, query As String)
             request.ContentType = "application/x-www-form-urlencoded"
 
             query = query.Replace("&", Environment.NewLine + "&")

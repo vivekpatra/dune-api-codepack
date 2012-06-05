@@ -14,12 +14,13 @@ Namespace DuneUtilities.ApiWrappers
         Private _blackScreen As Boolean
         Private _hideOnScreenDisplay As Boolean
         Private _repeat As Boolean
+        Private _startIndex As UInteger
 
-        ''' <param name="dune">The target device.</param>
+        ''' <param name="target">The target device.</param>
         ''' <param name="mediaUrl">The media URL.</param>
         ''' <remarks>Does not support playlists.</remarks>
-        Public Sub New(ByRef dune As Dune, ByVal mediaUrl As String)
-            MyBase.New(dune)
+        Public Sub New(target As Dune, mediaUrl As String)
+            MyBase.New(target)
             Type = PlaybackType.File
             _mediaUrl = mediaUrl
             '_mediaUrl = UrlConverter.FormatUrl(dune, mediaUrl)
@@ -107,28 +108,45 @@ Namespace DuneUtilities.ApiWrappers
         End Property
 
         ''' <summary>
+        ''' Gets or sets the playlist start index.
+        ''' </summary>
+        Public Property StartIndex As UInteger
+            Get
+                Return _startIndex
+            End Get
+            Set(value As UInteger)
+                _startIndex = value
+            End Set
+        End Property
+
+        ''' <summary>
         ''' Enumeration of supported playback types.
         ''' </summary>
-        ''' <remarks>"File" includes everything that is not a DVD or blu-ray iso or folder, although playlist files are not supported.</remarks>
         Public Enum PlaybackType
-            File = 0
-            Dvd = 1
-            Bluray = 2
+            Auto = 0
+            File = 1
+            Dvd = 2
+            Bluray = 3
+            Playlist = 4
         End Enum
 
         Protected Overrides Function GetQuery() As NameValueCollection
             Dim query As New NameValueCollection
 
             Select Case Type
+                Case PlaybackType.Auto
+                    query.Add("cmd", Constants.Commands.LaunchMediaUrl)
                 Case PlaybackType.File
                     query.Add("cmd", Constants.Commands.StartFilePlayback)
                 Case PlaybackType.Dvd
                     query.Add("cmd", Constants.Commands.StartDvdPlayback)
                 Case PlaybackType.Bluray
                     query.Add("cmd", Constants.Commands.StartBlurayPlayback)
+                Case PlaybackType.Playlist
+                    query.Add("cmd", Constants.Commands.StartPlaylistPlayback)
             End Select
 
-            query.Add(Constants.StartPlaybackParameters.MediaLocation, MediaUrl)
+            query.Add(Constants.StartPlaybackParameters.MediaUrl, MediaUrl)
 
             If Paused Then
                 query.Add(Constants.StartPlaybackParameters.PlaybackSpeed, "0")
@@ -148,6 +166,10 @@ Namespace DuneUtilities.ApiWrappers
 
             If Repeat Then
                 query.Add(Constants.StartPlaybackParameters.ActionOnFinish, Constants.ActionOnFinishSettings.RestartPlayback)
+            End If
+
+            If StartIndex > 0 Then
+                query.Add(Constants.StartPlaybackParameters.StartIndex, StartIndex.ToString)
             End If
 
             Return query
