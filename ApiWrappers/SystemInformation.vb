@@ -35,7 +35,11 @@ Namespace DuneUtilities.ApiWrappers
 
         Public ReadOnly Property BootTime As Date
             Get
-                Return _bootTime
+                If Host.Connected Then
+                    Return _bootTime
+                Else
+                    Return Nothing
+                End If
             End Get
         End Property
 
@@ -56,7 +60,7 @@ Namespace DuneUtilities.ApiWrappers
             End If
         End Function
 
-        Private Sub ClearInfo()
+        Public Sub Clear()
             _productId.Clear()
             _serialNumber.Clear()
             _firmwareVersion.Clear()
@@ -97,7 +101,7 @@ Namespace DuneUtilities.ApiWrappers
         End Sub
 
         Public Sub Refresh()
-            ClearInfo()
+            Clear()
             GetSysinfo()
             GetBootTime()
         End Sub

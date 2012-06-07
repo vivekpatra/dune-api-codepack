@@ -137,6 +137,9 @@ Namespace DuneUtilities.ApiWrappers
             DirectCast(request, HttpWebRequest).UserAgent = String.Concat(My.Application.Info.ProductName, "/", My.Application.Info.Version.ToString)
         End Sub
 
+        ''' <summary>
+        ''' Writes the specified query string to the request stream.
+        ''' </summary>
         Private Sub WritePostData(request As WebRequest, query As String)
             request.ContentType = "application/x-www-form-urlencoded"
 
@@ -155,17 +158,11 @@ Namespace DuneUtilities.ApiWrappers
         Friend Function GetResponse() As WebResponse
             Dim request As WebRequest = GetRequest()
 
-            Try
-                If request.Method = WebRequestMethods.Http.Post Then
-                    WritePostData(request, GetQueryString)
-                End If
-                Return request.GetResponse
-            Catch ex As WebException
-                Console.WriteLine(ex.Message)
-                Target.ConnectedUpdate = False
-            End Try
+            If request.Method = WebRequestMethods.Http.Post Then ' write command query to the request stream first
+                WritePostData(request, GetQueryString)
+            End If
 
-            Return Nothing
+            Return request.GetResponse
         End Function
 
         Public Function GetResult() As CommandResult

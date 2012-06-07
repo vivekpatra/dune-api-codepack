@@ -173,6 +173,8 @@
         Public Const ErrorDescription As String = "error_description"
         ''' <summary>1 if a DVD menu is currently shown; otherwise 0.</summary>
         Public Const PlaybackDvdMenu As String = "playback_dvd_menu"
+        ''' <summary>Regular expression that matches results that contain codec or language information about audio or subtitle tracks.</summary>
+        Public Shared ReadOnly TrackRegex As Text.RegularExpressions.Regex = New Text.RegularExpressions.Regex("(audio|subtitles)_track\.[0-9]+\.(lang|codec)")
 
         ' New in protocol version 3
         ' TODO: add summaries
@@ -195,6 +197,7 @@
         Public Const OnScreenDisplayWidth As String = "osd_width"
         Public Const OnScreenDisplayHeight As String = "osd_height"
         Public Const VideoOnTop As String = "video_on_top"
+        Public Const Text As String = "text"
     End Class
 
     ''' <summary>
