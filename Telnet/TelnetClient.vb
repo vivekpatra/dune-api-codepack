@@ -173,7 +173,11 @@ Namespace Telnet
                 Write(command)
                 Dim response As String = ReadUntilRegex(_promptRegex)
 
-                Return response.Substring(command.Length).TrimStart
+                If response.Length > command.Length Then
+                    Return response.Substring(command.Length).TrimStart
+                Else
+                    Return response
+                End If
             End SyncLock
         End Function
 

@@ -1,6 +1,5 @@
 ﻿Imports System.Net
 Imports SL.DuneApiCodePack.Storage
-Imports SL.DuneApiCodePack.Extensions
 Imports System.DirectoryServices
 
 Namespace Networking

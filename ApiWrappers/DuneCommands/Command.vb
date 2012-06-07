@@ -1,7 +1,6 @@
 ﻿Imports System.Net
 Imports System.IO
 Imports System.Collections.Specialized
-Imports SL.DuneApiCodePack.Extensions
 
 Namespace DuneUtilities.ApiWrappers
 

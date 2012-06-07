@@ -2,14 +2,11 @@
 Imports System.Net.Sockets
 Imports System.ComponentModel
 Imports SL.DuneApiCodePack.DuneUtilities.ApiWrappers
-Imports System.Globalization
 Imports System.Timers
 Imports System.Threading.Tasks
-Imports System.Net.NetworkInformation
 Imports System.Collections.ObjectModel
 Imports SL.DuneApiCodePack.Storage
 Imports SL.DuneApiCodePack.Telnet
-Imports SL.DuneApiCodePack.Extensions
 Imports SL.DuneApiCodePack.Networking
 
 Namespace DuneUtilities
@@ -26,8 +23,7 @@ Namespace DuneUtilities
         Private _hostentry As IPHostEntry
         Private _endpoint As IPEndPoint
         Private _timeout As UInteger
-        Private _updateTimer As Timer ' Responsible for status updates
-
+        Private _updateTimer As Timer
 
         ' Custom fields
         Private _remoteControl As RemoteControl
@@ -496,7 +492,7 @@ Namespace DuneUtilities
         ''' </summary>
         Private Function TargetIsValid(target As IPEndPoint) As Boolean
             Dim commandResult As CommandResult = GetStatus() ' can throw a WebException
-            Return commandResult.ProtocolVersion > 0
+            Return IsNothing(commandResult.ProtocolVersion).IsFalse
         End Function
 
         ''' <summary>
@@ -618,7 +614,7 @@ Namespace DuneUtilities
         ''' </summary>
         <DisplayName("Protocol version")>
         <Description("The API version.")>
-        Public ReadOnly Property ProtocolVersion As UShort
+        Public ReadOnly Property ProtocolVersion As Version
             Get
                 Return Status.ProtocolVersion
             End Get
@@ -1302,6 +1298,19 @@ Namespace DuneUtilities
             End Get
         End Property
 
+        ''' <summary>
+        ''' Gets or sets the text in the current input field, if any.
+        ''' </summary>
+        Public Property Text As String
+            Get
+                Return Status.Text
+            End Get
+            Set(value As String)
+                Dim command As New SetTextCommand(Me, value)
+                ProcessCommand(command)
+            End Set
+        End Property
+
 
 #End Region ' Properties v3
 
@@ -1381,7 +1390,7 @@ Namespace DuneUtilities
 
         Public Function SetText(text As String) As CommandResult
             Dim command As New SetTextCommand(Me, text)
-            Return ProcessCommand(command)
+            Return (ProcessCommand(command))
         End Function
 
 #End Region ' Methods v3

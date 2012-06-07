@@ -5,8 +5,6 @@ Namespace DuneUtilities.ApiWrappers
     Public Class SetPlaybackClipZoomCommand
         Inherits Command
 
-        Private Const NotSupportedMessage As String = "This command requires a firmware update."
-
         Private _clipRectangleHorizontalOffset As UShort?
         Private _clipRectangleVerticalOffset As UShort?
         Private _clipRectangleWidth As UShort?
@@ -15,9 +13,6 @@ Namespace DuneUtilities.ApiWrappers
 
         Public Sub New(target As Dune, clipRectangleHorizontalOffset As UShort?, clipRectangleVerticalOffset As UShort?, clipRectangleWidth As UShort?, clipRectangleHeight As UShort?)
             MyBase.New(target)
-            If target.ProtocolVersion < 3 Then
-                Throw New NotSupportedException(NotSupportedMessage)
-            End If
 
             _clipRectangleHorizontalOffset = CUShort(IIf(clipRectangleHorizontalOffset.HasValue, clipRectangleHorizontalOffset, 0))
             _clipRectangleVerticalOffset = CUShort(IIf(clipRectangleVerticalOffset.HasValue, clipRectangleVerticalOffset, 0))

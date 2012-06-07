@@ -3,7 +3,6 @@ Imports System.Globalization
 Imports System.Net
 Imports System.Collections.Specialized
 Imports System.Threading.Tasks
-Imports SL.DuneApiCodePack.Extensions
 Imports System.Text.RegularExpressions
 
 Namespace DuneUtilities.ApiWrappers
@@ -23,7 +22,7 @@ Namespace DuneUtilities.ApiWrappers
 
         ' command result parameters
         Private _commandStatus As String
-        Private _protocolVersion As UShort
+        Private _protocolVersion As Version
         Private _playerState As String
         Private _playbackSpeed As Short?
         Private _playbackDuration As TimeSpan?
@@ -133,7 +132,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the protocol version.
         ''' </summary>
-        Public ReadOnly Property ProtocolVersion As UShort
+        Public ReadOnly Property ProtocolVersion As Version
             Get
                 Return _protocolVersion
             End Get
@@ -499,7 +498,7 @@ Namespace DuneUtilities.ApiWrappers
                                 Case Constants.CommandResults.CommandStatus
                                     _commandStatus = value
                                 Case Constants.CommandResults.ProtocolVersion
-                                    _protocolVersion = CUShort(value)
+                                    _protocolVersion = ParseVersionNumber(value)
                                 Case Constants.CommandResults.PlayerState
                                     _playerState = value
                                 Case Constants.CommandResults.PlaybackSpeed
@@ -589,6 +588,17 @@ Namespace DuneUtilities.ApiWrappers
         End Sub
 
         ''' <summary>
+        ''' Takes a string representation of a version number and converts it to a <see cref="System.Version"/> instance.
+        ''' </summary>
+        Private Function ParseVersionNumber(version As String) As Version
+            If version.Contains(".") Then
+                Return New Version(version)
+            Else
+                Return New Version(CInt(version), 0)
+            End If
+        End Function
+
+        ''' <summary>
         ''' Adds audio track info to the collection.
         ''' </summary>
         Private Sub AddTrackInfo(name As String, value As String)
@@ -607,7 +617,7 @@ Namespace DuneUtilities.ApiWrappers
                 Dim languageCode As String = value
 
                 Dim codec As String = String.Empty
-                If ProtocolVersion >= 3 Then ' also get codec information
+                If ProtocolVersion.Major >= 3 Then ' also get codec information
                     codec = RawData.Get(name.Replace("lang", "codec"))
                 End If
 
@@ -789,6 +799,10 @@ Namespace DuneUtilities.ApiWrappers
 
                 If Not Subtitles.SequenceEqual(result.Subtitles) Then
                     differences.Add("Subtitles")
+                End If
+
+                If Text <> result.Text Then
+                    differences.Add("Text")
                 End If
 
                 Return DirectCast(differences.ToArray(GetType(String)), String())

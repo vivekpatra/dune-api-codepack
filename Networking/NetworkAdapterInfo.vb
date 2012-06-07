@@ -2,7 +2,6 @@
 Imports System.Net.Sockets
 Imports System.Net.NetworkInformation
 Imports System.Threading.Tasks
-Imports SL.DuneApiCodePack.Extensions
 
 Namespace Networking
 

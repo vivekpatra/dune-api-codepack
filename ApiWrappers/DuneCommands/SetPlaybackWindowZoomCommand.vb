@@ -1,14 +1,11 @@
 ﻿Imports System.Text
 Imports System.Collections.Specialized
-Imports SL.DuneApiCodePack.Extensions
 
 Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>This command is used to change the playback window zoom (width; height; position).</summary>
     Public Class SetPlaybackWindowZoomCommand
         Inherits Command
-
-        Private Const NotSupportedMessage As String = "This command requires a firmware update."
 
         Private _windowFullscreen As Boolean?
         Private _windowRectangleHorizontalOffset As UShort?
@@ -24,9 +21,6 @@ Namespace DuneUtilities.ApiWrappers
         ''' <remarks></remarks>
         Public Sub New(target As Dune, windowRectangleHorizontalOffset As UShort?, windowRectangleVerticalOffset As UShort?, windowRectangleWidth As UShort?, windowRectangleHeight As UShort?)
             MyBase.New(target)
-            If target.ProtocolVersion < 2 Then
-                Throw New NotSupportedException(NotSupportedMessage)
-            End If
 
             _windowRectangleHorizontalOffset = CUShort(IIf(windowRectangleHorizontalOffset.HasValue, windowRectangleHorizontalOffset, 0))
             _windowRectangleVerticalOffset = CUShort(IIf(windowRectangleVerticalOffset.HasValue, windowRectangleVerticalOffset, 0))
@@ -91,19 +85,19 @@ Namespace DuneUtilities.ApiWrappers
             query.Add("cmd", Constants.Commands.SetPlaybackState)
 
             If _windowFullscreen.HasValue AndAlso _windowFullscreen.Value.IsTrue Then
-                If Target.ProtocolVersion = 2 Then
+                If Target.ProtocolVersion.Major = 2 Then
                     query.Add(Constants.SetPlaybackStateParameters.VideoFullscreen, "1")
-                ElseIf Target.ProtocolVersion >= 3 Then
+                ElseIf Target.ProtocolVersion.Major >= 3 Then
                     query.Add(Constants.SetPlaybackStateParameters.WindowFullscreen, "1")
                 End If
             Else
-                If Target.ProtocolVersion = 2 Then
+                If Target.ProtocolVersion.Major = 2 Then
                     query.Add(Constants.SetPlaybackStateParameters.VideoFullscreen, "0")
                     query.Add(Constants.SetPlaybackStateParameters.VideoHorizontalOffset, WindowRectangleHorizontalOffset.Value.ToString)
                     query.Add(Constants.SetPlaybackStateParameters.VideoVerticalOffset, WindowRectangleVerticalOffset.Value.ToString)
                     query.Add(Constants.SetPlaybackStateParameters.VideoWidth, WindowRectangleWidth.Value.ToString)
                     query.Add(Constants.SetPlaybackStateParameters.VideoHeight, WindowRectangleHeight.Value.ToString)
-                ElseIf Target.ProtocolVersion >= 3 Then
+                ElseIf Target.ProtocolVersion.Major >= 3 Then
                     query.Add(Constants.SetPlaybackStateParameters.WindowFullscreen, "0")
                     query.Add(Constants.SetPlaybackStateParameters.WindowRectangleHorizontalOffset, WindowRectangleHorizontalOffset.Value.ToString)
                     query.Add(Constants.SetPlaybackStateParameters.WindowRectangleVerticalOffset, WindowRectangleVerticalOffset.Value.ToString)
