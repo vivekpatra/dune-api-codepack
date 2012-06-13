@@ -12,8 +12,12 @@ Imports SL.DuneApiCodePack.Networking
 Namespace DuneUtilities
 
     ''' <summary>
-    ''' This class represents a Dune player on the network and exposes several methods and properties to interact with it.
+    ''' Provides methods and properties to interact with an IP control-enabled Dune player.
     ''' </summary>
+    ''' <remarks>
+    ''' To connect, use one of the available connect methods. Or create a a Dune object using one of the constructor overloads, these constructors will automatically attempt a connection.
+    ''' Note that you must have connected atleast once (to set initial connection details) before you can do anything meaningful. There are currently numerous bugs (mostly nullreferences) when trying to access properties without a connection.
+    ''' </remarks>
     Public Class Dune
         Implements INotifyPropertyChanged
 
@@ -23,100 +27,103 @@ Namespace DuneUtilities
         Private _hostentry As IPHostEntry
         Private _endpoint As IPEndPoint
         Private _timeout As UInteger
-        Private _updateTimer As Timer
+
 
         ' Custom fields
+        Private _statusUpdater As Timer
+        Private _textUpdater As Timer
+        Private _status As CommandResult
+        Private _text As String
+        Private _textAvailable As Boolean?
         Private _remoteControl As RemoteControl
         Private _shares As List(Of LocalStorage)
         Private _connected As Boolean
         Private _networkAdapterInfo As NetworkAdapterInfo
         Private _firmwares As List(Of FirmwareProperties)
         Private _telnetClient As TelnetClient
-        Private _telnetEnabled As Boolean?
         Private _systemInfo As SystemInformation
-        Private _status As CommandResult
 
 #End Region ' Private Fields
 
 #Region "Constructors"
 
-        ''' <summary>
-        ''' Gets a Dune object that represents a Dune device on the network at the specified address on the default port (80).
-        ''' </summary>
-        ''' <param name="address">The IP address or hostname of the target device.</param>
-        ''' <exception cref="System.Net.Sockets.SocketException">: An error is encountered when resolving address.</exception>
-        Public Sub New(address As String)
-            Me.New(Dns.GetHostEntry(address), 80)
+        Public Sub New()
         End Sub
 
-        ''' <summary>
-        ''' Gets a Dune object that represents a Dune device on the network at the specified address on the default port (80).
-        ''' </summary>
-        ''' <param name="address">The IP address of the target device.</param>
-        ''' <exception cref="System.Net.Sockets.SocketException">: An error is encountered when resolving address.</exception>
+        Public Sub New(hostNameOrAddress As String)
+            Connect(hostNameOrAddress)
+        End Sub
+
         Public Sub New(address As IPAddress)
-            Me.New(Dns.GetHostEntry(address), 80)
+            Connect(address)
         End Sub
 
-        ''' <summary>
-        ''' Gets a Dune object that represents a Dune device on the network at the specified address on the default port (80).
-        ''' </summary>
-        ''' <param name="address">The host entry of the target device.</param>
         Public Sub New(address As IPHostEntry)
-            Me.New(address, 80)
+            Connect(address)
         End Sub
 
-        ''' <summary>
-        ''' Gets a Dune object that represents a Dune device on the network at the specified address on the specified port number.
-        ''' </summary>
-        ''' <param name="address">The IP address or hostname of the target device.</param>
-        ''' <exception cref="ArgumentOutOfRangeException">: port is less than System.Net.IPEndPoint.MinPort.-or- port is greater than System.Net.IPEndPoint.MaxPort.-or- address is less than 0 or greater than 0x00000000FFFFFFFF.</exception>       
-        ''' <exception cref="SocketException">: An error is encountered when resolving address.</exception>
-        ''' <exception cref="WebException">: An error is encountered when trying to query the API.</exception>
-        Public Sub New(address As String, port As Integer)
-            Me.New(Dns.GetHostEntry(address), port)
+        Public Sub New(endpoint As IPEndPoint)
+            Connect(endpoint)
         End Sub
 
-        ''' <summary>
-        ''' Gets a Dune object that represents a Dune device on the network at the specified address on the specified port number.
-        ''' </summary>
-        ''' <param name="address">The IP address of the target device.</param>
-        ''' <param name="port">The port number to connect on.</param>
-        ''' <exception cref="ArgumentOutOfRangeException">: port is less than System.Net.IPEndPoint.MinPort.-or- port is greater than System.Net.IPEndPoint.MaxPort.-or- address is less than 0 or greater than 0x00000000FFFFFFFF.</exception>
-        ''' <exception cref="SocketException">: An error is encountered when resolving address.</exception>
-        ''' <exception cref="WebException">: An error is encountered when trying to query the API.</exception>
+        Public Sub New(hostNameOrAddress As String, port As Integer)
+            Connect(hostNameOrAddress, port)
+        End Sub
+
         Public Sub New(address As IPAddress, port As Integer)
-            Me.New(Dns.GetHostEntry(address), port)
+            Connect(address, port)
         End Sub
 
-        ''' <summary>
-        ''' Gets a Dune object that represents a Dune device on the network at the specified address on the specified port number.
-        ''' </summary>
-        ''' <param name="address">The host entry of the target device.</param>
-        ''' <param name="port">The port number to connect on.</param>
-        ''' <exception cref="System.ArgumentOutOfRangeException">: port is less than System.Net.IPEndPoint.MinPort.-or- port is greater than System.Net.IPEndPoint.MaxPort.-or- address is less than 0 or greater than 0x00000000FFFFFFFF.</exception>
-        ''' <exception cref="SocketException">: An error is encountered when resolving address.</exception>
-        ''' <exception cref="WebException">: An error is encountered when trying to query the API.</exception>
         Public Sub New(address As IPHostEntry, port As Integer)
+            Connect(address, port)
+        End Sub
+
+        Public Sub Connect(hostNameOrAddress As String)
+            Connect(hostNameOrAddress, 80)
+        End Sub
+
+        Public Sub Connect(address As IPAddress)
+            Connect(address, 80)
+        End Sub
+
+        Public Sub Connect(address As IPHostEntry)
+            Connect(address, 80)
+        End Sub
+
+        Public Sub Connect(endpoint As IPEndPoint)
+            Dim hostEntry As IPHostEntry = Dns.GetHostEntry(endpoint.Address)
+            Connect(hostEntry, Port)
+        End Sub
+
+        Public Sub Connect(hostNameOrAddress As String, port As Integer)
+            Dim hostEntry As IPHostEntry = Dns.GetHostEntry(hostNameOrAddress)
+            Connect(hostEntry, port)
+        End Sub
+
+        Public Sub Connect(address As IPAddress, port As Integer)
+            Dim hostEntry As IPHostEntry = Dns.GetHostEntry(address)
+            Connect(hostEntry, port)
+        End Sub
+
+        Public Sub Connect(address As IPHostEntry, port As Integer)
             _hostentry = address
-            _networkAdapterInfo = New NetworkAdapterInfo(address.AddressList.First)
-            _endpoint = New IPEndPoint(NetworkAdapterInfo.Address, port)
+            _endpoint = New IPEndPoint(address.AddressList.GetIPv4Addresses.First, port)
 
             Initialize()
         End Sub
 
+        ''' <summary>
+        ''' Initialization process.
+        ''' </summary>
         Private Sub Initialize()
-            Connect(_endpoint)
+            IsConnected = True
 
-            If Connected Then
+            If IsConnected Then
+                _networkAdapterInfo = New NetworkAdapterInfo(Address)
+
                 If TelnetClient IsNot Nothing Then
-                    Task.Factory.StartNew(Sub() _firmwares = FirmwareProperties.GetAvailableFirmwaresAsync(ProductID).Result)
+                    _systemInfo = SystemInformation.FromHost(Me)
                 End If
-
-                _updateTimer = New Timer
-                _updateTimer.Interval = 990
-                AddHandler _updateTimer.Elapsed, AddressOf _updateTimer_elapsed
-                _updateTimer.Start()
             End If
         End Sub
 
@@ -127,25 +134,24 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Gets or sets a set of command results, representing the player status.
         ''' </summary>
+        <Browsable(False)>
         Private Property Status As CommandResult
             Get
                 Return _status
             End Get
             Set(value As CommandResult)
-
                 If Status Is Nothing Then
                     _status = value
                 Else
                     Dim updates() As String = Status.GetDifferences(value)
 
                     _status = value
-                    RaisePropertyChanged("Status")
 
                     For Each update As String In updates
                         RaisePropertyChanged(update)
                     Next
-
                 End If
+                RaisePropertyChanged("Status")
             End Set
         End Property
 
@@ -153,10 +159,15 @@ Namespace DuneUtilities
         ''' Gets the IP address of the device.
         ''' </summary>
         <DisplayName("IP address")>
-        <Description("The IP address on which the connection is made.")>
+        <Description("The IP address on which the app is connected to the HTTP service.")>
+        <Category("Connection details")>
         Public ReadOnly Property Address As IPAddress
             Get
-                Return _endpoint.Address
+                If _endpoint IsNot Nothing Then
+                    Return _endpoint.Address
+                Else
+                    Return Nothing
+                End If
             End Get
         End Property
 
@@ -164,10 +175,15 @@ Namespace DuneUtilities
         ''' Gets the port number used to connect to the service.
         ''' </summary>
         <DisplayName("Port")>
-        <Description("The port on which the app is connected to the service.")>
+        <Description("The port on which the app is connected to the HTTP service.")>
+        <Category("Connection details")>        
         Public ReadOnly Property Port As Integer
             Get
-                Return _endpoint.Port
+                If _endpoint IsNot Nothing Then
+                    Return _endpoint.Port
+                Else
+                    Return 80
+                End If
             End Get
         End Property
 
@@ -177,6 +193,7 @@ Namespace DuneUtilities
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
+        <Browsable(False)>
         Public ReadOnly Property HostEntry As IPHostEntry
             Get
                 Return _hostentry
@@ -188,6 +205,7 @@ Namespace DuneUtilities
         ''' </summary>
         <DisplayName("Hostname")>
         <Description("The device's hostname.")>
+        <Category("Connection details")>
         Public ReadOnly Property Hostname As String
             Get
                 If HostEntry.HostName.Contains(".") Then
@@ -202,7 +220,8 @@ Namespace DuneUtilities
         ''' Gets information about the device's network interface.
         ''' </summary>
         <DisplayName("Network adapter")>
-        <Description("Displays information about the device's network interface and its vendor.")>
+        <Description("Displays information about the device's network interface.")>
+        <Category("Connection details")>
         Public ReadOnly Property NetworkAdapterInfo As NetworkAdapterInfo
             Get
                 Return _networkAdapterInfo
@@ -212,8 +231,7 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Gets an instance of the RemoteControl class.
         ''' </summary>
-        <DisplayName("Remote Control")>
-        <Description("Preconfigured instance of the RemoteControl class which is used for emulating button presses.")>
+        <Browsable(False)>
         Public ReadOnly Property RemoteControl As RemoteControl
             Get
                 If _remoteControl Is Nothing Then
@@ -227,7 +245,8 @@ Namespace DuneUtilities
         ''' Gets a list of network shares made available by the player's SMB server.
         ''' </summary>
         <DisplayName("Network shares")>
-        <Description("Collection of network shares exposed by the device's SMB server.")>
+        <Description("The collection of network shares exposed by the device's SMB server.")>
+        <Category("Connection details")>
         Public ReadOnly Property NetworkShares As ReadOnlyCollection(Of LocalStorage)
             Get
                 If _shares Is Nothing Then
@@ -242,12 +261,14 @@ Namespace DuneUtilities
         ''' </summary>
         <DisplayName("Product ID")>
         <Description("The device's product ID.")>
+        <Category("Player information")>
         Public ReadOnly Property ProductID As String
             Get
-                If _systemInfo Is Nothing Then
-                    _systemInfo = SystemInformation.FromHost(Me)
+                If SystemInfo IsNot Nothing Then
+                    Return SystemInfo.ProductId
+                Else
+                    Return String.Empty
                 End If
-                Return SystemInfo.ProductId
             End Get
         End Property
 
@@ -256,26 +277,30 @@ Namespace DuneUtilities
         ''' </summary>
         <DisplayName("Serial number")>
         <Description("The device's serial number.")>
+        <Category("Player information")>
         Public ReadOnly Property SerialNumber As String
             Get
-                If _systemInfo Is Nothing Then
-                    _systemInfo = SystemInformation.FromHost(Me)
+                If SystemInfo IsNot Nothing Then
+                    Return SystemInfo.Serial
+                Else
+                    Return String.Empty
                 End If
-                Return SystemInfo.Serial
             End Get
         End Property
 
         ''' <summary>
         ''' Gets the installed firmware version string (using a Telnet connection).
         ''' </summary>
-        <DisplayName("Installed firmware")>
+        <DisplayName("Firmware version")>
         <Description("The installed firmware version.")>
+        <Category("Player information")>
         Public ReadOnly Property FirmwareVersion As String
             Get
-                If _systemInfo Is Nothing Then
-                    _systemInfo = SystemInformation.FromHost(Me)
+                If SystemInfo IsNot Nothing Then
+                    Return SystemInfo.FirmareVersion
+                Else
+                    Return String.Empty
                 End If
-                Return SystemInfo.FirmareVersion
             End Get
         End Property
 
@@ -283,28 +308,30 @@ Namespace DuneUtilities
         ''' Gets or sets whether the connection is active.
         ''' </summary>
         <DisplayName("Connected")>
-        <Description("Displays whether the application is still connected. You may change this if you wish to reconnect or disconnect.")>
-        Public Property Connected As Boolean
+        <Description("Indicates whether the app is still connected.")>
+        <Category("Connection details")>
+        Public Property IsConnected As Boolean
             Get
                 Return _connected
             End Get
             Set(value As Boolean)
                 If _connected <> value Then
                     _connected = value
-                    RaisePropertyChanged("Connected")
-
-                    If SystemInfo IsNot Nothing Then
-                        If value.IsTrue Then
+                    If value.IsFalse Then
+                        Disconnect(True)
+                    Else
+                        If SystemInfo IsNot Nothing Then
                             SystemInfo.Refresh()
                         Else
-                            SystemInfo.Clear()
+                            _systemInfo = SystemInformation.FromHost(Me)
+                        End If
+                        GetStatus()
+                        StatusUpdater.Start()
+                        If Status.ProtocolVersion.Major >= 3 Then
+                            TextUpdater.Start()
                         End If
                     End If
-
-                    If value.IsFalse Then
-                        _telnetClient = Nothing
-                        _telnetEnabled = Nothing
-                    End If
+                    RaisePropertyChanged("IsConnected")
                 End If
             End Set
         End Property
@@ -313,10 +340,15 @@ Namespace DuneUtilities
         ''' Gets the remaining playback time.
         ''' </summary>
         <DisplayName("Playback time remaining")>
-        <Description("The remaining playback time.")>
+        <Description("Indicates the remaining playback time.")>
+        <Category("Playback information")>
         Public ReadOnly Property PlaybackTimeRemaining As TimeSpan?
             Get
-                Return Status.PlaybackTimeRemaining
+                If IsConnected Then
+                    Return Status.PlaybackTimeRemaining
+                Else
+                    Return Nothing
+                End If
             End Get
         End Property
 
@@ -325,8 +357,9 @@ Namespace DuneUtilities
         ''' </summary>
         ''' <value>A positive value bigger than 1</value>
         ''' <remarks>The default value is 20 seconds.</remarks>
-        <DisplayName("Command timeout")>
-        <Description("The amount of seconds before a command returns with a timeout. Command execution is not aborted when a timeout is reached.")>
+        <DisplayName("Timeout")>
+        <Description("Indicates the amount of seconds before a command returns a timeout.")>
+        <Category("Connection details")>
         Public Property Timeout As UInteger
             Get
                 If _timeout = Nothing Then
@@ -347,24 +380,14 @@ Namespace DuneUtilities
         ''' </summary>
         ''' <remarks>Setting this property to 0 will disable automatic status updates.</remarks>
         <DisplayName("Update interval")>
-        <Description("The amount of miliseconds between status updates.")>
+        <Description("The amount of miliseconds between successful status updates.")>
+        <Category("Connection details")>
         Public Property Interval As Double
             Get
-                If _updateTimer.Enabled Then
-                    Return _updateTimer.Interval
-                Else
-                    Return 0
-                End If
+                Return StatusUpdater.Interval
             End Get
             Set(value As Double)
-                If value <= 0 Then
-                    _updateTimer.Stop()
-                Else
-                    _updateTimer.Interval = value
-                    If _updateTimer.Enabled.IsFalse Then
-                        _updateTimer.Start()
-                    End If
-                End If
+                StatusUpdater.Interval = value
             End Set
         End Property
 
@@ -372,19 +395,25 @@ Namespace DuneUtilities
         ''' Gets a list of available firmwares. The <see cref="ProductID" /> property must be set to populate the collection.
         ''' </summary>
         <DisplayName("Available firmwares")>
-        <Description("The collection of available firmware versions for the specified product ID.")>
+        <Description("The collection of available firmware versions for this device.")>
+        <Category("Player information")>
         Public ReadOnly Property AvailableFirmwares As ReadOnlyCollection(Of FirmwareProperties)
             Get
                 If _firmwares Is Nothing Then
+                    Dim list As List(Of FirmwareProperties)
+
                     If ProductID.IsNotNullOrEmpty Then
                         Try
-                            _firmwares = FirmwareProperties.GetAvailableFirmwaresAsync(ProductID).Result
+                            list = FirmwareProperties.GetAvailableFirmwaresAsync(ProductID).Result
                         Catch ex As Exception
-                            _firmwares = New List(Of FirmwareProperties)
+                            Console.WriteLine(ex.Message)
+                            list = New List(Of FirmwareProperties)
                         End Try
                     Else
-                        _firmwares = New List(Of FirmwareProperties)
+                        list = New List(Of FirmwareProperties)
                     End If
+
+                    _firmwares = list
                 End If
 
                 Return _firmwares.AsReadOnly
@@ -394,42 +423,27 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Gets a preconfigured Telnet client.
         ''' </summary>
+        <Browsable(False)>
         Public ReadOnly Property TelnetClient As TelnetClient
             Get
-                Try
-                    If Not TelnetEnabled.HasValue AndAlso Connected Then
-                        _telnetClient = New TelnetClient(Address)
-                        _telnetClient.login("root")
-                        _telnetEnabled = True
-                    End If
-                Catch ex As SocketException
-                    _telnetEnabled = False
-                End Try
+                If _telnetClient Is Nothing Then
+                    _telnetClient = New TelnetClient(Address)
+                    _telnetClient.login("root")
+                End If
                 Return _telnetClient
             End Get
         End Property
-
 
         ''' <summary>
         ''' Gets the date and time when the device booted up.
         ''' </summary>
         <DisplayName("Up since")>
-        <Description("The date and time since when the device is up")>
+        <Description("The date and time since when the device powered on.")>
+        <Category("Player information")>
         Public ReadOnly Property BootTime As Date
             Get
-                Return SystemInfo.BootTime
-            End Get
-        End Property
-
-        ''' <summary>
-        ''' Gets the device's uptime.
-        ''' </summary>
-        <DisplayName("Uptime")>
-        <Description("The amount of time that the device has been running for.")>
-        Public ReadOnly Property Uptime As TimeSpan
-            Get
-                If Connected AndAlso BootTime <> Nothing Then
-                    Return Now.Subtract(BootTime)
+                If SystemInfo IsNot Nothing Then
+                    Return SystemInfo.BootTime
                 Else
                     Return Nothing
                 End If
@@ -437,22 +451,74 @@ Namespace DuneUtilities
         End Property
 
         ''' <summary>
-        ''' Gets whether telnetd is turned on.
+        ''' Gets the device's uptime.
         ''' </summary>
-        <DisplayName("Telnet access")>
-        <Description("Displays whether telnetd is running and accessible.")>
-        Public ReadOnly Property TelnetEnabled As Boolean?
+        <DisplayName("Uptime")>
+        <Description("The amount of elapsed time since the device powered on.")>
+        <Category("Player information")>
+        Public ReadOnly Property Uptime As TimeSpan?
             Get
-                Return _telnetEnabled
+                If SystemInfo IsNot Nothing AndAlso SystemInfo.BootTime <> Nothing Then
+                    Dim current As New TimeSpan(Now.Ticks)
+                    current = TimeSpan.FromSeconds(Math.Round(current.TotalSeconds))
+
+                    Return current.Subtract(TimeSpan.FromSeconds(Math.Round(TimeSpan.FromTicks(BootTime.Ticks).TotalSeconds)))
+                Else
+                    Return Nothing
+                End If
             End Get
         End Property
 
-        Public ReadOnly Property SystemInfo As SystemInformation
+        <Browsable(False)>
+        Private ReadOnly Property SystemInfo As SystemInformation
             Get
-                If _systemInfo Is Nothing AndAlso TelnetEnabled Then
-                    _systemInfo = SystemInformation.FromHost(Me)
-                End If
                 Return _systemInfo
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Gets the timer that's responsible for automatic status updates.
+        ''' </summary>
+        <Browsable(False)>
+        Private ReadOnly Property StatusUpdater As Timer
+            Get
+                If _statusUpdater Is Nothing Then
+                    _statusUpdater = New Timer
+                    _statusUpdater.AutoReset = False
+                    _statusUpdater.Interval = 1
+                    AddHandler _statusUpdater.Elapsed, AddressOf StatusUpdater_elapsed
+                End If
+
+                Return _statusUpdater
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Gets the timer that's responsible for automatic text updates.
+        ''' </summary>
+        <Browsable(False)>
+        Private ReadOnly Property TextUpdater As Timer
+            Get
+                If _textUpdater Is Nothing Then
+                    _textUpdater = New Timer
+                    _textUpdater.AutoReset = False
+                    _textUpdater.Interval = 1
+                    AddHandler _textUpdater.Elapsed, AddressOf TextUpdater_elapsed
+                End If
+
+                Return _textUpdater
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Gets whether the text editor is currently open.
+        ''' </summary>
+        <DisplayName("Text editor available")>
+        <Description("Indicates whether the text editor is currently open.")>
+        <Category("Text editor")>
+        Public ReadOnly Property TextAvailable As Boolean?
+            Get
+                Return _textAvailable
             End Get
         End Property
 
@@ -477,65 +543,108 @@ Namespace DuneUtilities
         End Function
 
         ''' <summary>
-        ''' Attempts to initiate a connection with the target.
-        ''' </summary>
-        Private Sub Connect(target As IPEndPoint)
-            If TargetIsValid(_endpoint) Then
-                Connected = True
-            Else
-                Throw New ArgumentException("The target host is not a Dune device!")
-            End If
-        End Sub
-
-        ''' <summary>
         ''' Verifies the target as a valid device.
         ''' </summary>
         Private Function TargetIsValid(target As IPEndPoint) As Boolean
-            Dim commandResult As CommandResult = GetStatus() ' can throw a WebException
-            Return IsNothing(commandResult.ProtocolVersion).IsFalse
+            Return GetStatus.IsValidReponse
         End Function
 
         ''' <summary>
         ''' Updates the status properties.
         ''' </summary>
         <DebuggerStepThrough()>
-        Private Sub _updateTimer_elapsed(sender As Object, e As System.Timers.ElapsedEventArgs)
-            If Connected Then
+        Private Sub StatusUpdater_elapsed(sender As Object, e As System.Timers.ElapsedEventArgs)
+            If IsConnected Then
                 GetStatus()
+                StatusUpdater.Start()
             End If
         End Sub
 
         ''' <summary>
-        ''' Executes commands and processes results.
+        ''' Updates the text property.
+        ''' </summary>
+        Private Sub TextUpdater_elapsed(sender As Object, e As System.Timers.ElapsedEventArgs)
+            If IsConnected Then
+                If TryGetText(_text).IsFalse Then
+                    _text.Clear()
+                    If TextAvailable.HasValue.IsFalse OrElse TextAvailable.Value.IsTrue Then
+                        _textAvailable = False
+                        RaisePropertyChanged("TextAvailable")
+                    End If
+                Else
+                    If TextAvailable.HasValue.IsFalse OrElse TextAvailable.Value.IsFalse Then
+                        _textAvailable = True
+                        RaisePropertyChanged("TextAvailable")
+                    End If
+                    RaisePropertyChanged("Text")
+                End If
+                TextUpdater.Start()
+            End If
+        End Sub
+
+        ''' <summary>
+        ''' Executes the specified command and processes its results.
         ''' </summary>
         ''' <param name="command">The command to execute.</param>
         ''' <exception cref="CommandException">: command execution failed.</exception>
         Public Function ProcessCommand(command As Command) As CommandResult
+            Return ProcessCommand(command, False)
+        End Function
+
+        ''' <summary>
+        ''' Executes the specified command and processes its results.
+        ''' </summary>
+        ''' <param name="command">The command to execute.</param>
+        ''' <param name="suppressError">Indicates whether to throw an exception when a command returns an error.</param>
+        ''' <exception cref="CommandException">: command execution failed.</exception>
+        Public Function ProcessCommand(command As Command, suppressError As Boolean) As CommandResult
             Dim result As CommandResult = Nothing
 
-            Try ' to execute the command
+            Try ' to execute the specified command
                 result = command.GetResult
 
-                If result IsNot Nothing Then
-                    Status = result
+                If result IsNot Nothing Then ' success!
+                    If command.CommandType <> Constants.Commands.GetText Then
+                        Status = result
+                    End If
 
-                    If result.CommandError IsNot Nothing Then
+                    If suppressError.IsFalse AndAlso result.CommandError IsNot Nothing Then
                         Throw result.CommandError
                     End If
                 End If
             Catch ex As WebException ' handle faulty connection
-                Connected = False
+                IsConnected = False
             End Try
 
             Return result
         End Function
 
         ''' <summary>
-        ''' Executes commands and processes results asynchronously.
+        ''' Cleans up a bunch of fields that are not related to the API when disconnecting.
+        ''' </summary> ' TODO: disconnected event
+        Private Sub Disconnect(expected As Boolean)
+            If SystemInfo IsNot Nothing Then
+                SystemInfo.Clear()
+            End If
+            _telnetClient = Nothing
+        End Sub
+
+        ''' <summary>
+        ''' Executes the specified command and processes its results asynchronously.
         ''' </summary>
         ''' <param name="command">The command to execute.</param>
         ''' <exception cref="CommandException">: command execution failed.</exception>
         Public Function ProcessCommandAsync(command As Command) As Task(Of CommandResult)
+            Return ProcessCommandAsync(command, False)
+        End Function
+
+        ''' <summary>
+        ''' Executes the specified command and processes its results asynchronously.
+        ''' </summary>
+        ''' <param name="command">The command to execute.</param>
+        ''' <param name="suppressError">Indicates whether to throw an exception when a command returns an error.</param>
+        ''' <exception cref="CommandException">: command execution failed.</exception>
+        Public Function ProcessCommandAsync(command As Command, suppressError As Boolean) As Task(Of CommandResult)
             Dim resultTask As Task(Of CommandResult)
 
             resultTask = Task(Of CommandResult).Factory.StartNew(Function()
@@ -544,7 +653,7 @@ Namespace DuneUtilities
                                                                      If result IsNot Nothing Then
                                                                          Status = result
 
-                                                                         If result.CommandError IsNot Nothing Then
+                                                                         If suppressError.IsFalse AndAlso result.CommandError IsNot Nothing Then
                                                                              Throw result.CommandError
                                                                          End If
                                                                      End If
@@ -553,14 +662,6 @@ Namespace DuneUtilities
 
             Return resultTask
         End Function
-
-        ''' <summary>
-        ''' Helper method helps raising PropertyChanged events.
-        ''' </summary>
-        ''' <param name="propertyName">The name of the property that changed.</param>
-        Private Sub RaisePropertyChanged(propertyName As String)
-            RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(propertyName))
-        End Sub
 
         ''' <summary>
         ''' Closes the disc tray (if any) using a telnet connection.
@@ -609,14 +710,20 @@ Namespace DuneUtilities
 
 #Region "Properties v1"
 
+
         ''' <summary>
         ''' Gets the protocol version number.
         ''' </summary>
         <DisplayName("Protocol version")>
-        <Description("The API version.")>
+        <Description("Indicates the API version.")>
+        <Category("Player information")>
         Public ReadOnly Property ProtocolVersion As Version
             Get
-                Return Status.ProtocolVersion
+                If IsConnected Then
+                    Return Status.ProtocolVersion
+                Else
+                    Return Nothing
+                End If
             End Get
         End Property
 
@@ -624,10 +731,15 @@ Namespace DuneUtilities
         ''' Gets the status of the last command.
         ''' </summary>
         <DisplayName("Command status")>
-        <Description("The status of the last command")>
+        <Description("Indicates the status of the last command")>
+        <Category("Player information")>
         Public ReadOnly Property CommandStatus As String
             Get
-                Return Status.CommandStatus
+                If IsConnected Then
+                    Return Status.CommandStatus
+                Else
+                    Return String.Empty
+                End If
             End Get
         End Property
 
@@ -635,10 +747,15 @@ Namespace DuneUtilities
         ''' Gets the playback duration.
         ''' </summary>
         <DisplayName("Playback duration")>
-        <Description("The current playback duration.")>
+        <Description("Indicates the playback duration.")>
+        <Category("Playback information")>
         Public ReadOnly Property PlaybackDuration As System.TimeSpan?
             Get
-                Return Status.PlaybackDuration
+                If IsConnected Then
+                    Return Status.PlaybackDuration
+                Else
+                    Return Nothing
+                End If
             End Get
         End Property
 
@@ -646,10 +763,15 @@ Namespace DuneUtilities
         ''' Gets or sets the playback position.
         ''' </summary>
         <DisplayName("Playback position")>
-        <Description("The current playback position.")>
+        <Description("Indicates the current playback position.")>
+        <Category("Playback information")>
         Public Property PlaybackPosition As System.TimeSpan?
             Get
-                Return Status.PlaybackPosition
+                If IsConnected Then
+                    Return Status.PlaybackPosition
+                Else
+                    Return Nothing
+                End If
             End Get
             Set(value As System.TimeSpan?)
                 If Not value.HasValue Then
@@ -667,10 +789,19 @@ Namespace DuneUtilities
         ''' Gets or sets the playback speed.
         ''' </summary>
         <DisplayName("Playback speed")>
-        <Description("The playback speed.")>
+        <Description("Indicates the playback speed.")>
+        <Category("Playback information")>
         Public Property PlaybackSpeed As Constants.PlaybackSpeedSettings?
             Get
-                Return CType(Status.PlaybackSpeed, Constants.PlaybackSpeedSettings)
+                If IsConnected Then
+                    If Status.PlaybackSpeed.HasValue Then
+                        Return CType(Status.PlaybackSpeed, Constants.PlaybackSpeedSettings)
+                    Else
+                        Return Nothing
+                    End If
+                Else
+                    Return Nothing
+                End If
             End Get
             Set(value As Constants.PlaybackSpeedSettings?)
                 If Not value.HasValue Then
@@ -688,13 +819,19 @@ Namespace DuneUtilities
         ''' Gets the player state.
         ''' </summary>
         <DisplayName("Player state")>
-        <Description("The player state. Accepted values are ""main_screen"", ""black_screen"" or ""standby"".")>
+        <Description("Indicates the player state.")>
+        <Category("Player information")>
+        <TypeConverter(GetType(PlayerStateConverter))>
         Public Property PlayerState As String
             Get
-                Return Status.PlayerState
+                If IsConnected Then
+                    Return Status.PlayerState
+                Else
+                    Return String.Empty
+                End If
             End Get
             Set(value As String)
-                If value.IsNotNullOrWhiteSpace Then
+                If value.IsNullOrWhiteSpace Then
                     value = Constants.Commands.MainScreen
                 End If
 
@@ -705,24 +842,34 @@ Namespace DuneUtilities
         End Property
 
         ''' <summary>
-        ''' Gets the last command error.
+        ''' Gets whether a DVD menu is shown.
         ''' </summary>
-        <DisplayName("Command error")>
-        <Description("The last command error.")>
-        Public ReadOnly Property CommandError As CommandException
+        <DisplayName("DVD menu")>
+        <Description("Indicates whether the player is showing a DVD menu.")>
+        <Category("Playback information")>
+        Public ReadOnly Property PlaybackDvdMenu As Boolean?
             Get
-                Return Status.CommandError
+                If IsConnected Then
+                    Return Status.PlaybackDvdMenu
+                Else
+                    Return Nothing
+                End If
             End Get
         End Property
 
         ''' <summary>
-        ''' Gets whether a DVD menu is shown.
+        ''' Gets whether a Blu-ray menu is shown.
         ''' </summary>
-        <DisplayName("DVD menu")>
-        <Description("Displays whether the player is showing a DVD menu.")>
-        Public ReadOnly Property PlaybackDvdMenu As Boolean?
+        <DisplayName("Blu-ray menu")>
+        <Description("Indicates whether the player is showing a Blu-ray menu.")>
+        <Category("Playback information")>
+        Public ReadOnly Property PlaybackBlurayMenu As Boolean?
             Get
-                Return Status.PlaybackDvdMenu
+                If IsConnected Then
+                    Return Status.PlaybackBlurayMenu
+                Else
+                    Return Nothing
+                End If
             End Get
         End Property
 
@@ -730,10 +877,15 @@ Namespace DuneUtilities
         ''' Gets whether the playback is buffering.
         ''' </summary>
         <DisplayName("Playback buffering")>
-        <Description("Displays whether the playback is buffering.")>
+        <Description("Indicates whether the playback is buffering.")>
+        <Category("Playback information")>
         Public ReadOnly Property PlaybackIsBuffering As Boolean?
             Get
-                Return Status.PlaybackIsBuffering
+                If IsConnected Then
+                    Return Status.PlaybackIsBuffering
+                Else
+                    Return Nothing
+                End If
             End Get
         End Property
 
@@ -741,13 +893,14 @@ Namespace DuneUtilities
         ''' Sets whether to show a black screen during playback.
         ''' </summary>
         <DisplayName("Black screen")>
-        <Description("Disables both the OSD and video output.")>
+        <Description("Indicates whether to show a black screen.")>
+        <Category("Playback information")>
         Public Property BlackScreen As Boolean?
             Get
-                Return Nothing
+                Return Nothing ' because this parameter is not supplied in the command results
             End Get
             Set(value As Boolean?)
-                If Not value.HasValue Then
+                If Not value.HasValue Then ' default to false
                     value = False
                 End If
 
@@ -756,17 +909,17 @@ Namespace DuneUtilities
 
                 ProcessCommand(command)
             End Set
-
         End Property
 
         ''' <summary>
         ''' Sets whether to hide the OSD during playback.
         ''' </summary>
         <DisplayName("Hide on-screen display")>
-        <Description("Disables all overlay menu items such as the pop-up menu.")>
+        <Description("indicates whether to hide overlay graphics.")>
+        <Category("Playback information")>
         Public Property HideOnScreenDisplay As Boolean?
             Get
-                Return Nothing
+                Return Nothing ' because this parameter is not supplied in the command results
             End Get
             Set(value As Boolean?)
                 If Not value.HasValue Then
@@ -790,10 +943,15 @@ Namespace DuneUtilities
         ''' <value>A positive integer value between 0 and 100.</value>
         ''' <remarks>A maximum volume of 150 can be set using the remote control by holding 'volume up' for longer than usual.</remarks>
         <DisplayName("Playback volume")>
-        <Description("The playback volume percentage.")>
+        <Description("Indicates the playback volume percentage.")>
+        <Category("Playback information")>
         Public Property PlaybackVolume As UShort?
             Get
-                Return Status.PlaybackVolume
+                If IsConnected Then
+                    Return Status.PlaybackVolume
+                Else
+                    Return Nothing
+                End If
             End Get
             Set(value As UShort?)
                 If Not value.HasValue Or value > 100 Then
@@ -803,7 +961,12 @@ Namespace DuneUtilities
                 Dim command As New SetPlaybackStateCommand(Me)
                 command.PlaybackVolume = value
 
-                ProcessCommand(command)
+                Try
+                    ProcessCommand(command)
+                Catch ex As CommandException
+                    RaisePropertyChanged("PlaybackVolume")
+                    Throw ex
+                End Try
             End Set
         End Property
 
@@ -811,10 +974,15 @@ Namespace DuneUtilities
         ''' Gets or sets the mute status for the current playback.
         ''' </summary>
         <DisplayName("Playback mute")>
-        <Description("Enables or disables audio output.")>
+        <Description("Indicates whether the volume is muted.")>
+        <Category("Playback information")>
         Public Property PlaybackMute As Boolean?
             Get
-                Return Status.PlaybackMute
+                If IsConnected Then
+                    Return Status.PlaybackMute
+                Else
+                    Return Nothing
+                End If
             End Get
             Set(value As Boolean?)
                 If Not value.HasValue Then
@@ -829,13 +997,18 @@ Namespace DuneUtilities
         End Property
 
         ''' <summary>
-        ''' Gets or sets the current language track number.
+        ''' Gets or sets the current audio track number.
         ''' </summary>
         <DisplayName("Audio track")>
-        <Description("The language track number that is currently playing. Not to be confused with the track number in a playlist.")>
+        <Description("Indicates the active audio track. Not to be confused with the track number in a playlist.")>
+        <Category("Playback information")>
         Public Property AudioTrack As UShort?
             Get
-                Return Status.AudioTrack
+                If IsConnected Then
+                    Return Status.AudioTrack
+                Else
+                    Return Nothing
+                End If
             End Get
             Set(value As UShort?)
                 If Not value.HasValue Then
@@ -854,10 +1027,15 @@ Namespace DuneUtilities
         ''' </summary>
         ''' <returns>An instance of a <see cref="SortedDictionary(Of UShort, CultureInfo)" /> object that represents the list of available audio tracks.</returns>
         <DisplayName("Audio tracks")>
-        <Description("The collection of language tracks in the current playback. Not to be confused with the amount of tracks in a playlist.")>
+        <Description("The collection of audio tracks in the current playback.")>
+        <Category("Playback information")>
         Public ReadOnly Property AudioTracks As SortedList(Of UShort, LanguageTrack)
             Get
-                Return Status.AudioTracks
+                If IsConnected Then
+                    Return Status.AudioTracks
+                Else
+                    Return New SortedList(Of UShort, LanguageTrack)
+                End If
             End Get
         End Property
 
@@ -865,10 +1043,15 @@ Namespace DuneUtilities
         ''' Gets or sets whether the video output is enabled.
         ''' </summary>
         <DisplayName("Video enabled")>
-        <Description("Disabling the video does not hide the on-screen display.")>
+        <Description("Indicates whether video output is enabled.")>
+        <Category("Playback information")>
         Public Property VideoEnabled As Boolean?
             Get
-                Return Status.VideoEnabled
+                If IsConnected Then
+                    Return Status.VideoEnabled
+                Else
+                    Return Nothing
+                End If
             End Get
             Set(value As Boolean?)
                 If Not value.HasValue Then
@@ -886,10 +1069,15 @@ Namespace DuneUtilities
         ''' Gets the total display height.
         ''' </summary>
         <DisplayName("Display height")>
-        <Description("The total amount of pixels in the display height.")>
+        <Description("Indicates the total available display height.")>
+        <Category("Player information")>
         Public ReadOnly Property OnScreenDisplayHeight As UShort?
             Get
-                Return Status.OnScreenDisplayHeight
+                If IsConnected Then
+                    Return Status.OnScreenDisplayHeight
+                Else
+                    Return Nothing
+                End If
             End Get
         End Property
 
@@ -897,10 +1085,15 @@ Namespace DuneUtilities
         ''' Gets the total display width.
         ''' </summary>
         <DisplayName("Display width")>
-        <Description("The total amount of pixels in the display width.")>
+        <Description("Indicates the total available display width.")>
+        <Category("Player information")>
         Public ReadOnly Property OnScreenDisplayWidth As UShort?
             Get
-                Return Status.OnScreenDisplayWidth
+                If IsConnected Then
+                    Return Status.OnScreenDisplayWidth
+                Else
+                    Return Nothing
+                End If
             End Get
         End Property
 
@@ -908,10 +1101,15 @@ Namespace DuneUtilities
         ''' Gets whether the video output is fullscreen.
         ''' </summary>
         <DisplayName("Fullscreen")>
-        <Description("Displays whether the video is in full screen or if custom video output settings are applied. Note that custom settings can mimic fullscreen.")>
+        <Description("Indicates whether custom playback window zoom settings are applied.")>
+        <Category("Playback information")>
         Public Property PlaybackWindowFullscreen As Boolean?
             Get
-                Return Status.PlaybackWindowFullscreen
+                If IsConnected Then
+                    Return Status.PlaybackWindowFullscreen
+                Else
+                    Return Nothing
+                End If
             End Get
             Set(value As Boolean?)
                 If Not value.HasValue Then
@@ -928,10 +1126,21 @@ Namespace DuneUtilities
         ''' Gets the playback window rectangle's horizontal offset.
         ''' </summary>
         <DisplayName("Playback window horizontal offset")>
-        <Description("The offset between the left border of the display and the video output.")>
+        <Description("Indicates the playback window rectangle's horizontal offset.")>
+        <Category("Playback information")>
         Public Property PlaybackWindowRectangleHorizontalOffset As UShort?
             Get
-                Return Status.PlaybackWindowRectangleHorizontalOffset
+                If IsConnected Then
+                    If Status.PlaybackWindowRectangleHorizontalOffset.HasValue Then ' return the actual value
+                        Return Status.PlaybackWindowRectangleHorizontalOffset
+                    ElseIf PlaybackWindowFullscreen = True Then ' return the default value
+                        Return 0
+                    Else
+                        Return Nothing
+                    End If
+                Else
+                    Return Nothing
+                End If
             End Get
             Set(value As UShort?)
                 If Not value.HasValue Then
@@ -956,10 +1165,21 @@ Namespace DuneUtilities
         ''' Gets or sets the playback window rectangle's vertical offset.
         ''' </summary>
         <DisplayName("Playback window vertical offset")>
-        <Description("The offset between the top border of the display and the video output.")>
+        <Description("Indicates the playback window rectangle's vertical offset.")>
+        <Category("Playback information")>
         Public Property PlaybackWindowRectangleVerticalOffset As UShort?
             Get
-                Return Status.PlaybackWindowRectangleVerticalOffset
+                If IsConnected Then
+                    If Status.PlaybackWindowRectangleVerticalOffset.HasValue Then ' return the actual value
+                        Return Status.PlaybackWindowRectangleVerticalOffset
+                    ElseIf Status.PlaybackWindowFullscreen = True Then ' return the default value
+                        Return 0
+                    Else
+                        Return Nothing
+                    End If
+                Else
+                    Return Nothing
+                End If
             End Get
             Set(value As UShort?)
                 If Not value.HasValue Then
@@ -981,16 +1201,21 @@ Namespace DuneUtilities
         End Property
 
         ''' <summary>
-        ''' Gets or sets the playback window rectangle width.
+        ''' Gets or sets the playback window rectangle's width.
         ''' </summary>
         <DisplayName("Playback window width")>
-        <Description("The playback window rectangle width.")>
+        <Description("Indicates the playback window rectangle's width.")>
+        <Category("Playback information")>
         Public Property PlaybackWindowRectangleWidth As UShort?
             Get
-                If Status.PlaybackWindowRectangleWidth.HasValue Then
-                    Return Status.PlaybackWindowRectangleWidth
+                If IsConnected Then
+                    If Status.PlaybackWindowRectangleWidth.HasValue Then
+                        Return Status.PlaybackWindowRectangleWidth
+                    Else
+                        Return Status.OnScreenDisplayWidth
+                    End If
                 Else
-                    Return Status.OnScreenDisplayWidth
+                    Return Nothing
                 End If
             End Get
             Set(value As UShort?)
@@ -1013,16 +1238,21 @@ Namespace DuneUtilities
         End Property
 
         ''' <summary>
-        ''' Gets or sets the playback window rectangle height.
+        ''' Gets or sets the playback window rectangle's height.
         ''' </summary>
         <DisplayName("Playback window height")>
-        <Description("The video playback window rectangle height.")>
+        <Description("Indicates the playback window rectangle's height.")>
+        <Category("Playback information")>
         Public Property PlaybackWindowRectangleHeight As UShort?
             Get
-                If Status.PlaybackWindowRectangleHeight.HasValue Then
-                    Return Status.PlaybackWindowRectangleHeight
+                If IsConnected Then
+                    If Status.PlaybackWindowRectangleHeight.HasValue Then
+                        Return Status.PlaybackWindowRectangleHeight
+                    Else
+                        Return Status.OnScreenDisplayHeight
+                    End If
                 Else
-                    Return Status.OnScreenDisplayHeight
+                    Return Nothing
                 End If
             End Get
             Set(value As UShort?)
@@ -1045,16 +1275,22 @@ Namespace DuneUtilities
         End Property
 
         ''' <summary>
-        ''' Gets or sets the video zoom.
+        ''' Gets or sets the video zoom preset.
         ''' </summary>
         <DisplayName("Video zoom")>
-        <Description("The video output's zoom mode. Accepted values are ""normal"", ""enlarge"", ""make_wider"", ""fill_screen"", ""full_fill_screen"", ""make_taller"" or ""cut_edges"".")>
+        <Description("Indicates the video zoom mode.")>
+        <Category("Playback information")>
+        <TypeConverter(GetType(ZoomConverter))>
         Public Property VideoZoom As String
             Get
-                Return Status.VideoZoom
+                If IsConnected Then
+                    Return Status.VideoZoom
+                Else
+                    Return String.Empty
+                End If
             End Get
             Set(value As String)
-                If value.IsNotNullOrWhiteSpace Then
+                If value.IsNullOrWhiteSpace Then
                     value = Constants.VideoZoomSettings.Normal
                 End If
 
@@ -1073,10 +1309,15 @@ Namespace DuneUtilities
         ''' Gets the current playback state.
         ''' </summary>
         <DisplayName("Playback state")>
-        <Description("The current playback state.")>
+        <Description("Indicates the current playback state.")>
+        <Category("Playback information")>
         Public ReadOnly Property PlaybackState As String
             Get
-                Return Status.PlaybackState
+                If IsConnected Then
+                    Return Status.PlaybackState
+                Else
+                    Return String.Empty
+                End If
             End Get
         End Property
 
@@ -1084,10 +1325,15 @@ Namespace DuneUtilities
         ''' Gets the previous playback state.
         ''' </summary>
         <DisplayName("Previous playback state")>
-        <Description("The previous playback state.")>
+        <Description("Indicates the previous playback state.")>
+        <Category("Playback information")>
         Public ReadOnly Property PreviousPlaybackState As String
             Get
-                Return Status.PreviousPlaybackState
+                If IsConnected Then
+                    Return Status.PreviousPlaybackState
+                Else
+                    Return String.Empty
+                End If
             End Get
         End Property
 
@@ -1095,10 +1341,15 @@ Namespace DuneUtilities
         ''' Gets the last playback event.
         ''' </summary>
         <DisplayName("Last playback event")>
-        <Description("The last playback event.")>
+        <Description("Indicates the last playback event.")>
+        <Category("Player information")>
         Public ReadOnly Property LastPlaybackEvent As String
             Get
-                Return Status.LastPlaybackEvent
+                If IsConnected Then
+                    Return Status.LastPlaybackEvent
+                Else
+                    Return String.Empty
+                End If
             End Get
         End Property
 
@@ -1106,46 +1357,72 @@ Namespace DuneUtilities
         ''' Gets the media URL for the current playback.
         ''' </summary>
         <DisplayName("Playback URL")>
-        <Description("The media URL that is currently playing.")>
+        <Description("Indicates the media URL that is currently playing.")>
+        <Category("Playback information")>
         Public ReadOnly Property PlaybackUrl As String
             Get
-                Return Status.PlaybackUrl
+                If IsConnected Then
+                    Return Status.PlaybackUrl
+                Else
+                    Return String.Empty
+                End If
             End Get
         End Property
 
         ''' <summary>
-        ''' Gets the video width of the current playback.
+        ''' Gets the current video stream's horizontal resolution.
         ''' </summary>
         <DisplayName("Video width")>
-        <Description("The video width of the file that is currently playing.")>
+        <Description("Indicates the current video stream's horizontal resolution.")>
+        <Category("Playback information")>
         Public ReadOnly Property PlaybackVideoWidth As UShort?
             Get
-                Return Status.PlaybackVideoWidth
+                If IsConnected Then
+                    Return Status.PlaybackVideoWidth
+                Else
+                    Return Nothing
+                End If
             End Get
         End Property
 
         ''' <summary>
-        ''' Gets the video height of the current playback.
+        ''' Gets the current video stream's vertical resolution.
         ''' </summary>
         <DisplayName("Video height")>
-        <Description("The video height of the file that is currently playing.")>
+        <Description("Indicates the current video stream's vertical resolution.")>
+        <Category("Playback information")>
         Public ReadOnly Property PlaybackVideoHeight As UShort?
             Get
-                Return Status.PlaybackVideoHeight
+                If IsConnected Then
+                    Return Status.PlaybackVideoHeight
+                Else
+                    Return Nothing
+                End If
             End Get
         End Property
 
         ''' <summary>
-        ''' Gets or sets the playback clip rectangle's horizontal offset.
+        ''' Gets or sets the visible screen rectangle's horizontal offset.
         ''' </summary>
         <DisplayName("Playback clip horizontal offset")>
-        <Description("The playback clip rectangle's horizontal offset.")>
+        <Description("Indicates the visible screen rectangle's horizontal offset.")>
+        <Category("Playback information")>
         Public Property PlaybackClipRectangleHorizontalOffset As UShort?
             Get
-                Return Status.PlaybackClipRectangleHorizontalOffset
+                If IsConnected Then
+                    If Status.PlaybackClipRectangleHorizontalOffset.HasValue Then
+                        Return Status.PlaybackClipRectangleHorizontalOffset
+                    ElseIf Status.OnScreenDisplayWidth.HasValue Then
+                        Return 0
+                    Else
+                        Return Nothing
+                    End If
+                Else
+                    Return Nothing
+                End If
             End Get
             Set(value As UShort?)
-                If Not value.HasValue Then
+                If Not value.HasValue Then ' default to 0
                     value = 0
                 End If
 
@@ -1164,13 +1441,24 @@ Namespace DuneUtilities
         End Property
 
         ''' <summary>
-        ''' Gets or sets the playback clip rectangle's vertical offset.
+        ''' Gets or sets the visible screen rectangle's vertical offset.
         ''' </summary>
         <DisplayName("Playback clip vertical offset")>
-        <Description("The playback clip rectangle's vertical offset.")>
+        <Description("Indicates the visible screen rectangle's vertical offset.")>
+        <Category("Playback information")>
         Public Property PlaybackClipRectangleVerticalOffset As UShort?
             Get
-                Return Status.PlaybackClipRectangleVerticalOffset
+                If IsConnected Then
+                    If Status.PlaybackClipRectangleVerticalOffset.HasValue Then
+                        Return Status.PlaybackClipRectangleVerticalOffset
+                    ElseIf Status.OnScreenDisplayHeight.HasValue Then
+                        Return 0
+                    Else
+                        Return Nothing
+                    End If
+                Else
+                    Return Nothing
+                End If
             End Get
             Set(value As UShort?)
                 If Not value.HasValue Then
@@ -1194,17 +1482,26 @@ Namespace DuneUtilities
         End Property
 
         ''' <summary>
-        ''' Gets or sets the playback clip rectangle's width.
+        ''' Gets or sets the visible screen rectangle's width.
         ''' </summary>
         <DisplayName("Playback clip width")>
-        <Description("The playback clip rectangle's width.")>
+        <Description("Indicates the visible screen rectangle's width.")>
+        <Category("Playback information")>
         Public Property PlaybackClipRectangleWidth As UShort?
             Get
-                Return Status.PlaybackClipRectangleWidth
+                If IsConnected Then
+                    If Status.PlaybackClipRectangleWidth.HasValue Then
+                        Return Status.PlaybackClipRectangleWidth
+                    Else
+                        Return Status.OnScreenDisplayWidth
+                    End If
+                Else
+                    Return Nothing
+                End If
             End Get
             Set(value As UShort?)
-                If Not value.HasValue Then
-                    value = PlaybackVideoWidth
+                If Not value.HasValue Then ' default to fullscreen width
+                    value = Status.OnScreenDisplayWidth
                 End If
 
                 Dim command As SetPlaybackClipZoomCommand
@@ -1222,17 +1519,26 @@ Namespace DuneUtilities
         End Property
 
         ''' <summary>
-        ''' Gets or sets the playback clip rectangle's height.
+        ''' Gets or sets the visible screen rectangle's height.
         ''' </summary>
         <DisplayName("Playback clip height")>
-        <Description("The playback clip rectangle's height.")>
+        <Description("Indicates the visible screen rectangle's height.")>
+        <Category("Playback information")>
         Public Property PlaybackClipRectangleHeight As UShort?
             Get
-                Return Status.PlaybackClipRectangleHeight
+                If IsConnected Then
+                    If Status.PlaybackClipRectangleHeight.HasValue Then
+                        Return Status.PlaybackClipRectangleHeight
+                    Else
+                        Return Status.OnScreenDisplayHeight
+                    End If
+                Else
+                    Return Nothing
+                End If
             End Get
             Set(value As UShort?)
-                If Not value.HasValue Then
-                    value = PlaybackVideoHeight
+                If Not value.HasValue Then ' default to fullscreen height
+                    value = Status.OnScreenDisplayHeight
                 End If
 
                 Dim command As SetPlaybackClipZoomCommand
@@ -1250,11 +1556,18 @@ Namespace DuneUtilities
         End Property
 
         ''' <summary>
-        ''' Gets or sets whether to show video on top.
+        ''' Gets or sets whether to show video on top of overlay graphics.
         ''' </summary>
+        <DisplayName("Video on top")>
+        <Description("Indicates whether video is shown on top of overlay graphics.")>
+        <Category("Playback information")>
         Public Property VideoOnTop As Boolean?
             Get
-                Return Status.VideoOnTop
+                If IsConnected Then
+                    Return Status.VideoOnTop
+                Else
+                    Return Nothing
+                End If
             End Get
             Set(value As Boolean?)
                 If Not value.HasValue Then
@@ -1271,9 +1584,16 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Gets or sets the active subtitle track.
         ''' </summary>
+        <DisplayName("Subtitles track")>
+        <Description("Indicates the active subtitles track.")>
+        <Category("Playback information")>
         Public Property SubtitlesTrack As UShort?
             Get
-                Return Status.SubtitlesTrack
+                If IsConnected Then
+                    Return Status.SubtitlesTrack
+                Else
+                    Return Nothing
+                End If
             End Get
             Set(value As UShort?)
                 If Not value.HasValue Then
@@ -1292,18 +1612,30 @@ Namespace DuneUtilities
         ''' </summary>
         <DisplayName("Subtitles")>
         <Description("The collection of subtitle tracks in the current playback.")>
+        <Category("Playback information")>
         Public ReadOnly Property Subtitles As SortedList(Of UShort, LanguageTrack)
             Get
-                Return Status.Subtitles
+                If IsConnected Then
+                    Return Status.Subtitles
+                Else
+                    Return New SortedList(Of UShort, LanguageTrack)
+                End If
             End Get
         End Property
 
         ''' <summary>
         ''' Gets or sets the text in the current input field, if any.
         ''' </summary>
+        <DisplayName("Text")>
+        <Description("Indicates the text in the text editor.")>
+        <Category("Text editor")>
         Public Property Text As String
             Get
-                Return Status.Text
+                If IsConnected Then
+                    Return _text
+                Else
+                    Return String.Empty
+                End If
             End Get
             Set(value As String)
                 Dim command As New SetTextCommand(Me, value)
@@ -1315,6 +1647,14 @@ Namespace DuneUtilities
 #End Region ' Properties v3
 
 #Region "Methods v1"
+
+        ''' <summary>
+        ''' Gets the player status.
+        ''' </summary>
+        Public Function GetStatus() As CommandResult
+            Dim command As New GetStatusCommand(Me)
+            Return ProcessCommand(command)
+        End Function
 
         ''' <summary>
         ''' Navigates to the previous keyframe during DVD or MKV playback.
@@ -1371,35 +1711,104 @@ Namespace DuneUtilities
             Return ProcessCommand(command)
         End Function
 
+#End Region ' Methods v1
+
+#Region "Methods v2"
+
         ''' <summary>
-        ''' Gets the player status.
+        ''' Scales the playback window rectangle to the specified aspect ratio (x:y), but keeps it centered on the display.
         ''' </summary>
-        Public Function GetStatus() As CommandResult
-            Dim command As New GetStatusCommand(Me)
+        Public Function SetAspectRatio(x As Double, y As Double) As CommandResult
+            Dim width As UShort
+            Dim height As UShort
+            Dim ratio As Double = x / y
+            Dim screenRatio As Double = CDbl(Status.OnScreenDisplayWidth / Status.OnScreenDisplayHeight)
+
+            height = CUShort(Status.OnScreenDisplayHeight)
+            width = CUShort((Status.OnScreenDisplayHeight / y) * x)
+
+            If width > Status.OnScreenDisplayWidth Then
+                Dim scaleFactor As Double = screenRatio / ratio
+                height = CUShort(height * scaleFactor)
+                width = CUShort(width * scaleFactor)
+            End If
+
+            Return ScalePlaybackWindow(width, height)
+        End Function
+
+        ''' <summary>
+        ''' Scales the playback window to the specified amount of horizontal lines, but keeps it centered on the display while preserving the aspect ratio.
+        ''' </summary>
+        Public Function ScalePlaybackWindow(height As UShort) As CommandResult
+            Dim screenRatio As Double = CDbl(Status.OnScreenDisplayWidth / Status.OnScreenDisplayHeight)
+            Dim width As UShort = CUShort(height * screenRatio)
+            Return ScalePlaybackWindow(width, height)
+        End Function
+
+        ''' <summary>
+        ''' Resizes the playback window rectangle to the specified width and height, but keeps it centered on the display.
+        ''' </summary>
+        Public Function ScalePlaybackWindow(width As UShort, height As UShort) As CommandResult
+            Dim horizontalMargins As UShort = CUShort((Status.OnScreenDisplayWidth - width) / 2)
+            Dim verticalMargins As UShort = CUShort((Status.OnScreenDisplayHeight - height) / 2)
+            Dim command As New SetPlaybackWindowZoomCommand(Me, horizontalMargins, verticalMargins, width, height)
             Return ProcessCommand(command)
         End Function
 
-#End Region ' Methods v1
+#End Region ' Methods v2
 
 #Region "Methods v3"
 
+        ''' <summary>
+        ''' Gets text from the selected text input field, if any.
+        ''' </summary>
         Public Function GetText() As CommandResult
             Dim command As New GetTextCommand(Me)
             Return ProcessCommand(command)
         End Function
 
+        ''' <summary>
+        ''' Tries to get text from the selected text input field.
+        ''' </summary>
+        ''' <param name="text">The string variable that will be populated with text from the input field.</param>
+        ''' <returns>True if text is returned; otherwise false.</returns>
+        ''' <remarks>I felt that this function is necessary because cmd=get_text is basically the same as a cmd=status, yet can return command errors.</remarks>
+        Public Function TryGetText(ByRef text As String) As Boolean
+            Dim command As New GetTextCommand(Me)
+            Dim result As CommandResult = ProcessCommand(command, True)
+            If result.CommandStatus <> Constants.Status.Failed Then
+                text = result.Text
+                Return True
+            Else
+                Return False
+            End If
+        End Function
+
+        ''' <summary>
+        ''' Sets text to the selected text input field, if any.
+        ''' </summary>
         Public Function SetText(text As String) As CommandResult
             Dim command As New SetTextCommand(Me, text)
-            Return (ProcessCommand(command))
+            Return ProcessCommand(command)
         End Function
 
 #End Region ' Methods v3
 
 #Region "App events"
 
+        'TODO: consider adding connected/disconnected events
+
 #End Region ' App events
 
 #Region "Interface implementations"
+
+        ''' <summary>
+        ''' Helper method helps raising PropertyChanged events.
+        ''' </summary>
+        ''' <param name="propertyName">The name of the property that changed.</param>
+        Private Sub RaisePropertyChanged(propertyName As String)
+            RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(propertyName))
+        End Sub
 
         ''' <summary>
         ''' INotifyPropertyChanged implementation.
@@ -1407,8 +1816,6 @@ Namespace DuneUtilities
         Public Event PropertyChanged(sender As Object, e As System.ComponentModel.PropertyChangedEventArgs) Implements System.ComponentModel.INotifyPropertyChanged.PropertyChanged
 
 #End Region
-
-
 
     End Class
 

@@ -58,17 +58,23 @@ Namespace DuneUtilities.ApiWrappers
         End Property
 
         ''' <summary>
-        ''' Gets the base command URL, without command parameters, in the form of: http://DUNEIP[:PORT]/cgi-bin/do.
+        ''' Gets the base command URL, without command parameters, in the form of: http://address[:port]/cgi-bin/do.
         ''' </summary>
-        Protected ReadOnly Property CommandBase As String
-            Get
-                If Target.Port = 80 Then
-                    Return String.Format("http://{0}/cgi-bin/do", Target.Address, Target.Port)
-                Else
-                    Return String.Format("http://{0}:{1}/cgi-bin/do", Target.Address, Target.Port)
-                End If
-            End Get
-        End Property
+        Protected Function GetCommandBase() As String
+            Dim address As New Text.StringBuilder
+
+            If Target.Address IsNot Nothing Then
+                address.Append(Target.Address.ToString)
+            Else
+                address.Append(Target.Hostname)
+            End If
+
+            If Target.Port <> 80 Then
+                address.Append(Target.Port)
+            End If
+
+            Return String.Format("http://{0}/cgi-bin/do", address.ToString)
+        End Function
 
         Protected MustOverride Function GetQuery() As NameValueCollection
 
@@ -113,9 +119,9 @@ Namespace DuneUtilities.ApiWrappers
             Dim requestUri As Uri
 
             If Method = WebRequestMethods.Http.Get Then
-                requestUri = New Uri(CommandBase + "?" + GetQueryString())
+                requestUri = New Uri(GetCommandBase() + "?" + GetQueryString())
             Else ' If Method = WebRequestMethods.Http.Post Then
-                requestUri = New Uri(CommandBase)
+                requestUri = New Uri(GetCommandBase)
             End If
 
             request = WebRequest.Create(requestUri)

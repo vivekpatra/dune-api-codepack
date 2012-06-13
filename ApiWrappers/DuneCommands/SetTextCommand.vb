@@ -28,7 +28,7 @@ Namespace DuneUtilities.ApiWrappers
 
         Protected Overrides Function GetQuery() As NameValueCollection
             Dim query As New NameValueCollection
-            query.Add("cmd", Constants.Commands.GetText)
+            query.Add("cmd", Constants.Commands.SetText)
             query.Add(Constants.SetTextParameters.Text, Text)
             Return query
         End Function

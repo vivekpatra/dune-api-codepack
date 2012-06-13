@@ -18,7 +18,7 @@ Namespace DuneUtilities.ApiWrappers
         Private _rawData As NameValueCollection
         Private _roundTripTime As TimeSpan
         Private _requestDateTime As Date
-
+        Private _isValidResponse As Boolean
 
         ' command result parameters
         Private _commandStatus As String
@@ -47,6 +47,7 @@ Namespace DuneUtilities.ApiWrappers
         Private _errorDescription As String
         Private _commandError As CommandException
         Private _playbackDvdMenu As Boolean?
+        Private _playbackBlurayMenu As Boolean?
         Private _playbackClipRectangleX As UShort?
         Private _playbackClipRectangleY As UShort?
         Private _playbackClipRectangleWidth As UShort?
@@ -79,6 +80,15 @@ Namespace DuneUtilities.ApiWrappers
         End Sub
 
 #Region "Properties"
+
+        ''' <summary>
+        ''' Gets whether the command returned a valid command result.
+        ''' </summary>
+        Friend ReadOnly Property IsValidReponse As Boolean
+            Get
+                Return _isValidResponse
+            End Get
+        End Property
 
         ''' <summary>
         ''' Gets the date and time indicating when the command was executed.
@@ -338,11 +348,20 @@ Namespace DuneUtilities.ApiWrappers
         End Property
 
         ''' <summary>
-        ''' Gets whether a dvd menu is currently shown.
+        ''' Gets whether a DVD menu is currently shown.
         ''' </summary>
         Public ReadOnly Property PlaybackDvdMenu As Boolean?
             Get
                 Return _playbackDvdMenu
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Gets whether a Blu-ray menu is currently shown.
+        ''' </summary>
+        Public ReadOnly Property PlaybackBlurayMenu As Boolean?
+            Get
+                Return _playbackBlurayMenu
             End Get
         End Property
 
@@ -479,7 +498,10 @@ Namespace DuneUtilities.ApiWrappers
                 RawData.Add(name, value)
             Next
 
-            ProcessParameter()
+            If RawData.Count > 0 Then
+                _isValidResponse = True
+                ProcessParameter()
+            End If
         End Sub
 
         ''' <summary>
@@ -511,17 +533,17 @@ Namespace DuneUtilities.ApiWrappers
                                         _playbackTimeRemaining = PlaybackDuration - PlaybackPosition
                                     End If
                                 Case Constants.CommandResults.PlaybackIsBuffering
-                                    _playbackIsBuffering = value.Equals("1")
+                                    _playbackIsBuffering = value.ToBoolean
                                 Case Constants.CommandResults.PlaybackVolume
                                     _playbackVolume = CUShort(value)
                                 Case Constants.CommandResults.PlaybackMute
-                                    _playbackMute = value.Equals("1")
+                                    _playbackMute = value.ToBoolean
                                 Case Constants.CommandResults.AudioTrack
                                     _audioTrack = CUShort(value)
                                 Case Constants.CommandResults.SubtitlesTrack
                                     _subtitlesTrack = CUShort(value)
                                 Case Constants.CommandResults.VideoFullscreen, Constants.CommandResults.PlaybackWindowFullscreen
-                                    _playbackWindowFullscreen = value.Equals("1")
+                                    _playbackWindowFullscreen = value.ToBoolean
                                 Case Constants.CommandResults.VideoX, Constants.CommandResults.PlaybackWindowRectangleX
                                     _playbackWindowRectangleX = CUShort(value)
                                 Case Constants.CommandResults.VideoY, Constants.CommandResults.PlaybackWindowRectangleY
@@ -535,7 +557,7 @@ Namespace DuneUtilities.ApiWrappers
                                 Case Constants.CommandResults.VideoTotalDisplayHeight, Constants.CommandResults.OnScreenDisplayHeight
                                     _onScreenDisplayHeight = CUShort(value)
                                 Case Constants.CommandResults.VideoEnabled
-                                    _videoEnabled = value.Equals("1")
+                                    _videoEnabled = value.ToBoolean
                                 Case Constants.CommandResults.VideoZoom
                                     _videoZoom = value
                                 Case Constants.CommandResults.ErrorKind
@@ -545,7 +567,9 @@ Namespace DuneUtilities.ApiWrappers
                                     _commandError = New CommandException(_errorKind, _errorDescription)
                                     _commandError.Source = _command.ToString
                                 Case Constants.CommandResults.PlaybackDvdMenu
-                                    _playbackDvdMenu = value.Equals("1")
+                                    _playbackDvdMenu = value.ToBoolean
+                                Case Constants.CommandResults.PlaybackBlurayMenu
+                                    _playbackBlurayMenu = value.ToBoolean
                                 Case Constants.CommandResults.PlaybackState
                                     _playbackState = value
                                 Case Constants.CommandResults.PreviousPlaybackState
@@ -555,18 +579,18 @@ Namespace DuneUtilities.ApiWrappers
                                 Case Constants.CommandResults.PlaybackUrl
                                     _playbackUrl = value
                                 Case Constants.CommandResults.PlaybackWindowFullscreen
-                                    _playbackWindowFullscreen = value.Equals("1")
+                                    _playbackWindowFullscreen = value.ToBoolean
                                 Case Constants.CommandResults.OnScreenDisplayWidth
                                     _onScreenDisplayWidth = CUShort(value)
                                 Case Constants.CommandResults.OnScreenDisplayHeight
                                     _onScreenDisplayHeight = CUShort(value)
                                 Case Constants.CommandResults.VideoOnTop
-                                    _videoOnTop = value.Equals("1")
+                                    _videoOnTop = value.ToBoolean
                                 Case Constants.CommandResults.PlaybackClipRectangleX
                                     _playbackClipRectangleX = CUShort(value)
                                 Case Constants.CommandResults.PlaybackClipRectangleY
                                     _playbackClipRectangleY = CUShort(value)
-                                Case Constants.CommandResults.PlaybackWindowRectangleWidth
+                                Case Constants.CommandResults.PlaybackClipRectangleWidth
                                     _playbackClipRectangleWidth = CUShort(value)
                                 Case Constants.CommandResults.PlaybackClipRectangleHeight
                                     _playbackClipRectangleHeight = CUShort(value)

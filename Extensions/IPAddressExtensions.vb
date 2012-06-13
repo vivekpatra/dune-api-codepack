@@ -48,6 +48,22 @@ Namespace Extensions
             Return networkAddress1.Equals(networkAddress2)
         End Function
 
+        ''' <summary>
+        ''' Gets a list of all IPv4 addresses from the IPAddress array.
+        ''' </summary>
+        <Extension()>
+        Public Function GetIPv4Addresses(addressList As IPAddress()) As IPAddress()
+            Dim list As New ArrayList
+
+            For Each address In addressList
+                If address.AddressFamily = Sockets.AddressFamily.InterNetwork Then
+                    list.Add(address)
+                End If
+            Next
+
+            Return DirectCast(list.ToArray(GetType(IPAddress)), IPAddress())
+        End Function
+
     End Module
 
 End Namespace

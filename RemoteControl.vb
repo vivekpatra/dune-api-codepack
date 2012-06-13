@@ -4,7 +4,6 @@ Namespace DuneUtilities
 
     ''' <summary>This class represents a standard remote control, much like the physical remote that comes with the box.</summary>
     Public Class RemoteControl
-
         Private _target As Dune
         Private _lastButton As UShort
 
@@ -65,18 +64,6 @@ Namespace DuneUtilities
                 Return _target
             End Get
         End Property
-
-        Public Overrides Function ToString() As String
-            Dim lastButton As String
-
-            If _lastButton > 0 Then
-                lastButton = _lastButton.ToString
-            Else
-                lastButton = "None"
-            End If
-            Dim text As String = "Last button push: " + lastButton.ToString
-            Return text
-        End Function
     End Class
 
 End Namespace

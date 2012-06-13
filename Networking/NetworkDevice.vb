@@ -40,8 +40,8 @@ Namespace Networking
                 Return NetworkAdapter.PhysicalAddress.ToString.Contains("0016E8")
             Else
                 Try
-                    Dim dune As New DuneUtilities.Dune(Host)
-                    Return True
+                    Dim dune As DuneUtilities.Dune = New DuneUtilities.Dune(Host)
+                    Return dune.IsConnected
                 Catch ex As Exception
                     Return False
                 End Try

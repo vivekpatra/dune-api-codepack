@@ -55,8 +55,7 @@
         ''' <summary>Playback speed in decimal form. Possible values are enumerated in <see cref="Constants.PlaybackSpeedSettings"/>.</summary>
         Public Const PlaybackSpeed As String = "speed"
         ''' <summary>Playback position in seconds (defaults to 0).</summary>
-        ''' <remarks>NOTE: restricted to values 0 and 256 (paused and normal).</remarks>
-        Public Const PlaybackPosition As String = "position" ' NOTE: restricted to values 0 and 256 (paused or normal)
+        Public Const PlaybackPosition As String = "position"
         ''' <summary>1 to show a black screen; otherwise 0 (defaults to 0)</summary>
         Public Const BlackScreen As String = "black_screen"
         ''' <summary>1 to hide the on-screen display; otherwise 0 (defaults to 0)</summary>
@@ -118,6 +117,7 @@
         Public Const ClipRectangleWidth As String = "clip_rect_width"
         Public Const ClipRectangleHeight As String = "clip_rect_height"
         Public Const VideoOnTop As String = "video_on_top"
+        Public Const SubtitlesTrack As String = "subtitles_track"
 
     End Class
 
@@ -173,6 +173,8 @@
         Public Const ErrorDescription As String = "error_description"
         ''' <summary>1 if a DVD menu is currently shown; otherwise 0.</summary>
         Public Const PlaybackDvdMenu As String = "playback_dvd_menu"
+        ''' <summary>1 if a Blu-ray menu is currently shown; otherwise 0.</summary>
+        Public Const PlaybackBlurayMenu As String = "playback_bluray_menu"
         ''' <summary>Regular expression that matches results that contain codec or language information about audio or subtitle tracks.</summary>
         Public Shared ReadOnly TrackRegex As Text.RegularExpressions.Regex = New Text.RegularExpressions.Regex("(audio|subtitles)_track\.[0-9]+\.(lang|codec)")
 
@@ -246,7 +248,7 @@
         Public Const DvdPlayback As String = "dvd_playback"
         Public Const BlurayPlayback As String = "bluray_playback"
         Public Const Standby As String = "standby"
-        Public Const navigator As String = "navigator"
+        Public Const Navigator As String = "navigator"
         Public Const Loading As String = "loading"
         Public Const SafeMode As String = "safe_mode"
         Public Const PhotoViewer As String = "photo_viewer"
@@ -328,6 +330,8 @@
         Public Const FillFullScreen As String = "full_fill_screen"
         Public Const MakeTaller As String = "make_taller"
         Public Const CutEdges As String = "cut_edges"
+        Public Const FullEnlarge As String = "full_enlarge"
+        Public Const FullStretch As String = "full_stretch"
     End Class
 
     ''' <summary>
@@ -398,8 +402,8 @@
         Private Sub New()
         End Sub
 
-        ''' <summary>Code for the New remotes.</summary>
-        Private Const CustomerCode As UShort = &HBF
+        ''' <summary>Control code for the New remotes.</summary>
+        Public Const CustomerCode As UShort = &HBF
 
         ''' <summary>
         ''' Returns the hexadecimal string representation of the 32-bit NEC code that belongs to a button.
@@ -409,9 +413,21 @@
         ''' <returns>The 32-bit value that represents a NEC code.</returns>
         Public Shared Function GetButtonCode(button As UShort) As String
             Dim control() As Byte = BitConverter.GetBytes(CustomerCode)
-            Dim suffix() As Byte = BitConverter.GetBytes(button)
+            Dim ir() As Byte = BitConverter.GetBytes(button)
+            Dim necCode As Byte()
 
-            Return (String.Concat(BitConverter.ToString(suffix), BitConverter.ToString(control)).Replace("-"c, String.Empty))
+            If BitConverter.IsLittleEndian Then
+                Array.Reverse(control)
+                Array.Reverse(ir)
+            End If
+
+            necCode = control.Concat(ir).ToArray
+
+            If BitConverter.IsLittleEndian Then
+                Array.Reverse(necCode)
+            End If
+
+            Return BitConverterExtensions.ToString(necCode, Nothing)
         End Function
 
         ''' <summary>

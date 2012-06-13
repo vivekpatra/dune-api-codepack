@@ -18,7 +18,11 @@ Namespace Extensions
 
         Public Function ToString(value() As Byte, startIndex As Integer, length As Integer, delimiter As Char) As String
             Dim bytes As String = BitConverter.ToString(value, startIndex, length)
-            Return bytes.Replace("-"c, delimiter)
+            If delimiter = Nothing Then
+                Return bytes.Replace("-", String.Empty)
+            Else
+                Return bytes.Replace("-"c, delimiter)
+            End If
         End Function
 
     End Module

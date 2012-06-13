@@ -201,7 +201,7 @@ Namespace DuneUtilities.ApiWrappers
             query.Add("cmd", Constants.Commands.SetPlaybackState)
 
             If PlaybackSpeed.HasValue Then
-                query.Add(Constants.SetPlaybackStateParameters.PlaybackSpeed, PlaybackSpeed.ToString)
+                query.Add(Constants.SetPlaybackStateParameters.PlaybackSpeed, CShort(PlaybackSpeed).ToString)
             End If
 
             If PlaybackPosition.HasValue Then
@@ -238,6 +238,10 @@ Namespace DuneUtilities.ApiWrappers
 
             If AudioTrack.HasValue Then
                 query.Add(Constants.SetPlaybackStateParameters.AudioTrack, AudioTrack.ToString)
+            End If
+
+            If SubtitleTrack.HasValue Then
+                query.Add(Constants.SetPlaybackStateParameters.SubtitlesTrack, SubtitleTrack.ToString)
             End If
 
             If VideoZoom.IsNotNullOrWhiteSpace Then

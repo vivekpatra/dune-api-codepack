@@ -35,7 +35,7 @@ Namespace DuneUtilities.ApiWrappers
 
         Public ReadOnly Property BootTime As Date
             Get
-                If Host.Connected Then
+                If Host.IsConnected Then
                     Return _bootTime
                 Else
                     Return Nothing
@@ -50,14 +50,17 @@ Namespace DuneUtilities.ApiWrappers
         End Property
 
         Public Shared Function FromHost(host As Dune) As SystemInformation
-            If host.TelnetEnabled Then
-                Dim info As New SystemInformation(host)
+            Dim info As SystemInformation = Nothing
+
+            If host.TelnetClient.Connected Then
+                info = New SystemInformation(host)
                 info.GetSysinfo()
                 info.GetBootTime()
-                Return info
             Else
-                Throw New ArgumentException("The specified host does not have telnet enabled.")
+                Console.WriteLine("The specified host does not have telnet enabled!")
             End If
+
+            Return info
         End Function
 
         Public Sub Clear()

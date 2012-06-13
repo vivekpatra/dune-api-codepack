@@ -26,11 +26,18 @@ Namespace Telnet
         End Sub
 
         Public Sub New(address As IPAddress, port As Integer)
-            Client.Connect(address, port)
-
             _telnetLock = New Object
             _loginRegex = New Regex("^tango3 login: $", RegexOptions.Multiline)
             _promptRegex = New Regex("^tango3.*# $", RegexOptions.Multiline)
+            _client = New TcpClient
+
+            Try
+                Client.Connect(address, port)
+            Catch ex As SocketException
+                Console.WriteLine("Telnet is not accessible on port " + port.ToString)
+            Catch ex As ArgumentException
+                Console.WriteLine(ex.Message)
+            End Try
         End Sub
 
 #End Region ' Constructors
@@ -40,11 +47,8 @@ Namespace Telnet
         ''' <summary>
         ''' Gets the underlying TcpClient instance.
         ''' </summary>
-        Public ReadOnly Property Client As TcpClient
+        Private ReadOnly Property Client As TcpClient
             Get
-                If _client Is Nothing Then
-                    _client = New TcpClient
-                End If
                 Return _client
             End Get
         End Property
@@ -58,7 +62,10 @@ Namespace Telnet
             End Get
         End Property
 
-        Private ReadOnly Property CrLf As String
+        ''' <summary>
+        ''' Convenience property that returns <see cref="Environment.NewLine"/>.
+        ''' </summary>
+        Private Shared ReadOnly Property CrLf As String
             Get
                 Return Environment.NewLine
             End Get
@@ -72,8 +79,10 @@ Namespace Telnet
         ''' Blocks until the host asks for login and responds with the specified username.
         ''' </summary>
         Public Sub login(username As String)
-            ReadUntilRegex(_loginRegex)
-            ExecuteCommand(username)
+            If Connected Then
+                ReadUntilRegex(_loginRegex)
+                ExecuteCommand(username)
+            End If
         End Sub
 
         ''' <summary>
@@ -113,7 +122,6 @@ Namespace Telnet
             Dim text As New StringBuilder
 
             Do
-
                 If Client.Available > 0 Then
                     Dim read As Integer = Client.GetStream.ReadByte
 

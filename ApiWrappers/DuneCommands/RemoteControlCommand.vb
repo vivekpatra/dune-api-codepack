@@ -19,11 +19,11 @@ Namespace DuneUtilities.ApiWrappers
         End Sub
 
         ''' <summary>
-        ''' Gets the hexadecimal code for the specified button.
+        ''' Gets the string representation of a hexadecimal code which represents the specified button.
         ''' </summary>
         Public ReadOnly Property HexCode As String
             Get
-                If String.IsNullOrEmpty(_code) Then
+                If _code.IsNullOrEmpty Then
                     _code = Constants.RemoteControls.GetButtonCode(_button)
                 End If
                 Return _code

@@ -19,7 +19,7 @@ Namespace DuneUtilities.ApiWrappers
         Private _zipLocation As Uri
         Private _zipLength As Long
         Private _beta As Boolean
-        Private _number As Integer
+        Private _approximateLength As Integer
 
         Private Sub New(firmware As String)
             Dim pieces() As String = firmware.Split(Convert.ToChar(32))
@@ -38,7 +38,7 @@ Namespace DuneUtilities.ApiWrappers
             Parallel.Invoke(t1, t2, t3)
 
             _beta = String.Equals(pieces(2), "non-stable")
-            _number = Integer.Parse(pieces(3))
+            _approximateLength = CInt(Integer.Parse(pieces(3)) / 2)
         End Sub
 
         ''' <summary>
@@ -60,11 +60,11 @@ Namespace DuneUtilities.ApiWrappers
         End Property
 
         ''' <summary>
-        ''' ???
+        ''' Gets the approximate filesize in megabytes.
         ''' </summary>
-        Public ReadOnly Property SomeWeirdNumberThatNobodyKnowsTheMeaningOf As Integer
+        Public ReadOnly Property ApproximateFileSize As Integer
             Get
-                Return _number
+                Return _approximateLength
             End Get
         End Property
 

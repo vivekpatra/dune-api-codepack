@@ -60,6 +60,20 @@ Namespace Extensions
             Return text.Substring(text.Length - length)
         End Function
 
+        ''' <summary>
+        ''' Converts the specified string to a boolean.
+        ''' </summary>
+        ''' <returns>False is the specified value is "0" or Boolean.FalseString; otherwise true.</returns>
+        <Extension()>
+        Public Function ToBoolean(text As String) As Boolean
+            Select Case text.ToLower
+                Case "0", Boolean.FalseString.ToLower
+                    Return False
+                Case Else
+                    Return True
+            End Select
+        End Function
+
     End Module
 
 End Namespace

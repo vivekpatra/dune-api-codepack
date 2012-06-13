@@ -45,7 +45,9 @@ Namespace DuneUtilities.ApiWrappers
         ''' Converts a three-letter language code into a <see cref="CultureInfo"/> object.
         ''' </summary>
         Private Shared Function GetCultureInfo(languageCode As String) As CultureInfo
-            languageCode = GetTerminologyCode(languageCode)
+            If languageCode.Length > 2 Then
+                languageCode = GetTerminologyCode(languageCode)
+            End If
 
             Dim allCultures As List(Of CultureInfo)
             allCultures = CultureInfo.GetCultures(CultureTypes.NeutralCultures).ToList

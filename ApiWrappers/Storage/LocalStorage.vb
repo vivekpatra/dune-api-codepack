@@ -44,11 +44,11 @@ Namespace Storage
                 End If
             End If
 
-            If _name.Contains("usb_storage") Or _name.Contains("optical_disk") Then
+            If _name.Contains("usb_storage") Or _name.Contains("optical_drive") Then
                 Dim uuidIndex As Integer
                 Dim pieces() As String = _name.Split("_"c)
 
-                If IsNumeric(pieces(2)) Then ' this is not the first usb_storage or optical_disk without a label
+                If IsNumeric(pieces(2)) Then ' this is not the first usb_storage or optical_drive without a label
                     uuidIndex = pieces(0).Length + pieces(1).Length + pieces(2).Length + 3
                 Else ' everything after the second underscore is a UUID
                     uuidIndex = pieces(0).Length + pieces(1).Length + 2
@@ -69,13 +69,10 @@ Namespace Storage
         ''' <summary>
         ''' The storage name.
         ''' </summary>
-        Public Property StorageName As String
+        Public ReadOnly Property StorageName As String
             Get
                 Return _name
             End Get
-            Set(value As String)
-                _name = value
-            End Set
         End Property
 
         ''' <summary>

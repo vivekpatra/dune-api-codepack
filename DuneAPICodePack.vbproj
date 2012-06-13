@@ -92,6 +92,10 @@
     <Compile Include="ApiWrappers\Storage\SmbShare.vb" />
     <Compile Include="ApiWrappers\Storage\Storage.vb" />
     <Compile Include="ApiWrappers\SystemInformation.vb" />
+    <Compile Include="ConnectedEventArgs.vb" />
+    <Compile Include="Converters\PlayerStateConverter.vb" />
+    <Compile Include="Converters\ZoomConverter.vb" />
+    <Compile Include="DisconnectedEventArgs.vb" />
     <Compile Include="Extensions\BitConverterExtensions.vb" />
     <Compile Include="Extensions\BooleanExtensions.vb" />
     <Compile Include="Extensions\FileSystemInfoExtensions.vb" />
