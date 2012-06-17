@@ -514,32 +514,38 @@ Namespace DuneUtilities.ApiWrappers
                 Dim parameterName As String = result.Name.Value
                 Dim parameterValue As String = result.Value.Value
                 RawData.Add(parameterName, parameterValue)
-
-                Try
-                    If parameterValue <> "-1" Then
-                        Select Case True
-                            Case parameterName.Equals(Constants.CommandResultParameterNames.ProtocolVersion)
-                                _protocolVersion = _protocolVersion.Parse(parameterValue, False)
-                            Case parameterName.Equals(Constants.CommandResultParameterNames.CommandStatus)
-                                _commandStatus = parameterValue
-                            Case parameterName.Equals(Constants.CommandResultParameterNames.PlayerState)
-                                _playerState = parameterValue
-                            Case parameterName.Contains("error")
-                                ProcessErrorParameter(parameterName, parameterValue)
-                            Case parameterName.Contains("playback"), parameterName.Contains("video"), parameterName.Contains("osd")
-                                ProcessPlaybackParameter(parameterName, parameterValue)
-                            Case parameterName.Contains("track")
-                                ProcessTrackParameter(parameterName, parameterValue)
-                            Case parameterName.Contains("text")
-                                ProcessTextParameter(parameterName, parameterValue)
-                            Case Else
-                                Console.WriteLine("No parsing logic in place for unknown parameter {0} (value: {1})", parameterName, parameterValue)
-                        End Select
-                    End If
-                Catch ex As Exception
-                    Console.WriteLine("parsing error: failed to parse " + parameterName)
-                End Try
             Next
+
+            Parallel.ForEach(RawData.AllKeys, Sub(key As String)
+                                                  Dim parameterName As String = key
+                                                  Dim parameterValue As String = RawData.Item(key)
+
+                                                  Try
+                                                      If parameterValue <> "-1" Then
+                                                          Select Case True
+                                                              Case parameterName.Equals(Constants.CommandResultParameterNames.ProtocolVersion)
+                                                                  _protocolVersion = _protocolVersion.Parse(parameterValue, False)
+                                                              Case parameterName.Equals(Constants.CommandResultParameterNames.CommandStatus)
+                                                                  _commandStatus = parameterValue
+                                                              Case parameterName.Equals(Constants.CommandResultParameterNames.PlayerState)
+                                                                  _playerState = parameterValue
+                                                              Case parameterName.Contains("error")
+                                                                  ProcessErrorParameter(parameterName, parameterValue)
+                                                              Case parameterName.Contains("playback"), parameterName.Contains("video"), parameterName.Contains("osd")
+                                                                  ProcessPlaybackParameter(parameterName, parameterValue)
+                                                              Case parameterName.Contains("track")
+                                                                  ProcessTrackParameter(parameterName, parameterValue)
+                                                              Case parameterName.Contains("text")
+                                                                  ProcessTextParameter(parameterName, parameterValue)
+                                                              Case Else
+                                                                  Console.WriteLine("No parsing logic in place for unknown parameter {0} (value: {1})", parameterName, parameterValue)
+                                                          End Select
+                                                      End If
+                                                  Catch ex As Exception
+                                                      Console.WriteLine("parsing error: failed to parse " + parameterName)
+                                                  End Try
+                                              End Sub)
+            
 
             If PlaybackDuration.HasValue AndAlso PlaybackPosition.HasValue Then
                 _playbackTimeRemaining = PlaybackDuration - PlaybackPosition
@@ -625,9 +631,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' Adds audio track info to the collection.
         ''' </summary>
         Private Sub AddTrackInfo(name As String, value As String)
-            If name.Contains("codec") Then
-                Exit Sub
-            Else
+            If name.Contains("lang") Then
                 Dim delimiter As Char = "."c
 
                 ' get the track type (audio/subtitles)
@@ -660,7 +664,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' </summary>
         ''' <param name="value">The actual value.</param>
         ''' <returns>The expected value.</returns>
-        ''' <remarks>Version 1 and 2 have this bug. Hopefully it will be fixed in version 3. I've e-mailed support about this on 13 may 2012.</remarks>
+        ''' <remarks>Version 1 through 3 have this bug. Hopefully it will be fixed in version 3.</remarks>
         Private Function GetSpeedFromBuggedValue(value As String) As Short
             Dim buggedValue As Integer = Convert.ToInt32(value)
             Dim bytes() As Byte = BitConverter.GetBytes(buggedValue)
