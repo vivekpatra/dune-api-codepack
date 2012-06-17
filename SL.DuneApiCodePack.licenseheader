@@ -1,4 +1,12 @@
-﻿#Region "License"
+extensions: designer.cs
+extensions: .cs
+//Sample license text.
+extensions: .aspx .ascx
+<%-- 
+Sample license text.
+--%>
+extensions: .vb
+#Region "License"
 ' Copyright 2012 Steven Liekens
 ' Contact: steven.liekens@gmail.com
 
@@ -17,25 +25,3 @@
 ' You should have received a copy of the GNU Lesser General Public License
 ' along with DuneApiCodepack.  If not, see <http://www.gnu.org/licenses/>.
 #End Region ' License
-Imports System.Runtime.CompilerServices
-Imports System.Net.NetworkInformation
-
-Namespace Extensions
-    ''' <summary>
-    ''' Extensions for the <see cref="PhysicalAddress"/> type.
-    ''' </summary>
-    Public Module PhysicalAddressExtensions
-
-        <Extension()>
-        Public Function ToDelimitedString(value As PhysicalAddress) As String
-            Return ToDelimitedString(value, ":"c)
-        End Function
-
-        <Extension()>
-        Public Function ToDelimitedString(value As PhysicalAddress, delimiter As Char) As String
-            Dim address() As Byte = value.GetAddressBytes
-            Return BitConverterExtensions.ToString(address, delimiter)
-        End Function
-
-    End Module
-End Namespace
