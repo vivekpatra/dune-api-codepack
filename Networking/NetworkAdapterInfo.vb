@@ -9,7 +9,7 @@ Namespace Networking
     ''' Reveals information about a network interface on a remote machine.
     ''' </summary>
     ''' <remarks>None of this has been tested with a local interface. Actually that's a good idea for a new TODO.</remarks>
-    Public Class NetworkAdapterInfo ' TODO: test with local interfaces.
+    Public Class NetworkAdapterInfo
 
         Private _ipAddress As IPAddress
         Private _physicalAddress As PhysicalAddress

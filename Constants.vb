@@ -141,78 +141,129 @@
         Private Sub New()
         End Sub
 
-        ''' <summary>Indicates the command status. Possible values are enumerated in <see cref="Constants.CommandStatusValues" />.</summary>
-        Public Const CommandStatus As String = "command_status"
-        ''' <summary>The protocol version used by the firmware.</summary>
+        ''' <summary>Indicates the protocol version used by the firmware.</summary>
         Public Const ProtocolVersion As String = "protocol_version"
-        ''' <summary>Indicates the player state. Possible values are enumerated in <see cref=" Constants.PlayerStateValues" />.</summary>
+        ''' <summary>Indicates the player state.</summary>
         ''' <remarks>The API contains a bug that displays this property as "file_playback" when the player is actually in "navigator" mode when playback has ended.</remarks>
         Public Const PlayerState As String = "player_state"
-        ''' <summary>The playback speed in its decimal representation.</summary>
+        ''' <summary>Indicates the command status.</summary>
+        Public Const CommandStatus As String = "command_status"
+        ''' <summary>Indicates the error kind.</summary>
+        Public Const ErrorKind As String = "error_kind"
+        ''' <summary>Indicates the error description.</summary>
+        Public Const ErrorDescription As String = "error_description"
+        ''' <summary>Indicates the playback speed in its decimal representation.</summary>
         Public Const PlaybackSpeed As String = "playback_speed"
-        ''' <summary>The playback duration in seconds.</summary>
+        ''' <summary>Indicates the playback duration in seconds.</summary>
         Public Const PlaybackDuration As String = "playback_duration"
-        ''' <summary>The playback position in seconds.</summary>
+        ''' <summary>Indicates the playback position in seconds.</summary>
         Public Const PlaybackPosition As String = "playback_position"
-        ''' <summary>1 if the player is buffering; otherwise 0.</summary>
+        ''' <summary>Indicates whether the playback is buffering.</summary>
         Public Const PlaybackIsBuffering As String = "playback_is_buffering"
-        ''' <summary>The playback volume percentage (0 to 150).</summary>
+        ''' <summary>Indicates whether a DVD menu is currently shown.</summary>
+        Public Const PlaybackDvdMenu As String = "playback_dvd_menu"
+        ''' <summary>Indicates whether a Blu-ray menu is currently shown.</summary>
+        Public Const PlaybackBlurayMenu As String = "playback_bluray_menu"
+        ''' <summary>Indicates the playback volume percentage (0 to 150).</summary>
+        ''' <remarks>This parameter was new in version 2.</remarks>
         Public Const PlaybackVolume As String = "playback_volume"
         ''' <summary>1 if the playback is muted; otherwise 0.</summary>
+        ''' <remarks>This parameter was new in version 2.</remarks>
         Public Const PlaybackMute As String = "playback_mute"
-        ''' <summary>The audio track (read: language track) number that is playing.</summary>
+        ''' <summary>Indicates the audio track number that is playing.</summary>
+        ''' <remarks>This parameter was new in version 2.</remarks>
         Public Const AudioTrack As String = "audio_track"
-        ''' <summary>1 if the playback is fullscreen; otherwise 0.</summary>
+        ''' <summary>Indicates whether custom playback window zoom parameters are enabled.</summary>
+        ''' <remarks>This parameter was new in version 2. It was renamed in version 3.</remarks>
         Public Const VideoFullscreen As String = "video_fullscreen"
-        ''' <summary>The horizontal position of the video output (from left to right) in pixels.</summary>
+        ''' <summary>Indicates the playback window rectangle's horizontal offset.</summary>
+        ''' <remarks>This parameter was new in version 2. It was renamed in version 3.</remarks>
         Public Const VideoX As String = "video_x"
-        ''' <summary>The vertical position of the video output (from top to bottom) in pixels</summary>
+        ''' <summary>Indicates the playback window rectangle's vertical offset.</summary>
+        ''' <remarks>This parameter was new in version 2. It was renamed in version 3.</remarks>
         Public Const VideoY As String = "video_y"
-        ''' <summary>The width of the video output.</summary>
+        ''' <summary>Indicates the playback window rectangle's width.</summary>
+        ''' <remarks>This parameter was new in version 2. It was renamed in version 3.</remarks>
         Public Const VideoWidth As String = "video_width"
-        ''' <summary>The height of the video output.</summary>
+        ''' <summary>Indicates the playback window rectangle's height.</summary>
+        ''' <remarks>This parameter was new in version 2. It was renamed in version 3.</remarks>
         Public Const VideoHeight As String = "video_height"
-        ''' <summary>The total display width of the video output.</summary>
+        ''' <summary>Indicates the total available display width.</summary>
+        ''' <remarks>This parameter was new in version 2. It was renamed in version 3.</remarks>
         Public Const VideoTotalDisplayWidth As String = "video_total_display_width"
-        ''' <summary>The total display height of the video output.</summary>
+        ''' <summary>Indicates the total available display height.</summary>
+        ''' <remarks>This parameter was new in version 2. It was renamed in version 3.</remarks>
         Public Const VideoTotalDisplayHeight As String = "video_total_display_height"
-        ''' <summary>1 if the video output is enabled; otherwise 0.</summary>
+        ''' <summary>Indicates whether video output is enabled.</summary>
+        ''' <remarks>This parameter was new in version 2.</remarks>
         Public Const VideoEnabled As String = "video_enabled"
-        ''' <summary>Indicates the zoom mode of the video output. Possible values are enumerated in <see cref="Constants.VideoZoomValues" />. Custom zoom settings are marked as "other".</summary>
+        ''' <summary>Indicates the current zoom preset.</summary>
+        ''' <remarks>This parameter was new in version 2.</remarks>
         Public Const VideoZoom As String = "video_zoom"
-        ''' <summary>Indicates the error kind. Possible values are enumerated in <see cref="Constants.ErrorKindValues" />.</summary>
-        Public Const ErrorKind As String = "error_kind"
-        ''' <summary>Describes the command error.</summary>
-        Public Const ErrorDescription As String = "error_description"
-        ''' <summary>1 if a DVD menu is currently shown; otherwise 0.</summary>
-        Public Const PlaybackDvdMenu As String = "playback_dvd_menu"
-        ''' <summary>1 if a Blu-ray menu is currently shown; otherwise 0.</summary>
-        Public Const PlaybackBlurayMenu As String = "playback_bluray_menu"
+        ''' <summary>Indicates the current playback state.</summary>
+        ''' <remarks>This parameter was new in version 3.</remarks>
+        Public Const PlaybackState As String = "playback_state"
+        ''' <summary>Indicates the previous playback state.</summary>
+        ''' <remarks>This parameter was new in version 3.</remarks>
+        Public Const PreviousPlaybackState As String = "previous_playback_state"
+        ''' <summary>Indicates the last playback event.</summary>
+        ''' <remarks>This parameter was new in version 3.</remarks>
+        Public Const LastPlaybackEvent As String = "last_playback_event"
+        ''' <summary>Indicates the current playback URL.</summary>
+        ''' <remarks>This parameter was new in version 3.</remarks>
+        Public Const PlaybackUrl As String = "playback_url"
+        ''' <summary>Indicates the current video stream's width.</summary>
+        ''' <remarks>This parameter was new in version 3.</remarks>
+        Public Const PlaybackVideoWidth As String = "playback_video_width"
+        ''' <summary>Indicates the current video stream's height.</summary>
+        ''' <remarks>This parameter was new in version 3.</remarks>
+        Public Const PlaybackVideoHeight As String = "playback_video_height"
+        ''' <summary>Indicates the active subtitles track.</summary>
+        ''' <remarks>This parameter was new in version 3.</remarks>
+        Public Const SubtitlesTrack As String = "subtitles_track"
+        ''' <summary>Indicates whether custom playback window zoom parameters are enabled.</summary>
+        ''' <remarks>This parameter was renamed in version 3.</remarks>
+        Public Const PlaybackWindowFullscreen As String = "playback_window_fullscreen"
+        ''' <remarks>This parameter was renamed in version 3.</remarks>
+        ''' <summary>Indicates the playback window rectangle's horizontal offset.</summary>
+        Public Const PlaybackWindowRectangleX As String = "playback_window_rect_x"
+        ''' <remarks>This parameter was renamed in version 3.</remarks>
+        ''' <summary>Indicates the playback window rectangle's vertical offset.</summary>
+        Public Const PlaybackWindowRectangleY As String = "playback_window_rect_y"
+        ''' <remarks>This parameter was renamed in version 3.</remarks>
+        ''' <summary>Indicates the playback window rectangle's width.</summary>
+        Public Const PlaybackWindowRectangleWidth As String = "playback_window_rect_width"
+        ''' <remarks>This parameter was renamed in version 3.</remarks>
+        ''' <summary>Indicates the playback window rectangle's height.</summary>
+        Public Const PlaybackWindowRectangleHeight As String = "playback_window_rect_height"
+        ''' <remarks>This parameter was new in version 3.</remarks>
+        ''' <summary>Indicates the playback clip rectangle's horizontal offset.</summary>
+        Public Const PlaybackClipRectangleX As String = "playback_clip_rect_x"
+        ''' <remarks>This parameter was new in version 3.</remarks>
+        ''' <summary>Indicates the playback clip rectangle's vertical offset.</summary>
+        Public Const PlaybackClipRectangleY As String = "playback_clip_rect_y"
+        ''' <remarks>This parameter was new in version 3.</remarks>
+        ''' <summary>Indicates the playback clip rectangle's width.</summary>
+        Public Const PlaybackClipRectangleWidth As String = "playback_clip_rect_width"
+        ''' <remarks>This parameter was new in version 3.</remarks>
+        ''' <summary>Indicates the playback clip rectangle's height.</summary>
+        Public Const PlaybackClipRectangleHeight As String = "playback_clip_rect_height"
+        ''' <summary>Indicates the total available display width.</summary>
+        ''' <remarks>This parameter was renamed in version 3.</remarks>
+        Public Const OnScreenDisplayWidth As String = "osd_width"
+        ''' <summary>Indicates the total available display height.</summary>
+        ''' <remarks>This parameter was renamed in version 3.</remarks>
+        Public Const OnScreenDisplayHeight As String = "osd_height"
+        ''' <summary>Indicates whether video output is shown on top of overlay graphics.</summary>
+        ''' <remarks>This parameter was new in version 3.</remarks>
+        Public Const VideoOnTop As String = "video_on_top"
+        ''' <summary>Indicates the text in the selected text input field.</summary>
+        ''' <remarks>This parameter was new in version 3.</remarks>
+        Public Const Text As String = "text"
+
         ''' <summary>Regular expression that matches results that contain codec or language information about audio or subtitle tracks.</summary>
         Public Shared ReadOnly TrackRegex As Text.RegularExpressions.Regex = New Text.RegularExpressions.Regex("(audio|subtitles)_track\.[0-9]+\.(lang|codec)")
 
-        ' New in protocol version 3
-        ' TODO: add summaries
-        Public Const PlaybackState As String = "playback_state"
-        Public Const PreviousPlaybackState As String = "previous_playback_state"
-        Public Const LastPlaybackEvent As String = "last_playback_event"
-        Public Const PlaybackUrl As String = "playback_url"
-        Public Const PlaybackVideoWidth As String = "playback_video_width"
-        Public Const PlaybackVideoHeight As String = "playback_video_height"
-        Public Const SubtitlesTrack As String = "subtitles_track"
-        Public Const PlaybackWindowFullscreen As String = "playback_window_fullscreen"
-        Public Const PlaybackWindowRectangleX As String = "playback_window_rect_x"
-        Public Const PlaybackWindowRectangleY As String = "playback_window_rect_y"
-        Public Const PlaybackWindowRectangleWidth As String = "playback_window_rect_width"
-        Public Const PlaybackWindowRectangleHeight As String = "playback_window_rect_height"
-        Public Const PlaybackClipRectangleX As String = "playback_clip_rect_x"
-        Public Const PlaybackClipRectangleY As String = "playback_clip_rect_y"
-        Public Const PlaybackClipRectangleWidth As String = "playback_clip_rect_width"
-        Public Const PlaybackClipRectangleHeight As String = "playback_clip_rect_height"
-        Public Const OnScreenDisplayWidth As String = "osd_width"
-        Public Const OnScreenDisplayHeight As String = "osd_height"
-        Public Const VideoOnTop As String = "video_on_top"
-        Public Const Text As String = "text"
     End Class
 
     ''' <summary>

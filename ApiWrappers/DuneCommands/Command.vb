@@ -124,7 +124,7 @@ Namespace DuneUtilities.ApiWrappers
 
             request = WebRequest.Create(requestUri)
             request.Method = Method
-            request.Timeout = Integer.MaxValue
+            request.Timeout = CInt((Me.Timeout + 1) * 1000)
             SetUserAgent(request)
 
             If request.Method = WebRequestMethods.Http.Post Then ' write command query to the request stream

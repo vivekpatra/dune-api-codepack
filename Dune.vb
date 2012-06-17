@@ -38,6 +38,7 @@ Namespace DuneUtilities
         Private _textUpdater As Timer
         Private _status As CommandResult
         Private _text As String
+        Private _textAvailable As Boolean?
         Private _remoteControl As RemoteControl
 
         Private _firmwares As ReadOnlyCollection(Of FirmwareProperties)
@@ -378,7 +379,11 @@ Namespace DuneUtilities
                         list = Nothing
                     End If
 
-                    _firmwares = New ReadOnlyCollection(Of FirmwareProperties)(list)
+                    If list IsNot Nothing Then
+                        _firmwares = New ReadOnlyCollection(Of FirmwareProperties)(list)
+                    Else
+
+                    End If
                 End If
 
                 Return _firmwares
@@ -393,11 +398,20 @@ Namespace DuneUtilities
         <Category("Firmware information")>
         Public ReadOnly Property UpdateAvailable As Boolean?
             Get
-                If FirmwareVersion.IsNotNullOrEmpty AndAlso AvailableFirmwares.Count > 0 Then
-                    Return (AvailableFirmwares.Item(0).Version <> FirmwareVersion)
-                Else
+                If AvailableFirmwares Is Nothing OrElse AvailableFirmwares.Count = 0 Then
                     Return Nothing
+                Else
+                    If FirmwareVersion.IsNotNullOrEmpty Then
+                        Return (AvailableFirmwares.Item(0).Version <> FirmwareVersion)
+                    Else
+                        Return Nothing
+                    End If
                 End If
+                'If FirmwareVersion.IsNotNullOrEmpty AndAlso AvailableFirmwares.Count > 0 Then
+                '    Return (AvailableFirmwares.Item(0).Version <> FirmwareVersion)
+                'Else
+                '    Return Nothing
+                'End If
             End Get
         End Property
 
@@ -444,7 +458,7 @@ Namespace DuneUtilities
         Public ReadOnly Property TextAvailable As Boolean?
             Get
                 If IsConnected Then
-                    Return Status.TextAvailable
+                    Return _textAvailable
                 Else
                     Return Nothing
                 End If
@@ -485,21 +499,30 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Updates the text property.
         ''' </summary>
-        <DebuggerStepThrough()>        
         Private Sub TextUpdater_elapsed(sender As Object, e As System.Timers.ElapsedEventArgs)
             If IsConnected Then
-                Dim text As String = String.Empty
-
                 Dim command As New GetTextCommand(Me)
-                Dim result As CommandResult = command.GetResult
+                Dim result As CommandResult
 
-                If result.TextAvailable.Value.IsTrue AndAlso _text <> result.Text Then
-                    RaisePropertyChanging("Text")
-                    _text = result.Text
-                    RaisePropertyChanged("Text")
-                End If
+                Try
+                    result = command.GetResult
 
-                TextUpdater.Start()
+                    If Not Nullable.Equals(_textAvailable, result.TextAvailable) Then
+                        RaisePropertyChanging("TextAvailable")
+                        _textAvailable = result.TextAvailable
+                        RaisePropertyChanged("TextAvailable")
+                    End If
+
+                    If result.TextAvailable = True AndAlso _text <> result.Text Then
+                        RaisePropertyChanging("Text")
+                        _text = result.Text
+                        RaisePropertyChanged("Text")
+                    End If
+                Catch ex As Exception
+                    IsConnected = False
+                Finally
+                    TextUpdater.Start()
+                End Try
             End If
         End Sub
 
@@ -521,20 +544,16 @@ Namespace DuneUtilities
         Public Function ProcessCommand(command As Command, suppressError As Boolean) As CommandResult
             Dim result As CommandResult = Nothing
 
-            Try ' to execute the specified command
+            Try
                 result = command.GetResult
+                Status = result
 
-                If result IsNot Nothing Then ' success!
-                    If command.CommandType <> Constants.CommandValues.GetText Then
-                        Status = result
-                    End If
-
-                    If suppressError.IsFalse AndAlso result.CommandError IsNot Nothing Then
-                        Throw result.CommandError
-                    End If
+                If suppressError.IsFalse AndAlso result.CommandError IsNot Nothing Then
+                    Throw result.CommandError
                 End If
-            Catch ex As WebException ' handle faulty connection
+            Catch ex As WebException
                 IsConnected = False
+
             End Try
 
             Return result

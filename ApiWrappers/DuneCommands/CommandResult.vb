@@ -68,11 +68,10 @@ Namespace DuneUtilities.ApiWrappers
             _command = command
             _requestDateTime = Date.Now
 
-            Dim response As WebResponse = Nothing
             Dim stopwatch As Stopwatch = stopwatch.StartNew
-
-            Try
-                response = command.GetResponse
+            Using response As WebResponse = command.GetResponse
+                stopwatch.Stop()
+                _roundTripTime = stopwatch.Elapsed
 
                 Try
                     Dim document As XDocument = XDocument.Load(response.GetResponseStream)
@@ -80,16 +79,7 @@ Namespace DuneUtilities.ApiWrappers
                 Catch ex As IO.IOException
                     Console.WriteLine("I/O error occurred while loading xml document: " + ex.Message)
                 End Try
-
-            Catch ex As WebException
-                Console.WriteLine(ex.Message)
-            Finally
-                stopwatch.Stop()
-                _roundTripTime = stopwatch.Elapsed
-                If response IsNot Nothing Then
-                    response.Close()
-                End If
-            End Try
+            End Using
         End Sub
 
 #Region "Properties"
@@ -516,6 +506,10 @@ Namespace DuneUtilities.ApiWrappers
                 RawData.Add(parameterName, parameterValue)
             Next
 
+            If Command.CommandType = Constants.CommandValues.GetText Then
+                _textAvailable = RawData.AllKeys.Contains(Constants.CommandResultParameterNames.Text)
+            End If
+
             Parallel.ForEach(RawData.AllKeys, Sub(key As String)
                                                   Dim parameterName As String = key
                                                   Dim parameterValue As String = RawData.Item(key)
@@ -529,14 +523,14 @@ Namespace DuneUtilities.ApiWrappers
                                                                   _commandStatus = parameterValue
                                                               Case parameterName.Equals(Constants.CommandResultParameterNames.PlayerState)
                                                                   _playerState = parameterValue
+                                                              Case parameterName.Equals(Constants.CommandResultParameterNames.Text)
+                                                                  _text = parameterValue
                                                               Case parameterName.Contains("error")
                                                                   ProcessErrorParameter(parameterName, parameterValue)
                                                               Case parameterName.Contains("playback"), parameterName.Contains("video"), parameterName.Contains("osd")
                                                                   ProcessPlaybackParameter(parameterName, parameterValue)
                                                               Case parameterName.Contains("track")
                                                                   ProcessTrackParameter(parameterName, parameterValue)
-                                                              Case parameterName.Contains("text")
-                                                                  ProcessTextParameter(parameterName, parameterValue)
                                                               Case Else
                                                                   Console.WriteLine("No parsing logic in place for unknown parameter {0} (value: {1})", parameterName, parameterValue)
                                                           End Select
@@ -578,16 +572,6 @@ Namespace DuneUtilities.ApiWrappers
                     Case Else : Console.WriteLine("No parsing logic in place for track parameter {0} (value: {1})", parameterName, parameterValue)
                 End Select
             End If
-        End Sub
-
-        ''' <summary>
-        ''' Sets fields that relate to text settings.
-        ''' </summary>
-        Private Sub ProcessTextParameter(parameterName As String, parameterValue As String)
-            Select Case parameterName
-                Case Constants.CommandResultParameterNames.Text : _textAvailable = True : _text = parameterValue
-                Case Else : Console.WriteLine("No parsing logic in place for text parameter {0} (value: {1})", parameterName, parameterValue)
-            End Select
         End Sub
 
         ''' <summary>
