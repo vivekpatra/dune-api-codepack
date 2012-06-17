@@ -67,7 +67,7 @@ Namespace Extensions
         <Extension()>
         Public Function ToBoolean(text As String) As Boolean
             Select Case text.ToLower
-                Case "0", Boolean.FalseString.ToLower
+                Case "0", Boolean.FalseString.ToLowerInvariant
                     Return False
                 Case Else
                     Return True

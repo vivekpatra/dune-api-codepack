@@ -7,15 +7,15 @@ Public Class ZoomConverter
 
     Public Sub New()
         Dim zooms As New ArrayList
-        zooms.Add(Constants.VideoZoomSettings.Normal)
-        zooms.Add(Constants.VideoZoomSettings.Enlarge)
-        zooms.Add(Constants.VideoZoomSettings.MakeWider)
-        zooms.Add(Constants.VideoZoomSettings.FillScreen)
-        zooms.Add(Constants.VideoZoomSettings.FillFullScreen)
-        zooms.Add(Constants.VideoZoomSettings.MakeTaller)
-        zooms.Add(Constants.VideoZoomSettings.CutEdges)
-        zooms.Add(Constants.VideoZoomSettings.FullEnlarge)
-        zooms.Add(Constants.VideoZoomSettings.FullStretch)
+        zooms.Add(Constants.VideoZoomValues.Normal)
+        zooms.Add(Constants.VideoZoomValues.Enlarge)
+        zooms.Add(Constants.VideoZoomValues.MakeWider)
+        zooms.Add(Constants.VideoZoomValues.FillScreen)
+        zooms.Add(Constants.VideoZoomValues.FillFullScreen)
+        zooms.Add(Constants.VideoZoomValues.MakeTaller)
+        zooms.Add(Constants.VideoZoomValues.CutEdges)
+        zooms.Add(Constants.VideoZoomValues.FullEnlarge)
+        zooms.Add(Constants.VideoZoomValues.FullStretch)
         _standardValues = zooms
     End Sub
 

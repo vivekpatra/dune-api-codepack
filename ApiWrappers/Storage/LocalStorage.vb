@@ -1,15 +1,16 @@
 ﻿Imports System.Net
 Imports System.IO
 Imports SL.DuneApiCodePack.NativeMethods.Networking
+Imports System.ComponentModel
 
-Namespace Storage
+Namespace Sources
 
     ''' <summary>
     ''' This type represents a storage device which is installed in or directly attached to the player.
     ''' This includes internal hard drives, hot swappable drives, CD/DVD/Blu-Ray discs, external USB drives, USB flash drives, SD cards and just about any other form of data storage not mentioned.
     ''' </summary>
     Public Class LocalStorage
-        Inherits Storage
+        Inherits StorageDevice
 
         Private _name As String
         Private _label As String
@@ -22,25 +23,22 @@ Namespace Storage
         ''' This constructor tries to derive the storage name, storage caption and storage UUID from the specified path.
         ''' The path does not have to be existent so it can be spoofed.
         ''' </remarks>
-        Public Sub New(host As IPHostEntry, path As DirectoryInfo)
+        Public Sub New(host As IPHostEntry, path As FileSystemInfo)
             MyBase.New(host)
-            _root = path.Root
-            _name = path.Root.Name
+            _root = path.GetRoot
+            _name = _root.Name
 
 
             If _root.Exists Then
                 Dim settings As Dictionary(Of String, String) = GetDuneFolderSettings()
 
-                If settings IsNot Nothing Then
+                If settings.Keys.Contains("storage_caption") Then
+                    _caption = settings("storage_caption")
+                End If
 
-                    If settings.Keys.Contains("storage_caption") Then
-                        settings.TryGetValue("storage_caption", _caption)
-                    End If
-
-                    If settings.Keys.Contains("storage_name") Then
-                        settings.TryGetValue("storage_name", _name)
-                        Exit Sub ' because additional parsing wouldn't make sense
-                    End If
+                If settings.Keys.Contains("storage_name") Then
+                    _name = settings("storage_name")
+                    Exit Sub ' because additional parsing wouldn't make sense
                 End If
             End If
 
@@ -69,6 +67,7 @@ Namespace Storage
         ''' <summary>
         ''' The storage name.
         ''' </summary>
+        <DisplayName("storage_name://")>
         Public ReadOnly Property StorageName As String
             Get
                 Return _name
@@ -78,6 +77,7 @@ Namespace Storage
         ''' <summary>
         ''' The storage label. This can be found by looking at the information screen on the device.
         ''' </summary>
+        <DisplayName("storage_label://")>
         Public Property StorageLabel As String
             Get
                 Return _label
@@ -90,6 +90,7 @@ Namespace Storage
         ''' <summary>
         ''' The storage UUID. This can be found by looking at the information screen on the device.
         ''' </summary>
+        <DisplayName("storage_uuid://")>
         Public Property StorageUuid As String
             Get
                 Return _uuid
@@ -100,8 +101,9 @@ Namespace Storage
         End Property
 
         ''' <summary>
-        ''' The storage caption. This can be found in the dune_folder.txt file. It is only used for the display caption.
+        ''' The storage caption. This can be found in the dune_folder.txt file. It is only used to alter the storage display name.
         ''' </summary>
+        <DisplayName("Caption")>
         Public Property StorageCaption As String
             Get
                 Return _caption
@@ -118,7 +120,7 @@ Namespace Storage
         ''' <returns>The media URL in 'storage_name://actual_value/path[/file[.extension]]' format.</returns>
         Public Function GetMediaUrlFromStorageName(path As FileSystemInfo) As String
             If String.IsNullOrWhiteSpace(StorageName) Then
-                Throw New NullReferenceException("Storage name is not specified!")
+                Throw New System.Configuration.ConfigurationErrorsException("Storage name is not specified!")
             Else
                 Dim container As New DirectoryInfo(path.FullName)
 
@@ -150,7 +152,7 @@ Namespace Storage
         ''' <returns>The media URL in 'storage_label://actual_value/path[/file[.extension]]' format.</returns>
         Public Function GetMediaUrlFromStorageLabel(path As FileSystemInfo) As String
             If String.IsNullOrWhiteSpace(StorageLabel) Then
-                Throw New NullReferenceException("Storage label is not specified!")
+                Throw New System.Configuration.ConfigurationErrorsException("Storage label is not specified!")
             Else
                 Dim container As New DirectoryInfo(path.FullName)
 
@@ -182,7 +184,7 @@ Namespace Storage
         ''' <returns>The media URL in 'storage_uuid://actual_value/path[/file[.extension]]' format.</returns>
         Public Function GetMediaUrlFromStorageUuid(path As FileSystemInfo) As String
             If String.IsNullOrWhiteSpace(StorageUuid) Then
-                Throw New NullReferenceException("Storage UUID is not specified!")
+                Throw New System.Configuration.ConfigurationErrorsException("Storage UUID is not specified!")
             Else
                 Dim container As New DirectoryInfo(path.FullName)
 
@@ -225,14 +227,14 @@ Namespace Storage
                     Else ' get name=value pair
                         Dim nameValuePair As String = reader.ReadLine
                         If nameValuePair.Contains("=") AndAlso nameValuePair.IndexOf("="c) = nameValuePair.LastIndexOf("="c) Then
-                            Dim name As String = nameValuePair.Split("="c)(0).Trim.ToLower
+                            Dim name As String = nameValuePair.Split("="c)(0).Trim.ToLowerInvariant
                             Dim value As String = nameValuePair.Split("="c)(1).Trim
                             settings.Add(name, value)
                         End If
                     End If
                 Loop
             Else
-                settings = Nothing
+                settings = New Dictionary(Of String, String)
             End If
 
             Return settings
@@ -242,18 +244,26 @@ Namespace Storage
         ''' Scans and retrieves storage devices on the specified Dune device.
         ''' </summary>
         ''' <param name="host">The host Dune device.</param>
-        Public Shared Function FromHost(host As DuneApiCodePack.DuneUtilities.Dune) As List(Of LocalStorage)
-            Dim shares As ShareCollection = ShareCollection.GetShares(host.Hostname)
-            Dim localStorages As New List(Of LocalStorage)
+        Public Shared Function FromHost(host As DuneApiCodePack.DuneUtilities.Dune) As LocalStorage()
+            Dim shares As ShareCollection = Nothing
+            Dim sources As New Collection(Of LocalStorage)
 
-            For Each share As Share In shares
-                If share.ShareType = ShareType.Disk Then
-                    Dim localStorage As New LocalStorage(host.HostEntry, share.Root)
-                    localStorages.Add(localStorage)
-                End If
-            Next
+            If host.HostName.IsNotNullOrEmpty Then
+                shares = ShareCollection.GetShares(host.HostName)
+            ElseIf host.Address IsNot Nothing Then
+                shares = ShareCollection.GetShares(host.Address.ToString)
+            End If
 
-            Return localStorages
+            If shares IsNot Nothing Then
+                For Each share As Share In shares
+                    If share.ShareType = ShareType.Disk Then
+                        Dim localStorage As New LocalStorage(host.HostEntry, share.Root)
+                        sources.Add(localStorage)
+                    End If
+                Next
+            End If
+
+            Return sources.ToArray
         End Function
 
         ''' <summary>
@@ -283,6 +293,14 @@ Namespace Storage
                 Return mediaUrl
             Else
                 Return String.Empty
+            End If
+        End Function
+
+        Public Overrides Function ToString() As String
+            If StorageCaption.IsNotNullOrEmpty Then
+                Return StorageCaption
+            Else
+                Return StorageName
             End If
         End Function
     End Class

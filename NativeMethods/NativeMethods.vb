@@ -46,7 +46,7 @@ Public NotInheritable Class NativeMethods
             Dim IP As UInteger = BitConverter.ToUInt32(address.GetAddressBytes(), 0)
             Dim mac() As Byte = New Byte(5) {}
 
-            Dim ReturnValue As UInteger = SendARP(IP, 0, mac, mac.Length)
+            Dim ReturnValue As Integer = CInt(SendARP(CUInt(IP), 0, mac, mac.Length))
 
             If ReturnValue = NO_ERROR Then
                 Return New PhysicalAddress(mac)
@@ -80,57 +80,58 @@ Public NotInheritable Class NativeMethods
             Dim info As ShareInfo
 
             ' Variables to store seperate parameters
-            Dim sectorsPerCluster As UInt32
-            Dim bytesPerSector As UInt32
-            Dim numberOfFreeClusters As UInt32
-            Dim totalNumberOfClusters As UInt32
+            Dim sectorsPerCluster As Integer
+            Dim bytesPerSector As Integer
+            Dim numberOfFreeClusters As Integer
+            Dim totalNumberOfClusters As Integer
 
             ' Make the API call
             ' If the function succeeds, the return value is nonzero.
             ' If the function fails, the return value is zero.
-            Dim ReturnValue As Boolean = GetDiskFreeSpace(uncPath.LocalPath, sectorsPerCluster, bytesPerSector, numberOfFreeClusters, totalNumberOfClusters)
+            Dim ReturnValue As Boolean = GetDiskFreeSpace(uncPath.LocalPath, CUInt(sectorsPerCluster), CUInt(bytesPerSector), CUInt(numberOfFreeClusters), CUInt(totalNumberOfClusters))
+            Dim lastError As Integer = Marshal.GetLastWin32Error
 
             If ReturnValue.IsTrue Then ' create a dictionary of the returned values
                 info = New ShareInfo(sectorsPerCluster, bytesPerSector, numberOfFreeClusters, totalNumberOfClusters)
             Else
-                Throw New Win32Exception(Marshal.GetLastWin32Error)
+                Throw New Win32Exception(lastError)
             End If
 
             Return info
         End Function
 
         Public Structure ShareInfo
-            Private _sectorsPerCluster As UInteger
-            Private _bytesPerSector As UInteger
-            Private _numberOfFreeClusters As UInteger
-            Private _totalNumberOfClusters As UInteger
+            Private _sectorsPerCluster As Integer
+            Private _bytesPerSector As Integer
+            Private _numberOfFreeClusters As Integer
+            Private _totalNumberOfClusters As Integer
 
-            Public Sub New(sectorsPerCluster As UInteger, bytesPerSector As UInteger, numberOfFreeClusters As UInteger, totalNumberOfClusters As UInteger)
+            Public Sub New(sectorsPerCluster As Integer, bytesPerSector As Integer, numberOfFreeClusters As Integer, totalNumberOfClusters As Integer)
                 _sectorsPerCluster = sectorsPerCluster
                 _bytesPerSector = bytesPerSector
                 _numberOfFreeClusters = numberOfFreeClusters
                 _totalNumberOfClusters = totalNumberOfClusters
             End Sub
 
-            Public ReadOnly Property SectorsPerCluster As UInteger
+            Public ReadOnly Property SectorsPerCluster As Integer
                 Get
                     Return _sectorsPerCluster
                 End Get
             End Property
 
-            Public ReadOnly Property BytesPerSector As UInteger
+            Public ReadOnly Property BytesPerSector As Integer
                 Get
                     Return _bytesPerSector
                 End Get
             End Property
 
-            Public ReadOnly Property NumberOfFreeClusters As UInteger
+            Public ReadOnly Property NumberOfFreeClusters As Integer
                 Get
                     Return _numberOfFreeClusters
                 End Get
             End Property
 
-            Public ReadOnly Property TotalNumberOfClusters As UInteger
+            Public ReadOnly Property TotalNumberOfClusters As Integer
                 Get
                     Return _totalNumberOfClusters
                 End Get
@@ -138,10 +139,8 @@ Public NotInheritable Class NativeMethods
 
             Public Overrides Function ToString() As String
                 Dim total As ULong = CULng(TotalNumberOfClusters) * CULng(SectorsPerCluster) * CULng(BytesPerSector)
-                Dim free As ULong = CULng(NumberOfFreeClusters) * CULng(SectorsPerCluster) * CULng(BytesPerSector)
-                Dim used As ULong = total - free
 
-                Return Math.Round(total / 1024 ^ 3, 2).ToString + " GiB (" + Math.Round(total / 1000 ^ 3, 2).ToString + " GB)"
+                Return Math.Round(total / 1024 ^ 3, 2).ToString(Constants.FormatProvider) + " GiB (" + Math.Round(total / 1000 ^ 3, 2).ToString(Constants.FormatProvider) + " GB)"
             End Function
 
         End Structure
@@ -305,9 +304,9 @@ Public NotInheritable Class NativeMethods
             ''' </summary>
             Public Overrides Function ToString() As String
                 If _server Is Nothing OrElse 0 = _server.Length Then
-                    Return String.Format("\\{0}\{1}", Environment.MachineName, _netName)
+                    Return String.Format(Constants.FormatProvider, "\\{0}\{1}", Environment.MachineName, _netName)
                 Else
-                    Return String.Format("\\{0}\{1}", _server, _netName)
+                    Return String.Format(Constants.FormatProvider, "\\{0}\{1}", _server, _netName)
                 End If
             End Function
 
@@ -342,19 +341,18 @@ Public NotInheritable Class NativeMethods
             ''' <summary>
             ''' Is this an NT platform?
             ''' </summary>
-            Protected Shared ReadOnly Property IsNT() As Boolean
+            Private Shared ReadOnly Property IsNT() As Boolean
                 Get
-                    Return (PlatformID.Win32NT = Environment.OSVersion.Platform)
+                    Return (Environment.OSVersion.Platform = PlatformID.Win32NT)
                 End Get
             End Property
 
             ''' <summary>
             ''' Returns true if this is Windows 2000 or higher
             ''' </summary>
-            Protected Shared ReadOnly Property IsW2KUp() As Boolean
+            Private Shared ReadOnly Property IsW2KUp() As Boolean
                 Get
-                    Dim os As OperatingSystem = Environment.OSVersion
-                    If PlatformID.Win32NT = os.Platform AndAlso os.Version.Major >= 5 Then
+                    If Environment.OSVersion.Platform = PlatformID.Win32NT AndAlso Environment.OSVersion.Version.Major >= 5 Then
                         Return True
                     Else
                         Return False
@@ -369,21 +367,21 @@ Public NotInheritable Class NativeMethods
 #Region "Constants"
 
             ''' <summary>Maximum path length</summary>
-            Protected Const MAX_PATH As Integer = 260
+            Private Const MAX_PATH As Integer = 260
             ''' <summary>No error</summary>
-            Protected Const NO_ERROR As Integer = 0
+            Private Const NO_ERROR As Integer = 0
             ''' <summary>Access denied</summary>
-            Protected Const ERROR_ACCESS_DENIED As Integer = 5
+            Private Const ERROR_ACCESS_DENIED As Integer = 5
             ''' <summary>Access denied</summary>
-            Protected Const ERROR_WRONG_LEVEL As Integer = 124
+            Private Const ERROR_WRONG_LEVEL As Integer = 124
             ''' <summary>More data available</summary>
-            Protected Const ERROR_MORE_DATA As Integer = 234
+            Private Const ERROR_MORE_DATA As Integer = 234
             ''' <summary>Not connected</summary>
-            Protected Const ERROR_NOT_CONNECTED As Integer = 2250
+            Private Const ERROR_NOT_CONNECTED As Integer = 2250
             ''' <summary>Level 1</summary>
-            Protected Const UNIVERSAL_NAME_INFO_LEVEL As Integer = 1
+            Private Const UNIVERSAL_NAME_INFO_LEVEL As Integer = 1
             ''' <summary>Max extries (9x)</summary>
-            Protected Const MAX_SI50_ENTRIES As Integer = 20
+            Private Const MAX_SI50_ENTRIES As Integer = 20
 
 #End Region
 
@@ -391,7 +389,7 @@ Public NotInheritable Class NativeMethods
 
             ''' <summary>Unc name</summary>
             <StructLayout(LayoutKind.Sequential, CharSet:=CharSet.Auto)> _
-            Protected Structure UNIVERSAL_NAME_INFO
+            Private Structure UNIVERSAL_NAME_INFO
                 <MarshalAs(UnmanagedType.LPTStr)> _
                 Public lpUniversalName As String
             End Structure
@@ -401,7 +399,7 @@ Public NotInheritable Class NativeMethods
             ''' Requires admin rights to work. 
             ''' </remarks>
             <StructLayout(LayoutKind.Sequential, CharSet:=CharSet.Unicode)> _
-            Protected Structure SHARE_INFO_2
+            Private Structure SHARE_INFO_2
                 <MarshalAs(UnmanagedType.LPWStr)> _
                 Public NetName As String
                 Public ShareType As ShareType
@@ -421,7 +419,7 @@ Public NotInheritable Class NativeMethods
             ''' Fallback when no admin rights.
             ''' </remarks>
             <StructLayout(LayoutKind.Sequential, CharSet:=CharSet.Unicode)> _
-            Protected Structure SHARE_INFO_1
+            Private Structure SHARE_INFO_1
                 <MarshalAs(UnmanagedType.LPWStr)> _
                 Public NetName As String
                 Public ShareType As ShareType
@@ -431,12 +429,12 @@ Public NotInheritable Class NativeMethods
 
             ''' <summary>Share information, Win9x</summary>
             <StructLayout(LayoutKind.Sequential, CharSet:=CharSet.Ansi, Pack:=1)> _
-            Protected Structure SHARE_INFO_50
+            Private Structure SHARE_INFO_50
                 <MarshalAs(UnmanagedType.ByValTStr, SizeConst:=13)> _
                 Public NetName As String
 
-                Public bShareType As UShort
-                Public Flags As UShort
+                Public bShareType As Short
+                Public Flags As Short
 
                 <MarshalAs(UnmanagedType.LPTStr)> _
                 Public Remark As String
@@ -457,12 +455,12 @@ Public NotInheritable Class NativeMethods
 
             ''' <summary>Share information level 1, Win9x</summary>
             <StructLayout(LayoutKind.Sequential, CharSet:=CharSet.Ansi, Pack:=1)> _
-            Protected Structure SHARE_INFO_1_9x
+            Private Structure SHARE_INFO_1_9x
                 <MarshalAs(UnmanagedType.ByValTStr, SizeConst:=13)> _
                 Public NetName As String
-                Public Padding As UShort
+                Public Padding As Short
 
-                Public bShareType As UShort
+                Public bShareType As Short
 
                 <MarshalAs(UnmanagedType.LPTStr)> _
                 Public Remark As String
@@ -480,28 +478,28 @@ Public NotInheritable Class NativeMethods
 
             ''' <summary>Get a UNC name</summary>
             <DllImport("mpr", CharSet:=CharSet.Auto)> _
-            Protected Shared Function WNetGetUniversalName(lpLocalPath As String, dwInfoLevel As Integer, ByRef lpBuffer As UNIVERSAL_NAME_INFO, ByRef lpBufferSize As Integer) As Integer
+            Private Shared Function WNetGetUniversalName(lpLocalPath As String, dwInfoLevel As Integer, ByRef lpBuffer As UNIVERSAL_NAME_INFO, ByRef lpBufferSize As Integer) As Integer
             End Function
 
             ''' <summary>Get a UNC name</summary>
             <DllImport("mpr", CharSet:=CharSet.Auto)> _
-            Protected Shared Function WNetGetUniversalName(lpLocalPath As String, dwInfoLevel As Integer, lpBuffer As IntPtr, ByRef lpBufferSize As Integer) As Integer
+            Private Shared Function WNetGetUniversalName(lpLocalPath As String, dwInfoLevel As Integer, lpBuffer As IntPtr, ByRef lpBufferSize As Integer) As Integer
             End Function
 
             ''' <summary>Enumerate shares (NT)</summary>
             <DllImport("netapi32", CharSet:=CharSet.Unicode)> _
-            Protected Shared Function NetShareEnum(lpServerName As String, dwLevel As Integer, ByRef lpBuffer As IntPtr, dwPrefMaxLen As Integer, ByRef entriesRead As Integer, ByRef totalEntries As Integer, _
+            Private Shared Function NetShareEnum(lpServerName As String, dwLevel As Integer, ByRef lpBuffer As IntPtr, dwPrefMaxLen As Integer, ByRef entriesRead As Integer, ByRef totalEntries As Integer, _
    ByRef hResume As Integer) As Integer
             End Function
 
             ''' <summary>Enumerate shares (9x)</summary>
             <DllImport("svrapi", CharSet:=CharSet.Ansi)> _
-            Protected Shared Function NetShareEnum(<MarshalAs(UnmanagedType.LPTStr)> lpServerName As String, dwLevel As Integer, lpBuffer As IntPtr, cbBuffer As UShort, ByRef entriesRead As UShort, ByRef totalEntries As UShort) As Integer
+            Private Shared Function NetShareEnum(<MarshalAs(UnmanagedType.LPTStr)> lpServerName As String, dwLevel As Integer, lpBuffer As IntPtr, cbBuffer As Short, ByRef entriesRead As Short, ByRef totalEntries As Short) As Integer
             End Function
 
             ''' <summary>Free the buffer (NT)</summary>
             <DllImport("netapi32")> _
-            Protected Shared Function NetApiBufferFree(lpBuffer As IntPtr) As Integer
+            Private Shared Function NetApiBufferFree(lpBuffer As IntPtr) As Integer
             End Function
 
 #End Region
@@ -513,7 +511,7 @@ Public NotInheritable Class NativeMethods
             ''' </summary>
             ''' <param name="server">The server name</param>
             ''' <param name="shares">The ShareCollection</param>
-            Protected Shared Sub EnumerateSharesNT(server As String, shares As ShareCollection)
+            Private Shared Sub EnumerateSharesNT(server As String, shares As ShareCollection)
                 Dim level As Integer = 2
                 Dim entriesRead As Integer, totalEntries As Integer, nRet As Integer, hResume As Integer = 0
                 Dim pBuffer As IntPtr = IntPtr.Zero
@@ -551,7 +549,7 @@ Public NotInheritable Class NativeMethods
                 Finally
                     ' Clean up buffer allocated by system
                     If IntPtr.Zero <> pBuffer Then
-                        NetApiBufferFree(pBuffer)
+                        Dim result As Integer = NetApiBufferFree(pBuffer)
                     End If
                 End Try
             End Sub
@@ -561,14 +559,14 @@ Public NotInheritable Class NativeMethods
             ''' </summary>
             ''' <param name="server">The server name</param>
             ''' <param name="shares">The ShareCollection</param>
-            Protected Shared Sub EnumerateShares9x(server As String, shares As ShareCollection)
+            Private Shared Sub EnumerateShares9x(server As String, shares As ShareCollection)
                 Dim level As Integer = 50
                 Dim nRet As Integer = 0
-                Dim entriesRead As UShort, totalEntries As UShort
+                Dim entriesRead As Short, totalEntries As Short
 
                 Dim t As Type = GetType(SHARE_INFO_50)
                 Dim size As Integer = Marshal.SizeOf(t)
-                Dim cbBuffer As UShort = CUShort(MAX_SI50_ENTRIES * size)
+                Dim cbBuffer As Short = CShort(MAX_SI50_ENTRIES * size)
                 'On Win9x, must allocate buffer before calling API
                 Dim pBuffer As IntPtr = Marshal.AllocHGlobal(cbBuffer)
 
@@ -613,12 +611,12 @@ Public NotInheritable Class NativeMethods
             ''' </summary>
             ''' <param name="server">The server name</param>
             ''' <param name="shares">The ShareCollection</param>
-            Protected Shared Sub EnumerateShares(server As String, shares As ShareCollection)
-                If server IsNot Nothing AndAlso 0 <> server.Length AndAlso Not IsW2KUp Then
+            Private Shared Sub EnumerateShares(server As String, shares As ShareCollection)
+                If server.IsNotNullOrWhiteSpace AndAlso Not IsW2KUp Then
                     server = server.ToUpper()
 
                     ' On NT4, 9x and Me, server has to start with "\\"
-                    If Not ("\"c = server(0) AndAlso "\"c = server(1)) Then
+                    If server.Left(2) <> "\\" Then
                         server = "\\" & server
                     End If
                 End If
@@ -817,11 +815,11 @@ Public NotInheritable Class NativeMethods
 
 #Region "Add"
 
-            Protected Sub Add(share As Share)
+            Private Sub Add(share As Share)
                 InnerList.Add(share)
             End Sub
 
-            Protected Sub Add(netName As String, path As String, shareType As ShareType, remark As String)
+            Private Sub Add(netName As String, path As String, shareType As ShareType, remark As String)
                 InnerList.Add(New Share(_server, netName, path, shareType, remark))
             End Sub
 

@@ -163,7 +163,7 @@ Namespace DuneUtilities
             command.Timeout = _dune.Timeout
 
 
-            Select Case file.Extension.ToLower
+            Select Case file.Extension.ToLowerInvariant
                 Case ".iso"
                     If file.Length > (8.5 * 1024 ^ 3) Then ' assume it is a bluray disc image
                         command.Type = StartPlaybackCommand.PlaybackType.Bluray

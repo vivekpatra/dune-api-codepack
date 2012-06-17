@@ -5,18 +5,24 @@ Namespace DuneUtilities.ApiWrappers
     Public Class LanguageTrack
 
         Private _type As String
-        Private _trackNumber As UShort
+        Private _trackNumber As Short
         Private _language As CultureInfo
         Private _codec As String
 
-        Public Sub New(type As String, number As UShort, language As CultureInfo, codec As String)
+        Public Sub New(type As String, number As Short, language As CultureInfo, codec As String)
             _type = type
             _trackNumber = number
             _language = language
             _codec = codec
         End Sub
 
-        Public ReadOnly Property Number As UShort
+        Public ReadOnly Property Type As String
+            Get
+                Return _type
+            End Get
+        End Property
+
+        Public ReadOnly Property Number As Short
             Get
                 Return _trackNumber
             End Get
@@ -35,7 +41,7 @@ Namespace DuneUtilities.ApiWrappers
         End Property
 
         Public Shared Function FromCommandResult(type As String, number As String, languageCode As String, codec As String) As LanguageTrack
-            Dim key As UShort = CUShort(number)
+            Dim key As Short = CShort(number)
             Dim language As CultureInfo = GetCultureInfo(languageCode)
 
             Return New LanguageTrack(type, key, language, codec)
@@ -45,17 +51,25 @@ Namespace DuneUtilities.ApiWrappers
         ''' Converts a three-letter language code into a <see cref="CultureInfo"/> object.
         ''' </summary>
         Private Shared Function GetCultureInfo(languageCode As String) As CultureInfo
-            If languageCode.Length > 2 Then
+            If languageCode.IsNullOrEmpty Then
+                languageCode = "und"
+            ElseIf languageCode.Length > 2 Then
                 languageCode = GetTerminologyCode(languageCode)
             End If
 
-            Dim allCultures As List(Of CultureInfo)
-            allCultures = CultureInfo.GetCultures(CultureTypes.NeutralCultures).ToList
-
-            For Each culture As CultureInfo In allCultures
-                If culture.ThreeLetterISOLanguageName = languageCode Then
-                    Return culture
-                End If
+            Dim length As Integer = languageCode.Length
+            
+            For Each culture As CultureInfo In CultureInfo.GetCultures(CultureTypes.NeutralCultures)
+                Select Case length
+                    Case 2
+                        If culture.TwoLetterISOLanguageName = languageCode Then
+                            Return culture
+                        End If
+                    Case 3
+                        If culture.ThreeLetterISOLanguageName = languageCode Then
+                            Return culture
+                        End If
+                End Select
             Next
 
             Return CultureInfo.InvariantCulture

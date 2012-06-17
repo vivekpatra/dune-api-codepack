@@ -21,7 +21,16 @@ Namespace Extensions
         ''' </summary>
         <Extension()>
         Public Function ToNumberString(value As Boolean) As String
-            Return Math.Abs(CInt(value)).ToString
+            Return Math.Abs(CInt(value)).ToString(Constants.FormatProvider)
+        End Function
+
+        <Extension()>
+        Public Function GetNumberString(value As Boolean) As String
+            If value.IsTrue Then
+                Return "1"
+            Else
+                Return "0"
+            End If
         End Function
 
         ''' <summary>

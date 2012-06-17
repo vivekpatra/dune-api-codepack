@@ -1,11 +1,21 @@
-﻿Namespace DuneUtilities.ApiWrappers
+﻿Imports System.Runtime.Serialization
 
+Namespace DuneUtilities.ApiWrappers
+
+    <Serializable()>
     Public Class Folder
         Inherits IO.FileSystemInfo
 
         ' TODO: implement dune_folder.txt functionallity
         ' http://dune-hd.com/firmware/misc/dune_folder_howto.txt
 
+        Public Sub New()
+            ' default constructor
+        End Sub
+
+        Protected Sub New(info As SerializationInfo, context As StreamingContext)
+            MyBase.New(info, context)
+        End Sub
 
         Public Overrides Sub Delete()
             Throw New NotImplementedException

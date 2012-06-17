@@ -1,17 +1,17 @@
 ﻿Imports System.IO
 Imports System.Net
 
-Namespace Storage
+Namespace Sources
 
     ''' <summary>
     ''' This is the base class for all types that represent a storage device, whether it be local or remote, accessible or inaccessible.
     ''' This class cannot be instantiated directly.
     ''' </summary>
-    Public MustInherit Class Storage
-        Protected _host As IPHostEntry
-        Protected _root As DirectoryInfo
+    Public MustInherit Class StorageDevice
+        Friend _host As IPHostEntry
+        Friend _root As DirectoryInfo
 
-        Public Sub New(host As IPHostEntry)
+        Protected Sub New(host As IPHostEntry)
             _host = host
         End Sub
 

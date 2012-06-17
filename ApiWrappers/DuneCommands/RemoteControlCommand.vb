@@ -1,6 +1,4 @@
-﻿Imports System.Text
-Imports System.Reflection
-Imports System.Collections.Specialized
+﻿Imports SL.DuneApiCodePack.Networking
 
 Namespace DuneUtilities.ApiWrappers
 
@@ -8,12 +6,12 @@ Namespace DuneUtilities.ApiWrappers
     Public Class RemoteControlCommand
         Inherits Command
 
-        Private _button As UShort
+        Private _button As Short
         Private _code As String
 
         ''' <param name="target">The target device.</param>
         ''' <param name="button">The button to send.</param>
-        Public Sub New(target As Dune, button As UShort)
+        Public Sub New(target As Dune, button As Short)
             MyBase.New(target)
             _button = button
         End Sub
@@ -30,11 +28,11 @@ Namespace DuneUtilities.ApiWrappers
             End Get
         End Property
 
-        Protected Overrides Function GetQuery() As NameValueCollection
-            Dim query As New NameValueCollection
+        Protected Overrides Function GetQuery() As HttpQuery
+            Dim query As New HttpQuery
 
-            query.Add("cmd", Constants.Commands.InfraredCode)
-            query.Add(Constants.InfraredCodeParameters.InfraredCode, HexCode)
+            query.Add("cmd", Constants.CommandValues.InfraredCode)
+            query.Add(Constants.InfraredCodeParameterNames.InfraredCode, HexCode)
 
             Return query
         End Function

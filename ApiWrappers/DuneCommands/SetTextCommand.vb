@@ -1,4 +1,4 @@
-﻿Imports System.Collections.Specialized
+﻿Imports SL.DuneApiCodePack.Networking
 
 Namespace DuneUtilities.ApiWrappers
 
@@ -26,10 +26,10 @@ Namespace DuneUtilities.ApiWrappers
             End Get
         End Property
 
-        Protected Overrides Function GetQuery() As NameValueCollection
-            Dim query As New NameValueCollection
-            query.Add("cmd", Constants.Commands.SetText)
-            query.Add(Constants.SetTextParameters.Text, Text)
+        Protected Overrides Function GetQuery() As HttpQuery
+            Dim query As New HttpQuery
+            query.Add("cmd", Constants.CommandValues.SetText)
+            query.Add(Constants.SetTextParameterNames.Text, Text)
             Return query
         End Function
     End Class

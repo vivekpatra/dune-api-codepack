@@ -14,6 +14,7 @@
     <FileAlignment>512</FileAlignment>
     <MyType>Windows</MyType>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -49,10 +50,16 @@
   <PropertyGroup>
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>SN.pfx</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.configuration" />
     <Reference Include="System.DirectoryServices" />
-    <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -63,6 +70,7 @@
     <Import Include="System" />
     <Import Include="System.Collections" />
     <Import Include="System.Collections.Generic" />
+    <Import Include="System.Collections.ObjectModel" />
     <Import Include="System.Diagnostics" />
     <Import Include="System.Linq" />
     <Import Include="System.Xml.Linq" />
@@ -92,17 +100,17 @@
     <Compile Include="ApiWrappers\Storage\SmbShare.vb" />
     <Compile Include="ApiWrappers\Storage\Storage.vb" />
     <Compile Include="ApiWrappers\SystemInformation.vb" />
-    <Compile Include="ConnectedEventArgs.vb" />
     <Compile Include="Converters\PlayerStateConverter.vb" />
     <Compile Include="Converters\ZoomConverter.vb" />
-    <Compile Include="DisconnectedEventArgs.vb" />
     <Compile Include="Extensions\BitConverterExtensions.vb" />
     <Compile Include="Extensions\BooleanExtensions.vb" />
     <Compile Include="Extensions\FileSystemInfoExtensions.vb" />
+    <Compile Include="Extensions\IntegerExtensions.vb" />
     <Compile Include="Extensions\PhysicalAddressExtensions.vb" />
     <Compile Include="Extensions\StringExtensions.vb" />
     <Compile Include="Constants.vb" />
     <Compile Include="ApiWrappers\DuneCommands\StartPlaybackCommand.vb" />
+    <Compile Include="Networking\HttpQuery.vb" />
     <Compile Include="Networking\NetworkDevice.vb" />
     <Compile Include="RemoteControl.vb" />
     <Compile Include="Extensions\IPAddressExtensions.vb" />
@@ -146,6 +154,7 @@
       <CustomToolNamespace>My</CustomToolNamespace>
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
+    <None Include="SN.pfx" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />

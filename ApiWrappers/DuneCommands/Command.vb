@@ -1,22 +1,18 @@
 ﻿Imports System.Net
 Imports System.IO
-Imports System.Collections.Specialized
+Imports SL.DuneApiCodePack.Networking
 
 Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>
     ''' This is the base class for all Dune command types.
-    ''' It provides methods to turn a set of parameter/value pairs into a URL encoded query string or a <see cref="WebRequest"/>.
-    ''' Types that inherit this class should implement the logic to supply valid parameter/value pairs. This is done by overriding the GetQuery() method to make it return the proper <see cref="NameValueCollection"/>.
     ''' </summary>
     Public MustInherit Class Command
         Private _target As Dune
-        Private _timeout As UInteger?
+        Private _timeout As Integer?
         Private _httpMethod As String
-        Private _commandType As String
-        Private _query As NameValueCollection
 
-        Public Sub New(target As Dune)
+        Protected Sub New(target As Dune)
             _target = target
         End Sub
 
@@ -32,7 +28,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the requested command type as defined by the API.
         ''' </summary>
-        ''' <remarks>Do use the constants defined in the <see cref="Constants.Commands"/> class.</remarks>
+        ''' <remarks>Do use the constants defined in the <see cref="Constants.CommandValues"/> class.</remarks>
         Protected Friend ReadOnly Property CommandType As String
             Get
                 Return GetQuery.Item("cmd")
@@ -42,16 +38,16 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets or sets the command timeout.
         ''' </summary>
-        Public Property Timeout As UInteger?
+        Public Property Timeout As Integer?
             Get
                 If Not _timeout.HasValue Then
                     _timeout = Target.Timeout
                 End If
                 Return _timeout
             End Get
-            Set(value As UInteger?)
+            Set(value As Integer?)
                 If value <= 0 Then
-                    value = 1
+                    value = Nothing
                 End If
                 _timeout = value
             End Set
@@ -65,8 +61,10 @@ Namespace DuneUtilities.ApiWrappers
 
             If Target.Address IsNot Nothing Then
                 address.Append(Target.Address.ToString)
-            Else
-                address.Append(Target.Hostname)
+            ElseIf Target.HostName.IsNotNullOrWhiteSpace Then
+                address.Append(Target.HostName)
+            Else ' default to "Dune".
+                address.Append("Dune")
             End If
 
             If Target.Port <> 80 Then
@@ -76,15 +74,16 @@ Namespace DuneUtilities.ApiWrappers
             Return String.Format("http://{0}/cgi-bin/do", address.ToString)
         End Function
 
-        Protected MustOverride Function GetQuery() As NameValueCollection
+        Protected MustOverride Function GetQuery() As HttpQuery
 
         ''' <summary>
         ''' Gets the command query string.
         ''' </summary>
         Protected Overridable Function GetQueryString() As String
-            Dim request As NameValueCollection = Web.HttpUtility.ParseQueryString(String.Empty)
+            Dim request As New Networking.HttpQuery
+
             request.Add(GetQuery)
-            request.Add("timeout", Timeout.Value.ToString)
+            request.Add("timeout", Timeout.Value.ToString(Constants.FormatProvider))
 
             Return request.ToString
         End Function
@@ -114,7 +113,6 @@ Namespace DuneUtilities.ApiWrappers
         ''' </summary>
         Private Function GetRequest() As WebRequest
             Dim request As WebRequest
-            Dim query As String = GetQueryString()
 
             Dim requestUri As Uri
 
@@ -126,17 +124,15 @@ Namespace DuneUtilities.ApiWrappers
 
             request = WebRequest.Create(requestUri)
             request.Method = Method
-            SetTimeout(request)
+            request.Timeout = Integer.MaxValue
             SetUserAgent(request)
+
+            If request.Method = WebRequestMethods.Http.Post Then ' write command query to the request stream
+                WritePostData(request, GetQueryString)
+            End If
 
             Return request
         End Function
-
-        Private Sub SetTimeout(request As WebRequest)
-            If Timeout > 0 Then
-                request.Timeout = Integer.MaxValue
-            End If
-        End Sub
 
         Private Sub SetUserAgent(request As WebRequest)
             DirectCast(request, HttpWebRequest).UserAgent = String.Concat(My.Application.Info.ProductName, "/", My.Application.Info.Version.ToString)
@@ -162,11 +158,6 @@ Namespace DuneUtilities.ApiWrappers
         ''' <exception cref="WebException">: An error occurred when trying to query the API.</exception>
         Friend Function GetResponse() As WebResponse
             Dim request As WebRequest = GetRequest()
-
-            If request.Method = WebRequestMethods.Http.Post Then ' write command query to the request stream first
-                WritePostData(request, GetQueryString)
-            End If
-
             Return request.GetResponse
         End Function
 

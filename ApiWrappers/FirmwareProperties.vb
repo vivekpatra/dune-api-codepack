@@ -23,7 +23,6 @@ Namespace DuneUtilities.ApiWrappers
 
         Private Sub New(firmware As String)
             Dim pieces() As String = firmware.Split(Convert.ToChar(32))
-            Dim client As New WebClient
 
             _firmware = pieces(0)
 
@@ -44,15 +43,20 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the firmware version string.
         ''' </summary>
-        Public ReadOnly Property Version As String
+        <Category("Firmware information")>
+        Public Property Version As String
             Get
                 Return _firmware
             End Get
+            Set(value As String)
+                Throw New ArgumentException("Please don't try to change this value!")
+            End Set
         End Property
 
         ''' <summary>
         ''' Gets whether this is a non-stable release.
         ''' </summary>
+        <Category("Firmware information")>
         Public ReadOnly Property Beta As Boolean
             Get
                 Return _beta
@@ -62,6 +66,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the approximate filesize in megabytes.
         ''' </summary>
+        <Category("Firmware information")>
         Public ReadOnly Property ApproximateFileSize As Integer
             Get
                 Return _approximateLength
@@ -69,8 +74,26 @@ Namespace DuneUtilities.ApiWrappers
         End Property
 
         ''' <summary>
+        ''' Gets the build date of the firmware file.
+        ''' </summary>
+        <Category("Firmware information")>
+        Public ReadOnly Property BuildDate As Date
+            Get
+                Dim dt As Date
+                Dim format As String = "yyMMdd_HHmm"
+
+                If DateTime.TryParseExact(Version.Substring(0, format.Length), format, Globalization.CultureInfo.InvariantCulture, Globalization.DateTimeStyles.None, dt) Then
+                    Return dt
+                Else
+                    Return Nothing
+                End If
+            End Get
+        End Property
+
+        ''' <summary>
         ''' Gets the download link of the uncompressed DFF file.
         ''' </summary>
+        <Category("Uncompressed")>
         Public ReadOnly Property UncompressedLocation As Uri
             Get
                 Return _uncompressedLocation
@@ -80,6 +103,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the filesize of the uncompressed DFF file in bytes.
         ''' </summary>
+        <Category("Uncompressed")>        
         Public ReadOnly Property UncompressedLEngth As Long
             Get
                 Return _uncompressedLength
@@ -89,6 +113,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the download link of the zipped DFF file.
         ''' </summary>
+        <Category("Zip")>
         Public ReadOnly Property ZipLocation As Uri
             Get
                 Return _zipLocation
@@ -98,6 +123,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the filesize of the zipped DFF file in bytes.
         ''' </summary>
+        <Category("Zip")>                
         Public ReadOnly Property ZipLength As Long
             Get
                 Return _zipLength
@@ -107,6 +133,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the download link of the gzipped DFF file.
         ''' </summary>
+        <Category("Gzip")>
         Public ReadOnly Property GzipLocation As Uri
             Get
                 Return _gzipLocation
@@ -116,23 +143,10 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the filesize of the gzipped DFF file in bytes.
         ''' </summary>
+        <Category("Gzip")>
         Public ReadOnly Property GzipLength As Long
             Get
                 Return _gzipLength
-            End Get
-        End Property
-
-        ''' <summary>
-        ''' Gets the build date of the firmware file.
-        ''' </summary>
-        Public ReadOnly Property BuildDate As Date
-            Get
-                Dim dt As Date
-                Dim format As String = "yyMMdd_HHmm"
-
-                DateTime.TryParseExact(Version.Substring(0, format.Length), format, Globalization.CultureInfo.InvariantCulture, Globalization.DateTimeStyles.None, dt)
-
-                Return dt
             End Get
         End Property
 
@@ -149,68 +163,39 @@ Namespace DuneUtilities.ApiWrappers
                 Using response As WebResponse = DirectCast(request.GetResponse, WebResponse)
                     Return response.ContentLength
                 End Using
-            Catch ex As Exception
-
+            Catch ex As WebException
+                Return 0
             End Try
-            Return Nothing
         End Function
 
-        ''' <summary>
-        ''' Downloads a list of available firmware versions for a specific device.
-        ''' </summary>
-        ''' <param name="product">The device's product ID (see <see cref="Constants.ProductIDs"/> for a list of constants that you can use).</param>
-        ''' <returns>A list of FirmwareInfo objects.</returns>
-        Public Shared Function GetAvailableFirmwares(product As String) As List(Of FirmwareProperties)
-            Dim client As New WebClient
-            Dim firmwares As New List(Of FirmwareProperties)
+        Public Shared Function GetAvailableFirmwares(product As String) As FirmwareProperties()
+            Dim results() As String
 
-            Dim reader As New StringReader(client.DownloadString(New Uri(BaseUri + product + ".txt")))
-            Dim delimiters() As String = {vbCr, vbLf}
-            Dim results() As String = reader.ReadToEnd.Split(delimiters, StringSplitOptions.RemoveEmptyEntries)
+            Dim firmwares As New ArrayList()
+
+            Using client As New WebClient
+                Using reader As StringReader = New StringReader(client.DownloadString(New Uri(BaseUri + product + ".txt")))
+                    Dim delimiters() As String = {vbCr, vbLf}
+                    results = reader.ReadToEnd.Split(delimiters, StringSplitOptions.RemoveEmptyEntries)
+                End Using
+            End Using
 
             ' get the firmware properties and add to the list
             Parallel.ForEach(results, Sub(firmware)
-                                          firmwares.Add(New FirmwareProperties(firmware))
+                                          Dim properties As New FirmwareProperties(firmware)
+                                          firmwares.Add(properties)
                                       End Sub)
 
-            ' sort the list by date
-            firmwares.Sort(Function(firmware, firmware2) CInt(firmware.BuildDate > firmware2.BuildDate))
+            Dim unsorted As FirmwareProperties() = CType(firmwares.ToArray(GetType(FirmwareProperties)), FirmwareProperties())
+            Dim sorted = From firmware In unsorted
+                         Select firmware
+                         Order By firmware.Version Descending.ToArray
 
-            Return firmwares
+            Return sorted
         End Function
 
-
-        ''' <summary>
-        ''' Downloads a list of available firmware versions for a specific device.
-        ''' </summary>
-        ''' <param name="product">The device's product ID (see <see cref="Constants.ProductIDs"/> for a list of constants that you can use).</param>
-        ''' <returns>A list of FirmwareInfo objects.</returns>
-        Public Shared Function GetAvailableFirmwaresAsync(product As String) As Task(Of List(Of FirmwareProperties))
-            Dim client As New WebClient
-            Dim firmwares As New List(Of FirmwareProperties)
-            Dim request As WebRequest = WebRequest.Create(New Uri(BaseUri + product + ".txt"))
-
-            Dim response As Task(Of WebResponse) = Task(Of WebResponse).Factory.FromAsync(AddressOf request.BeginGetResponse, AddressOf request.EndGetResponse, Nothing)
-            Dim downloadTask As Task(Of List(Of FirmwareProperties)) = response.ContinueWith(Of List(Of FirmwareProperties))(Function(antecedent)
-                                                                                                                                 Dim streamReader As New StreamReader(response.Result.GetResponseStream)
-
-                                                                                                                                 Dim stringReader As New StringReader(StreamReader.ReadToEnd)
-
-                                                                                                                                 Dim delimiters() As String = {vbCr, vbLf}
-                                                                                                                                 Dim results() As String = StringReader.ReadToEnd.Split(delimiters, StringSplitOptions.RemoveEmptyEntries)
-
-                                                                                                                                 ' get the firmware properties and add to the list
-                                                                                                                                 Parallel.ForEach(results, Sub(firmware)
-                                                                                                                                                               firmwares.Add(New FirmwareProperties(firmware))
-                                                                                                                                                           End Sub)
-
-                                                                                                                                 ' sort the list by date
-                                                                                                                                 firmwares.Sort(Function(firmware, firmware2) CInt(firmware.BuildDate > firmware2.BuildDate))
-
-                                                                                                                                 Return firmwares
-                                                                                                                             End Function)
-
-            Return downloadTask
+        Public Shared Function GetAvailableFirmwaresAsync(product As String) As Task(Of FirmwareProperties())
+            Return Task(Of FirmwareProperties()).Factory.StartNew(Function() GetAvailableFirmwares(product))
         End Function
 
         Public Overrides Function ToString() As String

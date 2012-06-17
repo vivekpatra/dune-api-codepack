@@ -5,18 +5,19 @@ Imports System.Text
 Imports System.Text.RegularExpressions
 Imports System.IO
 
-Namespace Telnet
+Namespace Networking
 
     ''' <summary>
     ''' Provides a simple implementation of a Telnet client which takes care of option negotiations (don't worry if you don't know what I'm talking about).
     ''' </summary>
     Public Class TelnetClient
+        Implements IDisposable
+
         Private _client As TcpClient
         Private _telnetLock As Object
 
-        Private _loginRegex As Regex
+        Private _logOnRegex As Regex
         Private _promptRegex As Regex
-        Private _passwordRegx As Regex
 
 
 #Region "Constructors"
@@ -27,7 +28,7 @@ Namespace Telnet
 
         Public Sub New(address As IPAddress, port As Integer)
             _telnetLock = New Object
-            _loginRegex = New Regex("^tango3 login: $", RegexOptions.Multiline)
+            _logOnRegex = New Regex("^tango3 login: $", RegexOptions.Multiline)
             _promptRegex = New Regex("^tango3.*# $", RegexOptions.Multiline)
             _client = New TcpClient
 
@@ -78,21 +79,11 @@ Namespace Telnet
         ''' <summary>
         ''' Blocks until the host asks for login and responds with the specified username.
         ''' </summary>
-        Public Sub login(username As String)
+        Public Sub LogOn(userName As String)
             If Connected Then
-                ReadUntilRegex(_loginRegex)
-                ExecuteCommand(username)
+                ReadUntilRegex(_logOnRegex)
+                ExecuteCommand(userName)
             End If
-        End Sub
-
-        ''' <summary>
-        ''' Blocks until the host asks for login and responds with the specified username.
-        ''' Blocks again until the host asks for a password and responds with the specified password.
-        ''' </summary>
-        Public Sub login(username As String, password As String)
-            login(username)
-            ReadUntilRegex(_passwordRegx)
-            ExecuteCommand(password)
         End Sub
 
         ''' <summary>
@@ -128,7 +119,7 @@ Namespace Telnet
                     If read > -1 Then
                         Select Case read
                             Case OptionCodes.IAC ' first 3 bytes represents a negotiation
-                                Dim request As UShort = CByte(Client.GetStream.ReadByte)
+                                Dim request As Short = CByte(Client.GetStream.ReadByte)
                                 Dim action As Byte = CByte(Client.GetStream.ReadByte)
 
                                 Dim response As Byte
@@ -190,6 +181,31 @@ Namespace Telnet
         End Function
 
 #End Region ' Methods
+
+#Region "IDisposable Support"
+        Private disposedValue As Boolean ' To detect redundant calls
+
+        ' IDisposable
+        Protected Overridable Sub Dispose(disposing As Boolean)
+            If Not Me.disposedValue Then
+                If disposing Then
+                    _client.Close()
+                End If
+
+                _telnetLock = Nothing
+                _logOnRegex = Nothing
+            End If
+            Me.disposedValue = True
+        End Sub
+
+        ' This code added by Visual Basic to correctly implement the disposable pattern.
+        Public Sub Dispose() Implements IDisposable.Dispose
+            ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
+            Dispose(True)
+            GC.SuppressFinalize(Me)
+        End Sub
+#End Region
+
     End Class
 
     Enum Commands As Byte ' as defined by RFC 854

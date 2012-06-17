@@ -1,4 +1,4 @@
-﻿Imports System.Collections.Specialized
+﻿Imports SL.DuneApiCodePack.Networking
 
 Namespace DuneUtilities.ApiWrappers
 
@@ -8,7 +8,7 @@ Namespace DuneUtilities.ApiWrappers
         Private _website As Uri
         Private _fullscreen As Boolean?
         Private _webAppKeys As Boolean?
-        Private _zoomLevel As UShort?
+        Private _zoomLevel As Short?
         Private _overscan As Boolean?
         Private _userAgent As String
         Private _backgroundColor As String
@@ -46,11 +46,11 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets or sets the zoom level.
         ''' </summary>
-        Public Property ZoomLevel As UShort?
+        Public Property ZoomLevel As Short?
             Get
                 Return _zoomLevel
             End Get
-            Set(value As UShort?)
+            Set(value As Short?)
                 _zoomLevel = value
             End Set
         End Property
@@ -91,36 +91,36 @@ Namespace DuneUtilities.ApiWrappers
             End Set
         End Property
 
-        Protected Overrides Function GetQuery() As NameValueCollection
-            Dim query As New NameValueCollection
+        Protected Overrides Function GetQuery() As HttpQuery
+            Dim query As New HttpQuery
 
-            query.Add("cmd", Constants.Commands.LaunchMediaUrl)
-            query.Add(Constants.StartPlaybackParameters.MediaUrl, "www://" + _website.AbsoluteUri)
+            query.Add("cmd", Constants.CommandValues.LaunchMediaUrl)
+            query.Add(Constants.StartPlaybackParameterNames.MediaUrl, "www://" + _website.AbsoluteUri)
 
             Return query
         End Function
 
         Protected Overrides Function GetQueryString() As String
             If Fullscreen.HasValue Or WebAppKeys.HasValue Or ZoomLevel.HasValue Or Overscan.HasValue Or UserAgent.IsNotNullOrWhiteSpace Or BackgroundColor.IsNotNullOrWhiteSpace Then
-                Dim parameters As NameValueCollection = Web.HttpUtility.ParseQueryString(String.Empty)
+                Dim parameters As New HttpQuery
 
                 If Fullscreen.HasValue Then
-                    parameters.Add(Constants.WebbrowserParameters.Fullscreen, Fullscreen.Value.ToNumberString)
+                    parameters.Add(Constants.WebbrowserParameterNames.Fullscreen, Fullscreen.Value.ToNumberString)
                 End If
                 If WebAppKeys.HasValue Then
-                    parameters.Add(Constants.WebbrowserParameters.WebappKeys, WebAppKeys.Value.ToNumberString)
+                    parameters.Add(Constants.WebbrowserParameterNames.WebappKeys, WebAppKeys.Value.ToNumberString)
                 End If
                 If ZoomLevel.HasValue Then
-                    parameters.Add(Constants.WebbrowserParameters.ZoomLevel, ZoomLevel.Value.ToString)
+                    parameters.Add(Constants.WebbrowserParameterNames.ZoomLevel, ZoomLevel.Value.ToString)
                 End If
                 If Overscan.HasValue Then
-                    parameters.Add(Constants.WebbrowserParameters.Overscan, Overscan.Value.ToNumberString)
+                    parameters.Add(Constants.WebbrowserParameterNames.Overscan, Overscan.Value.ToNumberString)
                 End If
                 If UserAgent.IsNotNullOrWhiteSpace Then
-                    parameters.Add(Constants.WebbrowserParameters.UserAgent, UserAgent)
+                    parameters.Add(Constants.WebbrowserParameterNames.UserAgent, UserAgent)
                 End If
                 If BackgroundColor.IsNotNullOrWhiteSpace Then
-                    parameters.Add(Constants.WebbrowserParameters.BackgroundColor, BackgroundColor)
+                    parameters.Add(Constants.WebbrowserParameterNames.BackgroundColor, BackgroundColor)
                 End If
 
                 Dim query As New Text.StringBuilder

@@ -26,16 +26,21 @@ Namespace Networking
         Private Sub GetResults(physicalAddress As PhysicalAddress)
             Dim delimiter As Char = "|"c
 
-            Dim client As New WebClient()
-            Dim request As New Uri(ApiBaseUri + ApiKey + "/" + physicalAddress.ToString)
+            Try
+                Using client As New WebClient()
+                    Dim request As New Uri(ApiBaseUri + ApiKey + "/" + physicalAddress.ToString)
 
-            Dim results As String = client.DownloadString(request)
+                    Dim results As String = client.DownloadString(request)
 
-            _company = results.Split(delimiter).GetValue(0).ToString
-            _department = results.Split(delimiter).GetValue(1).ToString
-            _address1 = results.Split(delimiter).GetValue(2).ToString
-            _address2 = results.Split(delimiter).GetValue(3).ToString
-            _country = results.Split(delimiter).GetValue(4).ToString
+                    _company = results.Split(delimiter).GetValue(0).ToString
+                    _department = results.Split(delimiter).GetValue(1).ToString
+                    _address1 = results.Split(delimiter).GetValue(2).ToString
+                    _address2 = results.Split(delimiter).GetValue(3).ToString
+                    _country = results.Split(delimiter).GetValue(4).ToString
+                End Using
+            Catch ex As Exception
+                Console.WriteLine("Couldn't get information from the OUI database: " + ex.Message)
+            End Try
         End Sub
 
         ''' <summary>

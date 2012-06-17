@@ -13,7 +13,7 @@ Imports System.Runtime.InteropServices
 <Assembly: AssemblyTitle("Dune API Code Pack")> 
 <Assembly: AssemblyDescription("Collection of code wrappers for the Dune HD IP control API.")> 
 <Assembly: AssemblyCompany("")> 
-<Assembly: AssemblyProduct("Dune API Code Pack")> 
+<Assembly: AssemblyProduct("DuneApiCodePack")> 
 <Assembly: AssemblyCopyright("steven.liekens@gmail.com")> 
 <Assembly: AssemblyTrademark("")> 
 
@@ -37,3 +37,4 @@ Imports System.Runtime.InteropServices
 <Assembly: AssemblyFileVersion("0.9.9.0")> 
 
 <Assembly: NeutralResourcesLanguageAttribute("en")> 
+<Assembly: CLSCompliant(True)> 

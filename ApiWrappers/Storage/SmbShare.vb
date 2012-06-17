@@ -1,18 +1,18 @@
 ﻿Imports System.Net
 Imports SL.DuneApiCodePack.NativeMethods.Networking
 
-Namespace Storage
+Namespace Sources
 
     ''' <summary>
     ''' This type represents an SMB share.
     ''' </summary>
     Public Class SmbShare
-        Inherits Storage
+        Inherits StorageDevice
         Private _credentials As NetworkCredential
         Private _diskInfo As ShareInfo
 
         Public Sub New(uncPath As Uri)
-            MyBase.New(Dns.GetHostEntry(uncPath.Host.ToUpper))
+            MyBase.New(Dns.GetHostEntry(uncPath.Host.ToUpperInvariant))
             _root = New IO.DirectoryInfo(uncPath.OriginalString).Root
             _credentials = New NetworkCredential
         End Sub
@@ -20,7 +20,7 @@ Namespace Storage
         ''' <summary>
         ''' The SMB username.
         ''' </summary>
-        Public Property Username As String
+        Public Property UserName As String
             Get
                 Return _credentials.UserName
             End Get
@@ -119,9 +119,9 @@ Namespace Storage
         ''' </summary>
         ''' <param name="host">The host to scan for network shares.</param>
         ''' <remarks>This method can only be used to return disk shares. Printer shares (or otherwise) are ignored.</remarks>
-        Public Shared Function FromHost(host As IPHostEntry) As List(Of SmbShare)
+        Public Shared Function FromHost(host As IPHostEntry) As Collection(Of SmbShare)
             Dim shares As ShareCollection = ShareCollection.GetShares(host.HostName)
-            Dim smbShares As New List(Of SmbShare)
+            Dim smbShares As New Collection(Of SmbShare)
 
             For Each share As Share In shares
                 If share.ShareType = ShareType.Disk Then
@@ -140,7 +140,7 @@ Namespace Storage
             If path.Contains("@") Then 'get credentials
                 credentials = path.Split("@"c).First.Substring(2)
                 If credentials.Contains("/").IsFalse Then 'temporarily remove credentials so the URI can be parsed
-                    path = path.Replace(String.Format("{0}@", credentials), Nothing)
+                    path = path.Replace(String.Format(Globalization.CultureInfo.InvariantCulture, "{0}@", credentials), Nothing)
                 End If
             End If
 
@@ -148,10 +148,10 @@ Namespace Storage
 
             If credentials.IsNotNullOrWhiteSpace Then
                 If credentials.Contains(":") Then
-                    share.Username = credentials.Split(":"c).First
+                    share.UserName = credentials.Split(":"c).First
                     share.Password = credentials.Split(":"c).Last
                 Else
-                    share.Username = credentials
+                    share.UserName = credentials
                 End If
             End If
 

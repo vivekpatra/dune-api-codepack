@@ -1,7 +1,7 @@
 ﻿Imports System.Net
 Imports System.IO
 
-Namespace Storage
+Namespace Sources
 
     ''' <summary>
     ''' This type represents an NFS share.
@@ -12,7 +12,7 @@ Namespace Storage
     ''' Doing so allows for input validation and ensures a correct playback media URL.
     ''' </remarks>
     Public Class NfsShare
-        Inherits Storage
+        Inherits StorageDevice
 
         Private _mountPoint As DriveInfo
         Private _path As String

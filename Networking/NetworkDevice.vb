@@ -1,5 +1,5 @@
 ﻿Imports System.Net
-Imports SL.DuneApiCodePack.Storage
+Imports SL.DuneApiCodePack.Sources
 Imports System.DirectoryServices
 
 Namespace Networking
@@ -18,7 +18,7 @@ Namespace Networking
             End Get
         End Property
 
-        Public Function GetShares() As List(Of SmbShare)
+        Public Function GetShares() As Collection(Of SmbShare)
             Return SmbShare.FromHost(Host)
         End Function
 
@@ -40,8 +40,9 @@ Namespace Networking
                 Return NetworkAdapter.PhysicalAddress.ToString.Contains("0016E8")
             Else
                 Try
-                    Dim dune As DuneUtilities.Dune = New DuneUtilities.Dune(Host)
-                    Return dune.IsConnected
+                    Using dune As DuneUtilities.Dune = New DuneUtilities.Dune(Host)
+                        Return dune.IsConnected
+                    End Using
                 Catch ex As Exception
                     Return False
                 End Try
@@ -54,12 +55,13 @@ Namespace Networking
         Public Shared Function Scan() As List(Of NetworkDevice)
             Dim devices As New List(Of NetworkDevice)
 
-            Dim network As New DirectoryEntry()
-            network.Path = "WinNT:"
+            Using network As New DirectoryEntry()
+                network.Path = "WinNT:"
 
-            For Each workgroup As DirectoryEntry In network.Children()
-                devices.AddRange(Scan(workgroup))
-            Next
+                For Each workgroup As DirectoryEntry In network.Children()
+                    devices.AddRange(Scan(workgroup))
+                Next
+            End Using
 
             Return devices
         End Function

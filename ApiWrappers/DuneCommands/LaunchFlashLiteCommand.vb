@@ -1,4 +1,4 @@
-﻿Imports System.Collections.Specialized
+﻿Imports SL.DuneApiCodePack.Networking
 
 Namespace DuneUtilities.ApiWrappers
 
@@ -6,15 +6,15 @@ Namespace DuneUtilities.ApiWrappers
         Inherits Command
 
         Private _mediaUrl As String
-        Private _flashvars As NameValueCollection
+        Private _flashvars As HttpQuery
 
         Public Sub New(target As Dune, mediaUrl As String)
             MyBase.New(target)
             _mediaUrl = mediaUrl
-            _flashvars = Web.HttpUtility.ParseQueryString(String.Empty)
+            _flashvars = New HttpQuery
         End Sub
 
-        Public Sub New(target As Dune, mediaUrl As String, flashvars As NameValueCollection)
+        Public Sub New(target As Dune, mediaUrl As String, flashvars As HttpQuery)
             Me.New(target, mediaUrl)
             _flashvars.Add(flashvars)
         End Sub
@@ -31,17 +31,17 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the collection of Flash Lite startup parameters.
         ''' </summary>
-        Public ReadOnly Property Flashvars As NameValueCollection
+        Public ReadOnly Property Flashvars As HttpQuery
             Get
                 Return _flashvars
             End Get
         End Property
 
-        Protected Overrides Function GetQuery() As NameValueCollection
-            Dim query As New NameValueCollection
+        Protected Overrides Function GetQuery() As HttpQuery
+            Dim query As New HttpQuery
 
-            query.Add("cmd", Constants.Commands.LaunchMediaUrl)
-            query.Add(Constants.StartPlaybackParameters.MediaUrl, "swf://" + MediaUrl)
+            query.Add("cmd", Constants.CommandValues.LaunchMediaUrl)
+            query.Add(Constants.StartPlaybackParameterNames.MediaUrl, "swf://" + MediaUrl)
 
             Return query
         End Function

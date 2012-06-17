@@ -1,5 +1,4 @@
-﻿Imports System.Text
-Imports System.Collections.Specialized
+﻿Imports SL.DuneApiCodePack.Networking
 
 Namespace DuneUtilities.ApiWrappers
 
@@ -14,7 +13,7 @@ Namespace DuneUtilities.ApiWrappers
         Private _blackScreen As Boolean
         Private _hideOnScreenDisplay As Boolean
         Private _repeat As Boolean
-        Private _startIndex As UInteger
+        Private _startIndex As Integer
 
         ''' <param name="target">The target device.</param>
         ''' <param name="mediaUrl">The media URL.</param>
@@ -109,11 +108,11 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets or sets the playlist start index.
         ''' </summary>
-        Public Property StartIndex As UInteger
+        Public Property StartIndex As Integer
             Get
                 Return _startIndex
             End Get
-            Set(value As UInteger)
+            Set(value As Integer)
                 _startIndex = value
             End Set
         End Property
@@ -129,46 +128,46 @@ Namespace DuneUtilities.ApiWrappers
             Playlist = 4
         End Enum
 
-        Protected Overrides Function GetQuery() As NameValueCollection
-            Dim query As New NameValueCollection
+        Protected Overrides Function GetQuery() As HttpQuery
+            Dim query As New HttpQuery
 
             Select Case Type
                 Case PlaybackType.Auto
-                    query.Add("cmd", Constants.Commands.LaunchMediaUrl)
+                    query.Add("cmd", Constants.CommandValues.LaunchMediaUrl)
                 Case PlaybackType.File
-                    query.Add("cmd", Constants.Commands.StartFilePlayback)
+                    query.Add("cmd", Constants.CommandValues.StartFilePlayback)
                 Case PlaybackType.Dvd
-                    query.Add("cmd", Constants.Commands.StartDvdPlayback)
+                    query.Add("cmd", Constants.CommandValues.StartDvdPlayback)
                 Case PlaybackType.Bluray
-                    query.Add("cmd", Constants.Commands.StartBlurayPlayback)
+                    query.Add("cmd", Constants.CommandValues.StartBlurayPlayback)
                 Case PlaybackType.Playlist
-                    query.Add("cmd", Constants.Commands.StartPlaylistPlayback)
+                    query.Add("cmd", Constants.CommandValues.StartPlaylistPlayback)
             End Select
 
-            query.Add(Constants.StartPlaybackParameters.MediaUrl, MediaUrl)
+            query.Add(Constants.StartPlaybackParameterNames.MediaUrl, MediaUrl)
 
             If Paused Then
-                query.Add(Constants.StartPlaybackParameters.PlaybackSpeed, "0")
+                query.Add(Constants.StartPlaybackParameterNames.PlaybackSpeed, "0")
             End If
 
             If Position <> Nothing Then
-                query.Add(Constants.StartPlaybackParameters.PlaybackPosition, Position.TotalSeconds.ToString)
+                query.Add(Constants.StartPlaybackParameterNames.PlaybackPosition, Position.TotalSeconds.ToString(Constants.FormatProvider))
             End If
 
             If BlackScreen Then
-                query.Add(Constants.StartPlaybackParameters.BlackScreen, "1")
+                query.Add(Constants.StartPlaybackParameterNames.BlackScreen, "1")
             End If
 
             If HideOnScreenDisplay Then
-                query.Add(Constants.StartPlaybackParameters.HideOnScreenDisplay, "1")
+                query.Add(Constants.StartPlaybackParameterNames.HideOnScreenDisplay, "1")
             End If
 
             If Repeat Then
-                query.Add(Constants.StartPlaybackParameters.ActionOnFinish, Constants.ActionOnFinishSettings.RestartPlayback)
+                query.Add(Constants.StartPlaybackParameterNames.ActionOnFinish, Constants.ActionOnFinishValues.RestartPlayback)
             End If
 
             If StartIndex > 0 Then
-                query.Add(Constants.StartPlaybackParameters.StartIndex, StartIndex.ToString)
+                query.Add(Constants.StartPlaybackParameterNames.StartIndex, StartIndex.ToString(Constants.FormatProvider))
             End If
 
             Return query

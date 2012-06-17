@@ -1,5 +1,4 @@
-﻿Imports System.Text
-Imports System.Collections.Specialized
+﻿Imports SL.DuneApiCodePack.Networking
 
 Namespace DuneUtilities.ApiWrappers
 
@@ -27,56 +26,56 @@ Namespace DuneUtilities.ApiWrappers
             End Get
         End Property
 
-        Protected Overrides Function GetQuery() As NameValueCollection
-            Dim query As New NameValueCollection
+        Protected Overrides Function GetQuery() As HttpQuery
+            Dim query As New HttpQuery
             Dim command As String = Nothing
             Dim parameter As String = Nothing
             Dim value As String = Nothing
 
             ' determine which command to send and set the appropriate parameter name.
             Select Case Target.PlayerState
-                Case Constants.PlayerStateSettings.DvdPlayback
-                    command = Constants.Commands.DvdNavigation
-                    parameter = Constants.NavigationParameters.Action
-                Case Constants.PlayerStateSettings.BlurayPlayback
-                    command = Constants.Commands.BlurayNavigation
-                    parameter = Constants.NavigationParameters.Action
+                Case Constants.PlayerStateValues.DvdPlayback
+                    command = Constants.CommandValues.DvdNavigation
+                    parameter = Constants.NavigationParameterNames.Action
+                Case Constants.PlayerStateValues.BlurayPlayback
+                    command = Constants.CommandValues.BlurayNavigation
+                    parameter = Constants.NavigationParameterNames.Action
                 Case Else
-                    command = Constants.Commands.InfraredCode
-                    parameter = Constants.InfraredCodeParameters.InfraredCode
+                    command = Constants.CommandValues.InfraredCode
+                    parameter = Constants.InfraredCodeParameterNames.InfraredCode
             End Select
 
             ' set the parameter value
             Select Case Action.ToLower
-                Case Constants.NavigationActions.Left
-                    If command = Constants.Commands.InfraredCode Then
-                        value = Constants.RemoteControls.GetButtonCode(Convert.ToUInt16(Constants.RemoteControls.BigRemote2Buttons.Left))
+                Case Constants.ActionValues.Left
+                    If command = Constants.CommandValues.InfraredCode Then
+                        value = Constants.RemoteControls.GetButtonCode(Constants.RemoteControls.BigRemote2ButtonValues.Left)
                     Else
-                        value = Constants.NavigationActions.Left
+                        value = Constants.ActionValues.Left
                     End If
-                Case Constants.NavigationActions.Right
-                    If command = Constants.Commands.InfraredCode Then
-                        value = Constants.RemoteControls.GetButtonCode(Convert.ToUInt16(Constants.RemoteControls.BigRemote2Buttons.Right))
+                Case Constants.ActionValues.Right
+                    If command = Constants.CommandValues.InfraredCode Then
+                        value = Constants.RemoteControls.GetButtonCode(Constants.RemoteControls.BigRemote2ButtonValues.Right)
                     Else
-                        value = Constants.NavigationActions.Right
+                        value = Constants.ActionValues.Right
                     End If
-                Case Constants.NavigationActions.Up
-                    If command = Constants.Commands.InfraredCode Then
-                        value = Constants.RemoteControls.GetButtonCode(Convert.ToUInt16(Constants.RemoteControls.BigRemote2Buttons.Up))
+                Case Constants.ActionValues.Up
+                    If command = Constants.CommandValues.InfraredCode Then
+                        value = Constants.RemoteControls.GetButtonCode(Constants.RemoteControls.BigRemote2ButtonValues.Up)
                     Else
-                        value = Constants.NavigationActions.Up
+                        value = Constants.ActionValues.Up
                     End If
-                Case Constants.NavigationActions.Down
-                    If command = Constants.Commands.InfraredCode Then
-                        value = Constants.RemoteControls.GetButtonCode(Convert.ToUInt16(Constants.RemoteControls.BigRemote2Buttons.Down))
+                Case Constants.ActionValues.Down
+                    If command = Constants.CommandValues.InfraredCode Then
+                        value = Constants.RemoteControls.GetButtonCode(Constants.RemoteControls.BigRemote2ButtonValues.Down)
                     Else
-                        value = Constants.NavigationActions.Down
+                        value = Constants.ActionValues.Down
                     End If
-                Case Constants.NavigationActions.Enter
-                    If command = Constants.Commands.InfraredCode Then
-                        value = Constants.RemoteControls.GetButtonCode(Convert.ToUInt16(Constants.RemoteControls.BigRemote2Buttons.Down))
+                Case Constants.ActionValues.Enter
+                    If command = Constants.CommandValues.InfraredCode Then
+                        value = Constants.RemoteControls.GetButtonCode(Constants.RemoteControls.BigRemote2ButtonValues.Down)
                     Else
-                        value = Constants.NavigationActions.Down
+                        value = Constants.ActionValues.Down
                     End If
             End Select
 

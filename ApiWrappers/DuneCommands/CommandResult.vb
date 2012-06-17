@@ -18,7 +18,6 @@ Namespace DuneUtilities.ApiWrappers
         Private _rawData As NameValueCollection
         Private _roundTripTime As TimeSpan
         Private _requestDateTime As Date
-        Private _isValidResponse As Boolean
 
         ' command result parameters
         Private _commandStatus As String
@@ -29,38 +28,39 @@ Namespace DuneUtilities.ApiWrappers
         Private _playbackPosition As TimeSpan?
         Private _playbackTimeRemaining As TimeSpan?
         Private _playbackIsBuffering As Boolean?
-        Private _playbackVolume As UShort?
+        Private _playbackVolume As Short?
         Private _playbackMute As Boolean?
-        Private _audioTrack As UShort?
+        Private _audioTrack As Short?
         Private _playbackWindowFullscreen As Boolean?
-        Private _playbackWindowRectangleX As UShort?
-        Private _playbackWindowRectangleY As UShort?
-        Private _playbackWindowRectangleWidth As UShort?
-        Private _playbackWindowRectangleHeight As UShort?
-        Private _onScreenDisplayWidth As UShort?
-        Private _onScreenDisplayHeight As UShort?
+        Private _playbackWindowRectangleX As Short?
+        Private _playbackWindowRectangleY As Short?
+        Private _playbackWindowRectangleWidth As Short?
+        Private _playbackWindowRectangleHeight As Short?
+        Private _onScreenDisplayWidth As Short?
+        Private _onScreenDisplayHeight As Short?
         Private _videoEnabled As Boolean?
         Private _videoZoom As String
-        Private _audioTracks As SortedList(Of UShort, LanguageTrack)
-        Private _subtitles As SortedList(Of UShort, LanguageTrack)
+        Private _audioTracks As SortedList(Of Short, LanguageTrack)
+        Private _subtitles As SortedList(Of Short, LanguageTrack)
         Private _errorKind As String
         Private _errorDescription As String
         Private _commandError As CommandException
         Private _playbackDvdMenu As Boolean?
         Private _playbackBlurayMenu As Boolean?
-        Private _playbackClipRectangleX As UShort?
-        Private _playbackClipRectangleY As UShort?
-        Private _playbackClipRectangleWidth As UShort?
-        Private _playbackClipRectangleHeight As UShort?
-        Private _playbackVideoWidth As UShort?
-        Private _playbackVideoHeight As UShort?
+        Private _playbackClipRectangleX As Short?
+        Private _playbackClipRectangleY As Short?
+        Private _playbackClipRectangleWidth As Short?
+        Private _playbackClipRectangleHeight As Short?
+        Private _playbackVideoWidth As Short?
+        Private _playbackVideoHeight As Short?
         Private _playbackState As String
         Private _previousPlaybackState As String
         Private _lastPlaybackEvent As String
         Private _playbackUrl As String
         Private _videoOnTop As Boolean?
-        Private _subtitlesTrack As UShort?
+        Private _subtitlesTrack As Short?
         Private _text As String
+        Private _textAvailable As Boolean?
 
 #End Region
 
@@ -68,27 +68,31 @@ Namespace DuneUtilities.ApiWrappers
             _command = command
             _requestDateTime = Date.Now
 
+            Dim response As WebResponse = Nothing
             Dim stopwatch As Stopwatch = stopwatch.StartNew
-            Using response As WebResponse = command.GetResponse
+
+            Try
+                response = command.GetResponse
+
+                Try
+                    Dim document As XDocument = XDocument.Load(response.GetResponseStream)
+                    ParseResults(document)
+                Catch ex As IO.IOException
+                    Console.WriteLine("I/O error occurred while loading xml document: " + ex.Message)
+                End Try
+
+            Catch ex As WebException
+                Console.WriteLine(ex.Message)
+            Finally
                 stopwatch.Stop()
                 _roundTripTime = stopwatch.Elapsed
                 If response IsNot Nothing Then
-                    Dim document As XDocument = XDocument.Load(response.GetResponseStream)
-                    ParseResults(document)
+                    response.Close()
                 End If
-            End Using
+            End Try
         End Sub
 
 #Region "Properties"
-
-        ''' <summary>
-        ''' Gets whether the command returned a valid command result.
-        ''' </summary>
-        Friend ReadOnly Property IsValidReponse As Boolean
-            Get
-                Return _isValidResponse
-            End Get
-        End Property
 
         ''' <summary>
         ''' Gets the date and time indicating when the command was executed.
@@ -209,7 +213,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the playback volume.
         ''' </summary>
-        Public ReadOnly Property PlaybackVolume As UShort?
+        Public ReadOnly Property PlaybackVolume As Short?
             Get
                 Return _playbackVolume
             End Get
@@ -227,7 +231,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the zero-based index number of active audio track.
         ''' </summary>
-        Public ReadOnly Property AudioTrack As UShort?
+        Public ReadOnly Property AudioTrack As Short?
             Get
                 Return _audioTrack
             End Get
@@ -245,7 +249,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the horizontal offset of the playback window rectangle.
         ''' </summary>
-        Public ReadOnly Property PlaybackWindowRectangleHorizontalOffset As UShort?
+        Public ReadOnly Property PlaybackWindowRectangleHorizontalOffset As Short?
             Get
                 Return _playbackWindowRectangleX
             End Get
@@ -254,7 +258,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the vertical offset of the playback window rectangle.
         ''' </summary>
-        Public ReadOnly Property PlaybackWindowRectangleVerticalOffset As UShort?
+        Public ReadOnly Property PlaybackWindowRectangleVerticalOffset As Short?
             Get
                 Return _playbackWindowRectangleY
             End Get
@@ -263,7 +267,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the width of the video output.
         ''' </summary>
-        Public ReadOnly Property PlaybackWindowRectangleWidth As UShort?
+        Public ReadOnly Property PlaybackWindowRectangleWidth As Short?
             Get
                 Return _playbackWindowRectangleWidth
             End Get
@@ -272,7 +276,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the height of the video output.
         ''' </summary>
-        Public ReadOnly Property PlaybackWindowRectangleHeight As UShort?
+        Public ReadOnly Property PlaybackWindowRectangleHeight As Short?
             Get
                 Return _playbackWindowRectangleHeight
             End Get
@@ -281,7 +285,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the total width of the display.
         ''' </summary>
-        Public ReadOnly Property OnScreenDisplayWidth As UShort?
+        Public ReadOnly Property OnScreenDisplayWidth As Short?
             Get
                 Return _onScreenDisplayWidth
             End Get
@@ -290,7 +294,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the height of the display.
         ''' </summary>
-        Public ReadOnly Property OnScreenDisplayHeight As UShort?
+        Public ReadOnly Property OnScreenDisplayHeight As Short?
             Get
                 Return _onScreenDisplayHeight
             End Get
@@ -315,24 +319,24 @@ Namespace DuneUtilities.ApiWrappers
         End Property
 
         ''' <summary>
-        ''' Gets a collection of audio tracks in the current playback.
+        ''' Gets the collection of audio tracks in the current playback.
         ''' </summary>
-        Public ReadOnly Property AudioTracks As SortedList(Of UShort, LanguageTrack)
+        Public ReadOnly Property AudioTracks As SortedList(Of Short, LanguageTrack)
             Get
                 If _audioTracks Is Nothing Then
-                    _audioTracks = New SortedList(Of UShort, LanguageTrack)
+                    _audioTracks = New SortedList(Of Short, LanguageTrack)
                 End If
                 Return _audioTracks
             End Get
         End Property
 
         ''' <summary>
-        ''' Gets a collection of subtitles in the current playback.
+        ''' Gets the collection of subtitles in the current playback.
         ''' </summary>
-        Public ReadOnly Property Subtitles As SortedList(Of UShort, LanguageTrack)
+        Public ReadOnly Property Subtitles As SortedList(Of Short, LanguageTrack)
             Get
                 If _subtitles Is Nothing Then
-                    _subtitles = New SortedList(Of UShort, LanguageTrack)
+                    _subtitles = New SortedList(Of Short, LanguageTrack)
                 End If
                 Return _subtitles
             End Get
@@ -402,7 +406,7 @@ Namespace DuneUtilities.ApiWrappers
         End Property
 
         ''' <summary>
-        ''' Gets whether the video is on top.
+        ''' Gets whether video output shows on top of overlay graphics.
         ''' </summary>
         Public ReadOnly Property VideoOnTop As Boolean?
             Get
@@ -413,7 +417,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the zero-based index number of active subtitle track.
         ''' </summary>
-        Public ReadOnly Property SubtitlesTrack As UShort?
+        Public ReadOnly Property SubtitlesTrack As Short?
             Get
                 Return _subtitlesTrack
             End Get
@@ -422,7 +426,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the width of the video.
         ''' </summary>
-        Public ReadOnly Property PlaybackVideoWidth As UShort?
+        Public ReadOnly Property PlaybackVideoWidth As Short?
             Get
                 Return _playbackVideoWidth
             End Get
@@ -431,45 +435,54 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the height of the video.
         ''' </summary>
-        Public ReadOnly Property PlaybackVideoHeight As UShort?
+        Public ReadOnly Property PlaybackVideoHeight As Short?
             Get
                 Return _playbackVideoHeight
             End Get
         End Property
 
         ''' <summary>
-        ''' ???
+        ''' Gets the visible screen rectangle's horizontal offset.
         ''' </summary>
-        Public ReadOnly Property PlaybackClipRectangleHorizontalOffset As UShort?
+        Public ReadOnly Property PlaybackClipRectangleHorizontalOffset As Short?
             Get
                 Return _playbackClipRectangleX
             End Get
         End Property
 
         ''' <summary>
-        ''' ???
+        ''' Gets the visible screen rectangle's vertical offset.
         ''' </summary>
-        Public ReadOnly Property PlaybackClipRectangleVerticalOffset As UShort?
+        Public ReadOnly Property PlaybackClipRectangleVerticalOffset As Short?
             Get
                 Return _playbackClipRectangleY
             End Get
         End Property
 
         ''' <summary>
-        ''' ???
+        ''' Gets the visible screen rectangle's width.
         ''' </summary>
-        Public ReadOnly Property PlaybackClipRectangleWidth As UShort?
+        Public ReadOnly Property PlaybackClipRectangleWidth As Short?
             Get
                 Return _playbackClipRectangleWidth
             End Get
         End Property
 
         ''' <summary>
-        ''' ???
+        ''' Gets the visible screen rectangle's height.
         ''' </summary>
-        Public ReadOnly Property PlaybackClipRectangleHeight As UShort?
+        Public ReadOnly Property PlaybackClipRectangleHeight As Short?
             Get
                 Return _playbackClipRectangleHeight
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Gets whether a text editor is currently active.
+        ''' </summary>
+        Public ReadOnly Property TextAvailable As Boolean?
+            Get
+                Return _textAvailable
             End Get
         End Property
 
@@ -482,6 +495,7 @@ Namespace DuneUtilities.ApiWrappers
             End Get
         End Property
 
+
 #End Region ' Properties
 
 #Region "Methods"
@@ -490,118 +504,69 @@ Namespace DuneUtilities.ApiWrappers
         ''' Parses the xml document.
         ''' </summary>
         Private Sub ParseResults(results As XDocument)
-            Dim parameters As IEnumerable(Of XElement) = results.Elements.First.Elements
+            Dim cresults = From commandResults In results.Descendants("param")
+                          Select New With {
+                              .Name = commandResults.Attribute("name"),
+                              .Value = commandResults.Attribute("value")
+                              }
 
-            For Each XElement In parameters
-                Dim name As String = XElement.FirstAttribute.Value
-                Dim value As String = XElement.LastAttribute.Value
+
+            For Each result In cresults
+                Dim name As String = result.Name.Value
+                Dim value As String = result.Value.Value
                 RawData.Add(name, value)
-            Next
 
-            If RawData.Count > 0 Then
-                _isValidResponse = True
-                ProcessParameter()
-            End If
-        End Sub
-
-        ''' <summary>
-        ''' Processes the name=value results.
-        ''' </summary>
-        Private Sub ProcessParameter()
-            For Each name As String In RawData.AllKeys
                 Try
-                    Dim value As String = RawData.Get(name)
-
-                    If Constants.CommandResults.TrackRegex.IsMatch(name) Then
-                        AddTrackInfo(name, value)
-                    Else
-                        If value <> "-1" Then ' fill in the value, otherwise leave it null
-                            Select Case name
-                                Case Constants.CommandResults.CommandStatus
-                                    _commandStatus = value
-                                Case Constants.CommandResults.ProtocolVersion
-                                    _protocolVersion = ParseVersionNumber(value)
-                                Case Constants.CommandResults.PlayerState
-                                    _playerState = value
-                                Case Constants.CommandResults.PlaybackSpeed
-                                    _playbackSpeed = GetSpeedFromBuggedValue(value)
-                                Case Constants.CommandResults.PlaybackDuration
-                                    _playbackDuration = TimeSpan.FromSeconds(CInt(value))
-                                Case Constants.CommandResults.PlaybackPosition
-                                    _playbackPosition = TimeSpan.FromSeconds(CInt(value))
+                    If value <> "-1" Then
+                        If Constants.CommandResultParameterNames.TrackRegex.IsMatch(name) Then
+                            AddTrackInfo(name, value)
+                        Else
+                            Select Case result.Name.Value ' TODO: make this easier to maintain.
+                                Case Constants.CommandResultParameterNames.CommandStatus : _commandStatus = value
+                                Case Constants.CommandResultParameterNames.ProtocolVersion : _protocolVersion = ParseVersionNumber(value)
+                                Case Constants.CommandResultParameterNames.PlayerState : _playerState = value
+                                Case Constants.CommandResultParameterNames.PlaybackSpeed : _playbackSpeed = GetSpeedFromBuggedValue(value)
+                                Case Constants.CommandResultParameterNames.PlaybackDuration : _playbackDuration = TimeSpan.FromSeconds(CInt(value))
+                                Case Constants.CommandResultParameterNames.PlaybackPosition : _playbackPosition = TimeSpan.FromSeconds(CInt(value))
                                     If PlaybackDuration.HasValue AndAlso PlaybackPosition.HasValue Then
                                         _playbackTimeRemaining = PlaybackDuration - PlaybackPosition
                                     End If
-                                Case Constants.CommandResults.PlaybackIsBuffering
-                                    _playbackIsBuffering = value.ToBoolean
-                                Case Constants.CommandResults.PlaybackVolume
-                                    _playbackVolume = CUShort(value)
-                                Case Constants.CommandResults.PlaybackMute
-                                    _playbackMute = value.ToBoolean
-                                Case Constants.CommandResults.AudioTrack
-                                    _audioTrack = CUShort(value)
-                                Case Constants.CommandResults.SubtitlesTrack
-                                    _subtitlesTrack = CUShort(value)
-                                Case Constants.CommandResults.VideoFullscreen, Constants.CommandResults.PlaybackWindowFullscreen
-                                    _playbackWindowFullscreen = value.ToBoolean
-                                Case Constants.CommandResults.VideoX, Constants.CommandResults.PlaybackWindowRectangleX
-                                    _playbackWindowRectangleX = CUShort(value)
-                                Case Constants.CommandResults.VideoY, Constants.CommandResults.PlaybackWindowRectangleY
-                                    _playbackWindowRectangleY = CUShort(value)
-                                Case Constants.CommandResults.VideoWidth, Constants.CommandResults.PlaybackWindowRectangleWidth
-                                    _playbackWindowRectangleWidth = CUShort(value)
-                                Case Constants.CommandResults.VideoHeight, Constants.CommandResults.PlaybackWindowRectangleHeight
-                                    _playbackWindowRectangleHeight = CUShort(value)
-                                Case Constants.CommandResults.VideoTotalDisplayWidth, Constants.CommandResults.OnScreenDisplayWidth
-                                    _onScreenDisplayWidth = CUShort(value)
-                                Case Constants.CommandResults.VideoTotalDisplayHeight, Constants.CommandResults.OnScreenDisplayHeight
-                                    _onScreenDisplayHeight = CUShort(value)
-                                Case Constants.CommandResults.VideoEnabled
-                                    _videoEnabled = value.ToBoolean
-                                Case Constants.CommandResults.VideoZoom
-                                    _videoZoom = value
-                                Case Constants.CommandResults.ErrorKind
-                                    _errorKind = value
-                                Case Constants.CommandResults.ErrorDescription
-                                    _errorDescription = value
+                                Case Constants.CommandResultParameterNames.PlaybackIsBuffering : _playbackIsBuffering = value.ToBoolean
+                                Case Constants.CommandResultParameterNames.PlaybackVolume : _playbackVolume = CShort(value)
+                                Case Constants.CommandResultParameterNames.PlaybackMute : _playbackMute = value.ToBoolean
+                                Case Constants.CommandResultParameterNames.AudioTrack : _audioTrack = CShort(value)
+                                Case Constants.CommandResultParameterNames.SubtitlesTrack : _subtitlesTrack = CShort(value)
+                                Case Constants.CommandResultParameterNames.VideoFullscreen, Constants.CommandResultParameterNames.PlaybackWindowFullscreen : _playbackWindowFullscreen = value.ToBoolean
+                                Case Constants.CommandResultParameterNames.VideoX, Constants.CommandResultParameterNames.PlaybackWindowRectangleX : _playbackWindowRectangleX = CShort(value)
+                                Case Constants.CommandResultParameterNames.VideoY, Constants.CommandResultParameterNames.PlaybackWindowRectangleY : _playbackWindowRectangleY = CShort(value)
+                                Case Constants.CommandResultParameterNames.VideoWidth, Constants.CommandResultParameterNames.PlaybackWindowRectangleWidth : _playbackWindowRectangleWidth = CShort(value)
+                                Case Constants.CommandResultParameterNames.VideoHeight, Constants.CommandResultParameterNames.PlaybackWindowRectangleHeight : _playbackWindowRectangleHeight = CShort(value)
+                                Case Constants.CommandResultParameterNames.VideoTotalDisplayWidth, Constants.CommandResultParameterNames.OnScreenDisplayWidth : _onScreenDisplayWidth = CShort(value)
+                                Case Constants.CommandResultParameterNames.VideoTotalDisplayHeight, Constants.CommandResultParameterNames.OnScreenDisplayHeight : _onScreenDisplayHeight = CShort(value)
+                                Case Constants.CommandResultParameterNames.VideoEnabled : _videoEnabled = value.ToBoolean
+                                Case Constants.CommandResultParameterNames.VideoZoom : _videoZoom = value
+                                Case Constants.CommandResultParameterNames.ErrorKind : _errorKind = value
+                                Case Constants.CommandResultParameterNames.ErrorDescription : _errorDescription = value
                                     _commandError = New CommandException(_errorKind, _errorDescription)
-                                    _commandError.Source = _command.ToString
-                                Case Constants.CommandResults.PlaybackDvdMenu
-                                    _playbackDvdMenu = value.ToBoolean
-                                Case Constants.CommandResults.PlaybackBlurayMenu
-                                    _playbackBlurayMenu = value.ToBoolean
-                                Case Constants.CommandResults.PlaybackState
-                                    _playbackState = value
-                                Case Constants.CommandResults.PreviousPlaybackState
-                                    _previousPlaybackState = value
-                                Case Constants.CommandResults.LastPlaybackEvent
-                                    _lastPlaybackEvent = value
-                                Case Constants.CommandResults.PlaybackUrl
-                                    _playbackUrl = value
-                                Case Constants.CommandResults.PlaybackWindowFullscreen
-                                    _playbackWindowFullscreen = value.ToBoolean
-                                Case Constants.CommandResults.OnScreenDisplayWidth
-                                    _onScreenDisplayWidth = CUShort(value)
-                                Case Constants.CommandResults.OnScreenDisplayHeight
-                                    _onScreenDisplayHeight = CUShort(value)
-                                Case Constants.CommandResults.VideoOnTop
-                                    _videoOnTop = value.ToBoolean
-                                Case Constants.CommandResults.PlaybackClipRectangleX
-                                    _playbackClipRectangleX = CUShort(value)
-                                Case Constants.CommandResults.PlaybackClipRectangleY
-                                    _playbackClipRectangleY = CUShort(value)
-                                Case Constants.CommandResults.PlaybackClipRectangleWidth
-                                    _playbackClipRectangleWidth = CUShort(value)
-                                Case Constants.CommandResults.PlaybackClipRectangleHeight
-                                    _playbackClipRectangleHeight = CUShort(value)
-                                Case Constants.CommandResults.PlaybackVideoWidth
-                                    _playbackVideoWidth = CUShort(value)
-                                Case Constants.CommandResults.PlaybackVideoHeight
-                                    _playbackVideoHeight = CUShort(value)
-                                Case Constants.CommandResults.Text
-                                    _text = value
-                                Case Else
-                                    Console.WriteLine("No parsing logic in place for {0} (value: {1})", name, value)
+                                    _commandError.Source = Command.ToString
+                                Case Constants.CommandResultParameterNames.PlaybackDvdMenu : _playbackDvdMenu = value.ToBoolean
+                                Case Constants.CommandResultParameterNames.PlaybackBlurayMenu : _playbackBlurayMenu = value.ToBoolean
+                                Case Constants.CommandResultParameterNames.PlaybackState : _playbackState = value
+                                Case Constants.CommandResultParameterNames.PreviousPlaybackState : _previousPlaybackState = value
+                                Case Constants.CommandResultParameterNames.LastPlaybackEvent : _lastPlaybackEvent = value
+                                Case Constants.CommandResultParameterNames.PlaybackUrl : _playbackUrl = value
+                                Case Constants.CommandResultParameterNames.PlaybackWindowFullscreen : _playbackWindowFullscreen = value.ToBoolean
+                                Case Constants.CommandResultParameterNames.OnScreenDisplayWidth : _onScreenDisplayWidth = CShort(value)
+                                Case Constants.CommandResultParameterNames.OnScreenDisplayHeight : _onScreenDisplayHeight = CShort(value)
+                                Case Constants.CommandResultParameterNames.VideoOnTop : _videoOnTop = value.ToBoolean
+                                Case Constants.CommandResultParameterNames.PlaybackClipRectangleX : _playbackClipRectangleX = CShort(value)
+                                Case Constants.CommandResultParameterNames.PlaybackClipRectangleY : _playbackClipRectangleY = CShort(value)
+                                Case Constants.CommandResultParameterNames.PlaybackClipRectangleWidth : _playbackClipRectangleWidth = CShort(value)
+                                Case Constants.CommandResultParameterNames.PlaybackClipRectangleHeight : _playbackClipRectangleHeight = CShort(value)
+                                Case Constants.CommandResultParameterNames.PlaybackVideoWidth : _playbackVideoWidth = CShort(value)
+                                Case Constants.CommandResultParameterNames.PlaybackVideoHeight : _playbackVideoHeight = CShort(value)
+                                Case Constants.CommandResultParameterNames.Text : _textAvailable = True : _text = value
+                                Case Else : Console.WriteLine("No parsing logic in place for {0} (value: {1})", name, value)
                             End Select
                         End If
                     End If
@@ -610,6 +575,7 @@ Namespace DuneUtilities.ApiWrappers
                 End Try
             Next
         End Sub
+
 
         ''' <summary>
         ''' Takes a string representation of a version number and converts it to a <see cref="System.Version"/> instance.
@@ -647,9 +613,9 @@ Namespace DuneUtilities.ApiWrappers
 
                 Dim track As LanguageTrack = ApiWrappers.LanguageTrack.FromCommandResult(type, number, languageCode, codec)
 
-                If type = Constants.CommandResults.AudioTrack Then
+                If type = Constants.CommandResultParameterNames.AudioTrack Then
                     AudioTracks.Add(track.Number, track)
-                ElseIf type = Constants.CommandResults.SubtitlesTrack Then
+                ElseIf type = Constants.CommandResultParameterNames.SubtitlesTrack Then
                     Subtitles.Add(track.Number, track)
                 End If
             End If
@@ -676,161 +642,163 @@ Namespace DuneUtilities.ApiWrappers
         ''' <returns>String array containing the names of properties that are different.</returns>
         ''' <remarks>This is intended as a helper function for implementing INotifyPropertyUpdated.</remarks>
         Public Function GetDifferences(result As CommandResult) As String()
-            If Object.ReferenceEquals(Me, result) Then ' some idiot is trying to compare this instance to itself
-                Return New String() {}
-            Else
-                Dim differences As New ArrayList
+            Dim differences As New ArrayList
 
-                If ProtocolVersion <> result.ProtocolVersion Then
-                    differences.Add("ProtocolVersion")
+            If ProtocolVersion <> result.ProtocolVersion Then
+                differences.Add("ProtocolVersion")
+            End If
+
+            If result.CommandStatus.IsNotNullOrEmpty Then ' command status is always unique (and so is the command error)
+                differences.Add("CommandStatus")
+                If result.CommandError IsNot Nothing Then
+                    differences.Add("CommandError")
                 End If
+            End If
 
-                If result.CommandStatus.IsNotNullOrEmpty Then ' command status is always unique (and so is the command error)
-                    differences.Add("CommandStatus")
-                    If result.CommandError IsNot Nothing Then
-                        differences.Add("CommandError")
-                    End If
-                End If
+            If PlayerState <> result.PlayerState Then
+                differences.Add("PlayerState")
+            End If
 
-                If PlayerState <> result.PlayerState Then
-                    differences.Add("PlayerState")
-                End If
+            If PlaybackState <> result.PlaybackState Then
+                differences.Add("PlaybackState")
+            End If
 
-                If PlaybackState <> result.PlaybackState Then
-                    differences.Add("PlaybackState")
-                End If
+            If PreviousPlaybackState <> result.PreviousPlaybackState Then
+                differences.Add("PreviousPlaybackState")
+            End If
 
-                If PreviousPlaybackState <> result.PreviousPlaybackState Then
-                    differences.Add("PreviousPlaybackState")
-                End If
+            If LastPlaybackEvent <> result.LastPlaybackEvent Then
+                differences.Add("LastPlaybackEvent")
+            End If
 
-                If LastPlaybackEvent <> result.LastPlaybackEvent Then
-                    differences.Add("LastPlaybackEvent")
-                End If
+            If PlaybackUrl <> result.PlaybackUrl Then
+                differences.Add("PlaybackUrl")
+            End If
 
-                If PlaybackUrl <> result.PlaybackUrl Then
-                    differences.Add("PlaybackUrl")
-                End If
+            If Not Nullable.Equals(PlaybackSpeed, result.PlaybackSpeed) Then
+                differences.Add("PlaybackSpeed")
+            End If
 
-                If Not Nullable.Equals(PlaybackSpeed, result.PlaybackSpeed) Then
-                    differences.Add("PlaybackSpeed")
-                End If
+            If Not Nullable.Equals(PlaybackDuration, result.PlaybackDuration) Then
+                differences.Add("PlaybackDuration")
+            End If
 
-                If Not Nullable.Equals(PlaybackDuration, result.PlaybackDuration) Then
-                    differences.Add("PlaybackDuration")
-                End If
+            If Not Nullable.Equals(PlaybackPosition, result.PlaybackPosition) Then
+                differences.Add("PlaybackPosition")
+                differences.Add("PlaybackTimeRemaining")
+            End If
 
-                If Not Nullable.Equals(PlaybackPosition, result.PlaybackPosition) Then
-                    differences.Add("PlaybackPosition")
-                    differences.Add("PlaybackTimeRemaining")
-                End If
+            If Not Nullable.Equals(PlaybackIsBuffering, result.PlaybackIsBuffering) Then
+                differences.Add("PlaybackIsBuffering")
+            End If
 
-                If Not Nullable.Equals(PlaybackIsBuffering, result.PlaybackIsBuffering) Then
-                    differences.Add("PlaybackIsBuffering")
-                End If
+            If Not Nullable.Equals(PlaybackVolume, result.PlaybackVolume) Then
+                differences.Add("PlaybackVolume")
+            End If
 
-                If Not Nullable.Equals(PlaybackVolume, result.PlaybackVolume) Then
-                    differences.Add("PlaybackVolume")
-                End If
+            If Not Nullable.Equals(PlaybackMute, result.PlaybackMute) Then
+                differences.Add("PlaybackMute")
+            End If
 
-                If Not Nullable.Equals(PlaybackMute, result.PlaybackMute) Then
-                    differences.Add("PlaybackMute")
-                End If
+            If Not Nullable.Equals(PlaybackVideoWidth, result.PlaybackVideoWidth) Then
+                differences.Add("PlaybackVideoWidth")
+            End If
 
-                If Not Nullable.Equals(PlaybackMute, result.PlaybackMute) Then
-                    differences.Add("PlaybackMute")
-                End If
+            If Not Nullable.Equals(PlaybackVideoHeight, result.PlaybackVideoHeight) Then
+                differences.Add("PlaybackVideoHeight")
+            End If
 
-                If Not Nullable.Equals(PlaybackVideoWidth, result.PlaybackVideoWidth) Then
-                    differences.Add("PlaybackVideoWidth")
-                End If
+            If Not Nullable.Equals(AudioTrack, result.AudioTrack) Then
+                differences.Add("AudioTrack")
+            End If
 
-                If Not Nullable.Equals(PlaybackVideoHeight, result.PlaybackVideoHeight) Then
-                    differences.Add("PlaybackVideoHeight")
-                End If
+            If Not Nullable.Equals(SubtitlesTrack, result.SubtitlesTrack) Then
+                differences.Add("SubtitlesTrack")
+            End If
 
-                If Not Nullable.Equals(AudioTrack, result.AudioTrack) Then
-                    differences.Add("AudioTrack")
-                End If
+            If Not Nullable.Equals(PlaybackWindowFullscreen, result.PlaybackWindowFullscreen) Then
+                differences.Add("PlaybackWindowFullscreen")
+            End If
 
-                If Not Nullable.Equals(SubtitlesTrack, result.SubtitlesTrack) Then
-                    differences.Add("SubtitlesTrack")
-                End If
+            If Not Nullable.Equals(PlaybackWindowRectangleHorizontalOffset, result.PlaybackWindowRectangleHorizontalOffset) Then
+                differences.Add("PlaybackWindowRectangleHorizontalOffset")
+            End If
 
-                If Not Nullable.Equals(PlaybackWindowFullscreen, result.PlaybackWindowFullscreen) Then
-                    differences.Add("PlaybackWindowFullscreen")
-                End If
+            If Not Nullable.Equals(PlaybackWindowRectangleVerticalOffset, result.PlaybackWindowRectangleVerticalOffset) Then
+                differences.Add("PlaybackWindowRectangleVerticalOffset")
+            End If
 
-                If Not Nullable.Equals(PlaybackWindowRectangleHorizontalOffset, result.PlaybackWindowRectangleHorizontalOffset) Then
-                    differences.Add("PlaybackWindowRectangleHorizontalOffset")
-                End If
+            If Not Nullable.Equals(PlaybackWindowRectangleWidth, result.PlaybackWindowRectangleWidth) Then
+                differences.Add("PlaybackWindowRectangleWidth")
+            End If
 
-                If Not Nullable.Equals(PlaybackWindowRectangleVerticalOffset, result.PlaybackWindowRectangleVerticalOffset) Then
-                    differences.Add("PlaybackWindowRectangleVerticalOffset")
-                End If
+            If Not Nullable.Equals(PlaybackWindowRectangleHeight, result.PlaybackWindowRectangleHeight) Then
+                differences.Add("PlaybackWindowRectangleHeight")
+            End If
 
-                If Not Nullable.Equals(PlaybackWindowRectangleWidth, result.PlaybackWindowRectangleWidth) Then
-                    differences.Add("PlaybackWindowRectangleWidth")
-                End If
+            If Not Nullable.Equals(PlaybackClipRectangleHorizontalOffset, result.PlaybackClipRectangleHorizontalOffset) Then
+                differences.Add("PlaybackClipRectangleHorizontalOffset")
+            End If
 
-                If Not Nullable.Equals(PlaybackWindowRectangleHeight, result.PlaybackWindowRectangleHeight) Then
-                    differences.Add("PlaybackWindowRectangleHeight")
-                End If
+            If Not Nullable.Equals(PlaybackClipRectangleVerticalOffset, result.PlaybackClipRectangleVerticalOffset) Then
+                differences.Add("PlaybackClipRectangleVerticalOffset")
+            End If
 
-                If Not Nullable.Equals(PlaybackClipRectangleHorizontalOffset, result.PlaybackClipRectangleHorizontalOffset) Then
-                    differences.Add("PlaybackClipRectangleHorizontalOffset")
-                End If
+            If Not Nullable.Equals(PlaybackClipRectangleWidth, result.PlaybackClipRectangleWidth) Then
+                differences.Add("PlaybackClipRectangleWidth")
+            End If
 
-                If Not Nullable.Equals(PlaybackClipRectangleVerticalOffset, result.PlaybackClipRectangleVerticalOffset) Then
-                    differences.Add("PlaybackClipRectangleVerticalOffset")
-                End If
+            If Not Nullable.Equals(PlaybackClipRectangleHeight, result.PlaybackClipRectangleHeight) Then
+                differences.Add("PlaybackClipRectangleHeight")
+            End If
 
-                If Not Nullable.Equals(PlaybackClipRectangleWidth, result.PlaybackClipRectangleWidth) Then
-                    differences.Add("PlaybackClipRectangleWidth")
-                End If
+            If Not Nullable.Equals(OnScreenDisplayWidth, result.OnScreenDisplayWidth) Then
+                differences.Add("OnScreenDisplayWidth")
+            End If
 
-                If Not Nullable.Equals(PlaybackClipRectangleHeight, result.PlaybackClipRectangleHeight) Then
-                    differences.Add("PlaybackClipRectangleHeight")
-                End If
+            If Not Nullable.Equals(OnScreenDisplayHeight, result.OnScreenDisplayHeight) Then
+                differences.Add("OnScreenDisplayHeight")
+            End If
 
-                If Not Nullable.Equals(OnScreenDisplayWidth, result.OnScreenDisplayWidth) Then
-                    differences.Add("OnScreenDisplayWidth")
-                End If
+            If Not Nullable.Equals(VideoEnabled, result.VideoEnabled) Then
+                differences.Add("VideoEnabled")
+            End If
 
-                If Not Nullable.Equals(OnScreenDisplayHeight, result.OnScreenDisplayHeight) Then
-                    differences.Add("OnScreenDisplayHeight")
-                End If
+            If Not Nullable.Equals(VideoOnTop, result.VideoOnTop) Then
+                differences.Add("VideoOnTop")
+            End If
 
-                If Not Nullable.Equals(VideoEnabled, result.VideoEnabled) Then
-                    differences.Add("VideoEnabled")
-                End If
+            If VideoZoom <> result.VideoZoom Then
+                differences.Add("VideoZoom")
+            End If
 
-                If Not Nullable.Equals(VideoOnTop, result.VideoOnTop) Then
-                    differences.Add("VideoOnTop")
-                End If
+            If Not Nullable.Equals(PlaybackDvdMenu, result.PlaybackDvdMenu) Then
+                differences.Add("PlaybackDvdMenu")
+            End If
 
-                If VideoZoom <> result.VideoZoom Then
-                    differences.Add("VideoZoom")
-                End If
+            If Not Nullable.Equals(PlaybackBlurayMenu, result.PlaybackBlurayMenu) Then
+                differences.Add("PlaybackBlurayMenu")
+            End If
 
-                If Not Nullable.Equals(PlaybackDvdMenu, result.PlaybackDvdMenu) Then
-                    differences.Add("PlaybackDvdMenu")
-                End If
+            If Not AudioTracks.SequenceEqual(result.AudioTracks) Then
+                differences.Add("AudioTracks")
+            End If
 
-                If Not AudioTracks.SequenceEqual(result.AudioTracks) Then
-                    differences.Add("AudioTracks")
-                End If
+            If Not Subtitles.SequenceEqual(result.Subtitles) Then
+                differences.Add("Subtitles")
+            End If
 
-                If Not Subtitles.SequenceEqual(result.Subtitles) Then
-                    differences.Add("Subtitles")
+            If TextAvailable.HasValue AndAlso result.TextAvailable.HasValue Then
+                If Not Nullable.Equals(TextAvailable, result.TextAvailable) Then
+                    differences.Add("TextAvailable")
                 End If
 
                 If Text <> result.Text Then
                     differences.Add("Text")
                 End If
-
-                Return DirectCast(differences.ToArray(GetType(String)), String())
             End If
+
+            Return DirectCast(differences.ToArray(GetType(String)), String())
         End Function
 
 #End Region ' Methods

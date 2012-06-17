@@ -7,9 +7,9 @@ Public Class PlayerStateConverter
 
     Public Sub New()
         Dim states As New ArrayList
-        states.Add(Constants.Commands.MainScreen)
-        states.Add(Constants.Commands.BlackScreen)
-        states.Add(Constants.Commands.Standby)
+        states.Add(Constants.CommandValues.MainScreen)
+        states.Add(Constants.CommandValues.BlackScreen)
+        states.Add(Constants.CommandValues.Standby)
         _standardValues = states
     End Sub
 

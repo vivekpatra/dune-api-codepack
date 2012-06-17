@@ -1,5 +1,4 @@
-﻿Imports System.Text
-Imports System.Collections.Specialized
+﻿Imports SL.DuneApiCodePack.Networking
 
 Namespace DuneUtilities.ApiWrappers
 
@@ -13,10 +12,10 @@ Namespace DuneUtilities.ApiWrappers
         Private _hideOnScreenDisplay As Boolean?
         Private _repeat As Boolean?
         Private _videoEnabled As Boolean?
-        Private _playbackVolume As UShort?
+        Private _playbackVolume As Short?
         Private _playbackMute As Boolean?
-        Private _audioTrack As UShort?
-        Private _subtitleTrack As UShort?
+        Private _audioTrack As Short?
+        Private _subtitleTrack As Short?
         Private _videoZoom As String
         Private _videoOnTop As Boolean?
 
@@ -32,15 +31,15 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets or sets the playback speed.
         ''' </summary>
-        Public Property PlaybackSpeed As Constants.PlaybackSpeedSettings?
+        Public Property PlaybackSpeed As Constants.PlaybackSpeedValues?
             Get
                 If _playbackSpeed.HasValue Then
-                    Return DirectCast(_playbackSpeed.Value, Constants.PlaybackSpeedSettings)
+                    Return DirectCast(_playbackSpeed.Value, Constants.PlaybackSpeedValues)
                 Else
                     Return Nothing
                 End If
             End Get
-            Set(value As Constants.PlaybackSpeedSettings?)
+            Set(value As Constants.PlaybackSpeedValues?)
                 If value.HasValue Then
                     _playbackSpeed = CShort(value)
                 Else
@@ -117,11 +116,11 @@ Namespace DuneUtilities.ApiWrappers
         ''' Gets or sets the volume.
         ''' </summary>
         ''' <value>Must be between 0 and 100. Values above 100 are automatically reduced to 100.</value>
-        Public Property PlaybackVolume As UShort?
+        Public Property PlaybackVolume As Short?
             Get
                 Return _playbackVolume
             End Get
-            Set(value As UShort?)
+            Set(value As Short?)
                 _playbackVolume = value
             End Set
         End Property
@@ -142,11 +141,11 @@ Namespace DuneUtilities.ApiWrappers
         ''' Gets or sets the audio track number that is used in the current playback.
         ''' </summary>
         ''' <remarks>If a file contains multiple tracks (e.g. different languages, directors commentary), this property can be used to change the track.</remarks>
-        Public Property AudioTrack As UShort?
+        Public Property AudioTrack As Short?
             Get
                 Return _audioTrack
             End Get
-            Set(value As UShort?)
+            Set(value As Short?)
                 _audioTrack = value
             End Set
         End Property
@@ -182,11 +181,11 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets or sets the active subtitle track.
         ''' </summary>
-        Public Property SubtitleTrack As UShort?
+        Public Property SubtitleTrack As Short?
             Get
                 Return _subtitleTrack
             End Get
-            Set(value As UShort?)
+            Set(value As Short?)
                 _subtitleTrack = value
             End Set
         End Property
@@ -195,61 +194,61 @@ Namespace DuneUtilities.ApiWrappers
 
 #End Region ' Properties
 
-        Protected Overrides Function GetQuery() As NameValueCollection
-            Dim query As New NameValueCollection
+        Protected Overrides Function GetQuery() As HttpQuery
+            Dim query As New HttpQuery
 
-            query.Add("cmd", Constants.Commands.SetPlaybackState)
+            query.Add("cmd", Constants.CommandValues.SetPlaybackState)
 
             If PlaybackSpeed.HasValue Then
-                query.Add(Constants.SetPlaybackStateParameters.PlaybackSpeed, CShort(PlaybackSpeed).ToString)
+                query.Add(Constants.SetPlaybackStateParameterNames.PlaybackSpeed, CShort(PlaybackSpeed).ToString)
             End If
 
             If PlaybackPosition.HasValue Then
-                query.Add(Constants.SetPlaybackStateParameters.PlaybackPosition, PlaybackPosition.Value.TotalSeconds.ToString)
+                query.Add(Constants.SetPlaybackStateParameterNames.PlaybackPosition, PlaybackPosition.Value.TotalSeconds.ToString)
             End If
 
             If BlackScreen.HasValue Then
-                query.Add(Constants.SetPlaybackStateParameters.BlackScreen, BlackScreen.Value.ToNumberString)
+                query.Add(Constants.SetPlaybackStateParameterNames.BlackScreen, BlackScreen.Value.ToNumberString)
             End If
 
             If HideOnScreenDisplay.HasValue Then
-                query.Add(Constants.SetPlaybackStateParameters.HideOnScreenDisplay, HideOnScreenDisplay.Value.ToNumberString)
+                query.Add(Constants.SetPlaybackStateParameterNames.HideOnScreenDisplay, HideOnScreenDisplay.Value.ToNumberString)
             End If
 
             If Repeat.HasValue Then
                 If Repeat.Value.IsTrue Then
-                    query.Add(Constants.SetPlaybackStateParameters.ActionOnFinish, Constants.ActionOnFinishSettings.RestartPlayback)
+                    query.Add(Constants.SetPlaybackStateParameterNames.ActionOnFinish, Constants.ActionOnFinishValues.RestartPlayback)
                 Else
-                    query.Add(Constants.SetPlaybackStateParameters.ActionOnFinish, Constants.ActionOnFinishSettings.Exit)
+                    query.Add(Constants.SetPlaybackStateParameterNames.ActionOnFinish, Constants.ActionOnFinishValues.Exit)
                 End If
             End If
 
             If VideoEnabled.HasValue Then
-                query.Add(Constants.SetPlaybackStateParameters.VideoEnabled, VideoEnabled.Value.ToNumberString)
+                query.Add(Constants.SetPlaybackStateParameterNames.VideoEnabled, VideoEnabled.Value.ToNumberString)
             End If
 
             If PlaybackVolume.HasValue Then
-                query.Add(Constants.SetPlaybackStateParameters.PlaybackVolume, PlaybackVolume.ToString)
+                query.Add(Constants.SetPlaybackStateParameterNames.PlaybackVolume, PlaybackVolume.ToString)
             End If
 
             If PlaybackMute.HasValue Then
-                query.Add(Constants.SetPlaybackStateParameters.PlaybackMute, PlaybackMute.Value.ToNumberString)
+                query.Add(Constants.SetPlaybackStateParameterNames.PlaybackMute, PlaybackMute.Value.ToNumberString)
             End If
 
             If AudioTrack.HasValue Then
-                query.Add(Constants.SetPlaybackStateParameters.AudioTrack, AudioTrack.ToString)
+                query.Add(Constants.SetPlaybackStateParameterNames.AudioTrack, AudioTrack.ToString)
             End If
 
             If SubtitleTrack.HasValue Then
-                query.Add(Constants.SetPlaybackStateParameters.SubtitlesTrack, SubtitleTrack.ToString)
+                query.Add(Constants.SetPlaybackStateParameterNames.SubtitlesTrack, SubtitleTrack.ToString)
             End If
 
             If VideoZoom.IsNotNullOrWhiteSpace Then
-                query.Add(Constants.SetPlaybackStateParameters.VideoZoom, VideoZoom)
+                query.Add(Constants.SetPlaybackStateParameterNames.VideoZoom, VideoZoom)
             End If
 
             If VideoOnTop.HasValue Then
-                query.Add(Constants.SetPlaybackStateParameters.VideoOnTop, VideoOnTop.Value.ToNumberString)
+                query.Add(Constants.SetPlaybackStateParameterNames.VideoOnTop, VideoOnTop.Value.ToNumberString)
             End If
 
             Return query
