@@ -57,6 +57,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' Gets whether this is a non-stable release.
         ''' </summary>
         <Category("Firmware information")>
+        <DisplayName("Beta release")>
         Public ReadOnly Property Beta As Boolean
             Get
                 Return _beta
@@ -66,6 +67,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the approximate filesize in megabytes.
         ''' </summary>
+        <DisplayName("Approximate filesize (MiB)")>
         <Category("Firmware information")>
         Public ReadOnly Property ApproximateFileSize As Integer
             Get
@@ -77,6 +79,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' Gets the build date of the firmware file.
         ''' </summary>
         <Category("Firmware information")>
+        <DisplayName("Date")>
         Public ReadOnly Property BuildDate As Date
             Get
                 Dim dt As Date
@@ -94,6 +97,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' Gets the download link of the uncompressed DFF file.
         ''' </summary>
         <Category("Uncompressed")>
+        <DisplayName("URL")>
         Public ReadOnly Property UncompressedLocation As Uri
             Get
                 Return _uncompressedLocation
@@ -103,10 +107,27 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the filesize of the uncompressed DFF file in bytes.
         ''' </summary>
-        <Category("Uncompressed")>        
-        Public ReadOnly Property UncompressedLEngth As Long
+        <Category("Uncompressed")>
+        <DisplayName("Size (bytes)")>
+        Public ReadOnly Property UncompressedLength As Long
             Get
                 Return _uncompressedLength
+            End Get
+        End Property
+
+        <Category("Uncompressed")>
+        <DisplayName("Size (kibibytes)")>
+        Public ReadOnly Property UncompressedLengthKibibyte As Double
+            Get
+                Return UncompressedLength / 1024
+            End Get
+        End Property
+
+        <Category("Uncompressed")>
+        <DisplayName("Size (mebibytes)")>
+        Public ReadOnly Property UncompressedLengthMebibyte As Double
+            Get
+                Return UncompressedLengthKibibyte / 1024
             End Get
         End Property
 
@@ -114,6 +135,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' Gets the download link of the zipped DFF file.
         ''' </summary>
         <Category("Zip")>
+        <DisplayName("URL")>
         Public ReadOnly Property ZipLocation As Uri
             Get
                 Return _zipLocation
@@ -123,10 +145,27 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the filesize of the zipped DFF file in bytes.
         ''' </summary>
-        <Category("Zip")>                
+        <Category("Zip")>
+        <DisplayName("Size (bytes)")>
         Public ReadOnly Property ZipLength As Long
             Get
                 Return _zipLength
+            End Get
+        End Property
+
+        <Category("Zip")>
+        <DisplayName("Size (kibibytes)")>
+        Public ReadOnly Property ZipLengthKibibyte As Double
+            Get
+                Return ZipLength / 1024
+            End Get
+        End Property
+
+        <Category("Zip")>
+        <DisplayName("Size (mebibytes)")>
+        Public ReadOnly Property ZipLengthMebibyte As Double
+            Get
+                Return ZipLengthKibibyte / 1024
             End Get
         End Property
 
@@ -134,6 +173,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' Gets the download link of the gzipped DFF file.
         ''' </summary>
         <Category("Gzip")>
+        <DisplayName("URL")>
         Public ReadOnly Property GzipLocation As Uri
             Get
                 Return _gzipLocation
@@ -144,9 +184,26 @@ Namespace DuneUtilities.ApiWrappers
         ''' Gets the filesize of the gzipped DFF file in bytes.
         ''' </summary>
         <Category("Gzip")>
+        <DisplayName("Size (bytes)")>
         Public ReadOnly Property GzipLength As Long
             Get
                 Return _gzipLength
+            End Get
+        End Property
+
+        <Category("Gzip")>
+        <DisplayName("Size (kibibytes)")>
+        Public ReadOnly Property GzipLengthKibibyte As Double
+            Get
+                Return GzipLength / 1024
+            End Get
+        End Property
+
+        <Category("Gzip")>
+        <DisplayName("Size (mebibytes)")>
+        Public ReadOnly Property GzipLengthMebibyte As Double
+            Get
+                Return GzipLengthKibibyte / 1024
             End Get
         End Property
 
@@ -199,7 +256,7 @@ Namespace DuneUtilities.ApiWrappers
         End Function
 
         Public Overrides Function ToString() As String
-            Return _firmware + " (" + Math.Round((_uncompressedLength / 1024 ^ 2), 1).ToString + " MiB)"
+            Return Version
         End Function
     End Class
 

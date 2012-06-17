@@ -55,12 +55,6 @@ Namespace DuneUtilities
         Public Sub New()
         End Sub
 
-        Protected Sub New(info As SerializationInfo, context As StreamingContext)
-            Dim hostEntry As IPHostEntry = DirectCast(info.GetValue("HostEntry", GetType(IPHostEntry)), IPHostEntry)
-            Dim port As Integer = info.GetInt32("Port")
-            Connect(hostEntry, port)
-        End Sub
-
         Public Sub New(hostNameOrAddress As String)
             Connect(hostNameOrAddress)
         End Sub
@@ -201,7 +195,7 @@ Namespace DuneUtilities
         ''' Gets the port number used to connect to the service.
         ''' </summary>
         <DisplayName("Port")>
-        <Description("The port on which the app is connected to the HTTP service.")>
+        <Description("Indicates the port on which the app is connected to the HTTP service.")>
         <Category("Connection details")>
         Public ReadOnly Property Port As Integer
             Get
@@ -216,9 +210,6 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Gets the host entry details returned from the DNS server.
         ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
         <Browsable(False)>
         Public ReadOnly Property HostEntry As IPHostEntry
             Get
@@ -273,7 +264,7 @@ Namespace DuneUtilities
         ''' Gets a list of network shares made available by the player's SMB server.
         ''' </summary>
         <DisplayName("Network shares")>
-        <Description("The collection of network shares exposed by the device's SMB server.")>
+        <Description("Indicates the collection of network shares exposed by the device's SMB server.")>
         <Category("Connection details")>
         Public ReadOnly Property NetworkShares As ReadOnlyCollection(Of LocalStorage)
             Get
@@ -354,7 +345,7 @@ Namespace DuneUtilities
         ''' </summary>
         ''' <remarks>Setting this property to 0 will disable automatic status updates.</remarks>
         <DisplayName("Update interval")>
-        <Description("The amount of miliseconds between successful status updates.")>
+        <Description("Indicates the amount of miliseconds between successful status updates.")>
         <Category("Connection details")>
         Public Property Interval As Double
             Get
@@ -369,7 +360,7 @@ Namespace DuneUtilities
         ''' Gets a list of available firmwares. The <see cref="ProductID" /> property must be set to populate the collection.
         ''' </summary>
         <DisplayName("Available firmwares")>
-        <Description("The collection of available firmware versions for this device.")>
+        <Description("Indicates the collection of available firmware versions for this device.")>
         <Category("Firmware information")>
         Public ReadOnly Property AvailableFirmwares As ReadOnlyCollection(Of FirmwareProperties)
             Get
@@ -638,7 +629,7 @@ Namespace DuneUtilities
         ''' Gets the player's product ID (using a Telnet connection).
         ''' </summary>
         <DisplayName("Product ID")>
-        <Description("The device's product ID.")>
+        <Description("Indicates the device's product ID.")>
         <Category("Player information")>
         Public ReadOnly Property ProductId As String
             Get
@@ -654,7 +645,7 @@ Namespace DuneUtilities
         ''' Gets the device's serial number (using a Telnet connection).
         ''' </summary>
         <DisplayName("Serial number")>
-        <Description("The device's serial number.")>
+        <Description("Indicates the device's serial number.")>
         <Category("Player information")>
         Public ReadOnly Property SerialNumber As String
             Get
@@ -670,7 +661,7 @@ Namespace DuneUtilities
         ''' Gets the installed firmware version string (using a Telnet connection).
         ''' </summary>
         <DisplayName("Firmware version")>
-        <Description("The installed firmware version.")>
+        <Description("Indicates the installed firmware version.")>
         <Category("Firmware information")>
         Public ReadOnly Property FirmwareVersion As String
             Get
@@ -686,7 +677,7 @@ Namespace DuneUtilities
         ''' Gets the date and time when the device booted up.
         ''' </summary>
         <DisplayName("Up since")>
-        <Description("The date and time since when the device powered on.")>
+        <Description("Indicates the date and time when the device powered on.")>
         <Category("Player information")>
         Public ReadOnly Property BootTime As Date
             Get
@@ -702,7 +693,7 @@ Namespace DuneUtilities
         ''' Gets the device's uptime.
         ''' </summary>
         <DisplayName("Uptime")>
-        <Description("The amount of elapsed time since the device powered on.")>
+        <Description("Indicates the amount of elapsed time since the device powered on.")>
         <Category("Player information")>
         Public ReadOnly Property Uptime As TimeSpan?
             Get
@@ -2047,12 +2038,6 @@ Namespace DuneUtilities
 
 #End Region ' Methods v3
 
-#Region "App events"
-
-        'TODO: consider adding connected/disconnected events
-
-#End Region ' App events
-
 #Region "IPropertyChanging Support"
 
         Private Sub RaisePropertyChanging(propertyName As String)
@@ -2060,7 +2045,6 @@ Namespace DuneUtilities
         End Sub
 
         Public Event PropertyChanging(sender As Object, e As System.ComponentModel.PropertyChangingEventArgs) Implements System.ComponentModel.INotifyPropertyChanging.PropertyChanging
-
 
 #End Region
 
@@ -2088,7 +2072,6 @@ Namespace DuneUtilities
         Protected Overridable Sub Dispose(disposing As Boolean)
             If Not Me.disposedValue Then
                 If disposing Then
-                    ' TODO: dispose managed state (managed objects).
                     _telnetClient.Dispose()
                     _statusUpdater.Dispose()
                     _textUpdater.Dispose()
@@ -2105,13 +2088,6 @@ Namespace DuneUtilities
             Me.disposedValue = True
         End Sub
 
-        ' TODO: override Finalize() only if Dispose(ByVal disposing As Boolean) above has code to free unmanaged resources.
-        'Protected Overrides Sub Finalize()
-        '    ' Do not change this code.  Put cleanup code in Dispose(ByVal disposing As Boolean) above.
-        '    Dispose(False)
-        '    MyBase.Finalize()
-        'End Sub
-
         ' This code added by Visual Basic to correctly implement the disposable pattern.
         Public Sub Dispose() Implements IDisposable.Dispose
             ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
@@ -2125,6 +2101,12 @@ Namespace DuneUtilities
         Public Overridable Sub GetObjectData(info As System.Runtime.Serialization.SerializationInfo, context As System.Runtime.Serialization.StreamingContext) Implements System.Runtime.Serialization.ISerializable.GetObjectData
             info.AddValue("HostEntry", HostEntry)
             info.AddValue("Port", Port)
+        End Sub
+
+        Protected Sub New(info As SerializationInfo, context As StreamingContext)
+            Dim hostEntry As IPHostEntry = DirectCast(info.GetValue("HostEntry", GetType(IPHostEntry)), IPHostEntry)
+            Dim port As Integer = info.GetInt32("Port")
+            Connect(hostEntry, port)
         End Sub
 
 #End Region

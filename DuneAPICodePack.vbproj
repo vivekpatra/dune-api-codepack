@@ -110,6 +110,7 @@
     <Compile Include="Extensions\StringExtensions.vb" />
     <Compile Include="Constants.vb" />
     <Compile Include="ApiWrappers\DuneCommands\StartPlaybackCommand.vb" />
+    <Compile Include="Extensions\VersionExtensions.vb" />
     <Compile Include="Networking\HttpQuery.vb" />
     <Compile Include="Networking\NetworkDevice.vb" />
     <Compile Include="RemoteControl.vb" />

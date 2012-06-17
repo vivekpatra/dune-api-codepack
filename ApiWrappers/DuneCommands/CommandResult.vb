@@ -8,7 +8,7 @@ Imports System.Text.RegularExpressions
 Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>
-    ''' This class gets and holds the results for a requested command.
+    ''' Represents the result of a command request.
     ''' </summary>
     Public Class CommandResult
 
@@ -501,92 +501,125 @@ Namespace DuneUtilities.ApiWrappers
 #Region "Methods"
 
         ''' <summary>
-        ''' Parses the xml document.
+        ''' Parses the command result XML document.
         ''' </summary>
         Private Sub ParseResults(results As XDocument)
-            Dim cresults = From commandResults In results.Descendants("param")
+            Dim commandResults = From xml In results.Descendants("param")
                           Select New With {
-                              .Name = commandResults.Attribute("name"),
-                              .Value = commandResults.Attribute("value")
+                              .Name = xml.Attribute("name"),
+                              .Value = xml.Attribute("value")
                               }
 
-
-            For Each result In cresults
-                Dim name As String = result.Name.Value
-                Dim value As String = result.Value.Value
-                RawData.Add(name, value)
+            For Each result In commandResults
+                Dim parameterName As String = result.Name.Value
+                Dim parameterValue As String = result.Value.Value
+                RawData.Add(parameterName, parameterValue)
 
                 Try
-                    If value <> "-1" Then
-                        If Constants.CommandResultParameterNames.TrackRegex.IsMatch(name) Then
-                            AddTrackInfo(name, value)
-                        Else
-                            Select Case result.Name.Value ' TODO: make this easier to maintain.
-                                Case Constants.CommandResultParameterNames.CommandStatus : _commandStatus = value
-                                Case Constants.CommandResultParameterNames.ProtocolVersion : _protocolVersion = ParseVersionNumber(value)
-                                Case Constants.CommandResultParameterNames.PlayerState : _playerState = value
-                                Case Constants.CommandResultParameterNames.PlaybackSpeed : _playbackSpeed = GetSpeedFromBuggedValue(value)
-                                Case Constants.CommandResultParameterNames.PlaybackDuration : _playbackDuration = TimeSpan.FromSeconds(CInt(value))
-                                Case Constants.CommandResultParameterNames.PlaybackPosition : _playbackPosition = TimeSpan.FromSeconds(CInt(value))
-                                    If PlaybackDuration.HasValue AndAlso PlaybackPosition.HasValue Then
-                                        _playbackTimeRemaining = PlaybackDuration - PlaybackPosition
-                                    End If
-                                Case Constants.CommandResultParameterNames.PlaybackIsBuffering : _playbackIsBuffering = value.ToBoolean
-                                Case Constants.CommandResultParameterNames.PlaybackVolume : _playbackVolume = CShort(value)
-                                Case Constants.CommandResultParameterNames.PlaybackMute : _playbackMute = value.ToBoolean
-                                Case Constants.CommandResultParameterNames.AudioTrack : _audioTrack = CShort(value)
-                                Case Constants.CommandResultParameterNames.SubtitlesTrack : _subtitlesTrack = CShort(value)
-                                Case Constants.CommandResultParameterNames.VideoFullscreen, Constants.CommandResultParameterNames.PlaybackWindowFullscreen : _playbackWindowFullscreen = value.ToBoolean
-                                Case Constants.CommandResultParameterNames.VideoX, Constants.CommandResultParameterNames.PlaybackWindowRectangleX : _playbackWindowRectangleX = CShort(value)
-                                Case Constants.CommandResultParameterNames.VideoY, Constants.CommandResultParameterNames.PlaybackWindowRectangleY : _playbackWindowRectangleY = CShort(value)
-                                Case Constants.CommandResultParameterNames.VideoWidth, Constants.CommandResultParameterNames.PlaybackWindowRectangleWidth : _playbackWindowRectangleWidth = CShort(value)
-                                Case Constants.CommandResultParameterNames.VideoHeight, Constants.CommandResultParameterNames.PlaybackWindowRectangleHeight : _playbackWindowRectangleHeight = CShort(value)
-                                Case Constants.CommandResultParameterNames.VideoTotalDisplayWidth, Constants.CommandResultParameterNames.OnScreenDisplayWidth : _onScreenDisplayWidth = CShort(value)
-                                Case Constants.CommandResultParameterNames.VideoTotalDisplayHeight, Constants.CommandResultParameterNames.OnScreenDisplayHeight : _onScreenDisplayHeight = CShort(value)
-                                Case Constants.CommandResultParameterNames.VideoEnabled : _videoEnabled = value.ToBoolean
-                                Case Constants.CommandResultParameterNames.VideoZoom : _videoZoom = value
-                                Case Constants.CommandResultParameterNames.ErrorKind : _errorKind = value
-                                Case Constants.CommandResultParameterNames.ErrorDescription : _errorDescription = value
-                                    _commandError = New CommandException(_errorKind, _errorDescription)
-                                    _commandError.Source = Command.ToString
-                                Case Constants.CommandResultParameterNames.PlaybackDvdMenu : _playbackDvdMenu = value.ToBoolean
-                                Case Constants.CommandResultParameterNames.PlaybackBlurayMenu : _playbackBlurayMenu = value.ToBoolean
-                                Case Constants.CommandResultParameterNames.PlaybackState : _playbackState = value
-                                Case Constants.CommandResultParameterNames.PreviousPlaybackState : _previousPlaybackState = value
-                                Case Constants.CommandResultParameterNames.LastPlaybackEvent : _lastPlaybackEvent = value
-                                Case Constants.CommandResultParameterNames.PlaybackUrl : _playbackUrl = value
-                                Case Constants.CommandResultParameterNames.PlaybackWindowFullscreen : _playbackWindowFullscreen = value.ToBoolean
-                                Case Constants.CommandResultParameterNames.OnScreenDisplayWidth : _onScreenDisplayWidth = CShort(value)
-                                Case Constants.CommandResultParameterNames.OnScreenDisplayHeight : _onScreenDisplayHeight = CShort(value)
-                                Case Constants.CommandResultParameterNames.VideoOnTop : _videoOnTop = value.ToBoolean
-                                Case Constants.CommandResultParameterNames.PlaybackClipRectangleX : _playbackClipRectangleX = CShort(value)
-                                Case Constants.CommandResultParameterNames.PlaybackClipRectangleY : _playbackClipRectangleY = CShort(value)
-                                Case Constants.CommandResultParameterNames.PlaybackClipRectangleWidth : _playbackClipRectangleWidth = CShort(value)
-                                Case Constants.CommandResultParameterNames.PlaybackClipRectangleHeight : _playbackClipRectangleHeight = CShort(value)
-                                Case Constants.CommandResultParameterNames.PlaybackVideoWidth : _playbackVideoWidth = CShort(value)
-                                Case Constants.CommandResultParameterNames.PlaybackVideoHeight : _playbackVideoHeight = CShort(value)
-                                Case Constants.CommandResultParameterNames.Text : _textAvailable = True : _text = value
-                                Case Else : Console.WriteLine("No parsing logic in place for {0} (value: {1})", name, value)
-                            End Select
-                        End If
+                    If parameterValue <> "-1" Then
+                        Select Case True
+                            Case parameterName.Equals(Constants.CommandResultParameterNames.ProtocolVersion)
+                                _protocolVersion = _protocolVersion.Parse(parameterValue, False)
+                            Case parameterName.Equals(Constants.CommandResultParameterNames.CommandStatus)
+                                _commandStatus = parameterValue
+                            Case parameterName.Equals(Constants.CommandResultParameterNames.PlayerState)
+                                _playerState = parameterValue
+                            Case parameterName.Contains("error")
+                                ProcessErrorParameter(parameterName, parameterValue)
+                            Case parameterName.Contains("playback"), parameterName.Contains("video"), parameterName.Contains("osd")
+                                ProcessPlaybackParameter(parameterName, parameterValue)
+                            Case parameterName.Contains("track")
+                                ProcessTrackParameter(parameterName, parameterValue)
+                            Case parameterName.Contains("text")
+                                ProcessTextParameter(parameterName, parameterValue)
+                            Case Else
+                                Console.WriteLine("No parsing logic in place for unknown parameter {0} (value: {1})", parameterName, parameterValue)
+                        End Select
                     End If
                 Catch ex As Exception
-                    Console.WriteLine("parsing error: failed to parse " + name)
+                    Console.WriteLine("parsing error: failed to parse " + parameterName)
                 End Try
             Next
+
+            If PlaybackDuration.HasValue AndAlso PlaybackPosition.HasValue Then
+                _playbackTimeRemaining = PlaybackDuration - PlaybackPosition
+            End If
         End Sub
 
+        ''' <summary>
+        ''' Sets fields that relate to error values.
+        ''' </summary>
+        Private Sub ProcessErrorParameter(parameterName As String, parameterValue As String)
+            Select Case parameterName
+                Case Constants.CommandResultParameterNames.ErrorKind : _errorKind = parameterValue
+                Case Constants.CommandResultParameterNames.ErrorDescription : _errorDescription = parameterValue
+                    _commandError = New CommandException(_errorKind, _errorDescription)
+                    _commandError.Source = Command.ToString
+                Case Else : Console.WriteLine("No parsing logic in place for error parameter {0} (value: {1})", parameterName, parameterValue)
+            End Select
+        End Sub
 
         ''' <summary>
-        ''' Takes a string representation of a version number and converts it to a <see cref="System.Version"/> instance.
+        ''' Sets fields that relate to track settings.
         ''' </summary>
-        Private Function ParseVersionNumber(version As String) As Version
-            If version.Contains(".") Then
-                Return New Version(version)
+        Private Sub ProcessTrackParameter(parameterName As String, parameterValue As String)
+            If Constants.CommandResultParameterNames.TrackRegex.IsMatch(parameterName) Then
+                AddTrackInfo(parameterName, parameterValue)
             Else
-                Return New Version(CInt(version), 0)
+                Select Case parameterName
+                    Case Constants.CommandResultParameterNames.AudioTrack : _audioTrack = CShort(parameterValue)
+                    Case Constants.CommandResultParameterNames.SubtitlesTrack : _subtitlesTrack = CShort(parameterValue)
+                    Case Else : Console.WriteLine("No parsing logic in place for track parameter {0} (value: {1})", parameterName, parameterValue)
+                End Select
             End If
-        End Function
+        End Sub
+
+        ''' <summary>
+        ''' Sets fields that relate to text settings.
+        ''' </summary>
+        Private Sub ProcessTextParameter(parameterName As String, parameterValue As String)
+            Select Case parameterName
+                Case Constants.CommandResultParameterNames.Text : _textAvailable = True : _text = parameterValue
+                Case Else : Console.WriteLine("No parsing logic in place for text parameter {0} (value: {1})", parameterName, parameterValue)
+            End Select
+        End Sub
+
+        ''' <summary>
+        ''' Sets fields that relate to playback settings.
+        ''' </summary>
+        Private Sub ProcessPlaybackParameter(parameterName As String, parameterValue As String)
+            Select Case parameterName
+                Case Constants.CommandResultParameterNames.PlaybackSpeed : _playbackSpeed = GetSpeedFromBuggedValue(parameterValue)
+                Case Constants.CommandResultParameterNames.PlaybackDuration : _playbackDuration = TimeSpan.FromSeconds(CInt(parameterValue))
+                Case Constants.CommandResultParameterNames.PlaybackPosition : _playbackPosition = TimeSpan.FromSeconds(CInt(parameterValue))
+                Case Constants.CommandResultParameterNames.PlaybackIsBuffering : _playbackIsBuffering = parameterValue.ToBoolean
+                Case Constants.CommandResultParameterNames.PlaybackVolume : _playbackVolume = CShort(parameterValue)
+                Case Constants.CommandResultParameterNames.PlaybackMute : _playbackMute = parameterValue.ToBoolean
+                Case Constants.CommandResultParameterNames.VideoFullscreen, Constants.CommandResultParameterNames.PlaybackWindowFullscreen : _playbackWindowFullscreen = parameterValue.ToBoolean
+                Case Constants.CommandResultParameterNames.VideoX, Constants.CommandResultParameterNames.PlaybackWindowRectangleX : _playbackWindowRectangleX = CShort(parameterValue)
+                Case Constants.CommandResultParameterNames.VideoY, Constants.CommandResultParameterNames.PlaybackWindowRectangleY : _playbackWindowRectangleY = CShort(parameterValue)
+                Case Constants.CommandResultParameterNames.VideoWidth, Constants.CommandResultParameterNames.PlaybackWindowRectangleWidth : _playbackWindowRectangleWidth = CShort(parameterValue)
+                Case Constants.CommandResultParameterNames.VideoHeight, Constants.CommandResultParameterNames.PlaybackWindowRectangleHeight : _playbackWindowRectangleHeight = CShort(parameterValue)
+                Case Constants.CommandResultParameterNames.VideoTotalDisplayWidth, Constants.CommandResultParameterNames.OnScreenDisplayWidth : _onScreenDisplayWidth = CShort(parameterValue)
+                Case Constants.CommandResultParameterNames.VideoTotalDisplayHeight, Constants.CommandResultParameterNames.OnScreenDisplayHeight : _onScreenDisplayHeight = CShort(parameterValue)
+                Case Constants.CommandResultParameterNames.VideoEnabled : _videoEnabled = parameterValue.ToBoolean
+                Case Constants.CommandResultParameterNames.VideoZoom : _videoZoom = parameterValue
+                Case Constants.CommandResultParameterNames.PlaybackDvdMenu : _playbackDvdMenu = parameterValue.ToBoolean
+                Case Constants.CommandResultParameterNames.PlaybackBlurayMenu : _playbackBlurayMenu = parameterValue.ToBoolean
+                Case Constants.CommandResultParameterNames.PlaybackState : _playbackState = parameterValue
+                Case Constants.CommandResultParameterNames.PreviousPlaybackState : _previousPlaybackState = parameterValue
+                Case Constants.CommandResultParameterNames.LastPlaybackEvent : _lastPlaybackEvent = parameterValue
+                Case Constants.CommandResultParameterNames.PlaybackUrl : _playbackUrl = parameterValue
+                Case Constants.CommandResultParameterNames.VideoOnTop : _videoOnTop = parameterValue.ToBoolean
+                Case Constants.CommandResultParameterNames.PlaybackClipRectangleX : _playbackClipRectangleX = CShort(parameterValue)
+                Case Constants.CommandResultParameterNames.PlaybackClipRectangleY : _playbackClipRectangleY = CShort(parameterValue)
+                Case Constants.CommandResultParameterNames.PlaybackClipRectangleWidth : _playbackClipRectangleWidth = CShort(parameterValue)
+                Case Constants.CommandResultParameterNames.PlaybackClipRectangleHeight : _playbackClipRectangleHeight = CShort(parameterValue)
+                Case Constants.CommandResultParameterNames.PlaybackVideoWidth : _playbackVideoWidth = CShort(parameterValue)
+                Case Constants.CommandResultParameterNames.PlaybackVideoHeight : _playbackVideoHeight = CShort(parameterValue)
+                Case Else : Console.WriteLine("No parsing logic in place for playback parameter: {0} (value: {1})", parameterName, parameterValue)
+            End Select
+        End Sub
 
         ''' <summary>
         ''' Adds audio track info to the collection.
