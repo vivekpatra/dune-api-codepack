@@ -1,0 +1,1981 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<FxCopProject Version="10.0" Name="My FxCop Project">
+ <ProjectOptions>
+  <SharedProject>True</SharedProject>
+  <Stylesheet Apply="False">$(FxCopDir)\Xml\FxCopReport.xsl</Stylesheet>
+  <SaveMessages>
+   <Project Status="Active, Excluded, Good, Noise" NewOnly="False" />
+   <Report Status="Active, Good, Noise" NewOnly="False" />
+  </SaveMessages>
+  <ProjectFile Compress="True" DefaultTargetCheck="True" DefaultRuleCheck="True" SaveByRuleGroup="" Deterministic="True" />
+  <EnableMultithreadedLoad>True</EnableMultithreadedLoad>
+  <EnableMultithreadedAnalysis>True</EnableMultithreadedAnalysis>
+  <SourceLookup>True</SourceLookup>
+  <AnalysisExceptionsThreshold>10</AnalysisExceptionsThreshold>
+  <RuleExceptionsThreshold>1</RuleExceptionsThreshold>
+  <Spelling Locale="nl-NL" />
+  <OverrideRuleVisibilities>False</OverrideRuleVisibilities>
+  <CustomDictionaries SearchFxCopDir="True" SearchUserProfile="True" SearchProjectDir="True" />
+  <SearchGlobalAssemblyCache>False</SearchGlobalAssemblyCache>
+  <DeadlockDetectionTimeout>120</DeadlockDetectionTimeout>
+  <IgnoreGeneratedCode>False</IgnoreGeneratedCode>
+ </ProjectOptions>
+ <Targets>
+  <AssemblyReferenceDirectories>
+   <Directory>$(ProjectDir)/../bin/Debug/</Directory>
+  </AssemblyReferenceDirectories>
+  <Target Name="$(ProjectDir)/../bin/Release/SL.DuneApiCodePack.dll" Analyze="True" AnalyzeAllChildren="True" />
+ </Targets>
+ <Rules>
+  <RuleFiles>
+   <RuleFile Name="$(FxCopDir)\Rules\DesignRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\GlobalizationRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\InteroperabilityRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\MobilityRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\NamingRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\PerformanceRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\PortabilityRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\SecurityRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\SecurityTransparencyRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\UsageRules.dll" Enabled="True" AllRulesEnabled="True" />
+  </RuleFiles>
+  <Groups />
+  <Settings />
+ </Rules>
+ <FxCopReport Version="10.0">
+  <Namespaces>
+   <Namespace Name="SL.DuneApiCodePack.DuneUtilities">
+    <Messages>
+     <Message TypeName="AvoidNamespacesWithFewTypes" Category="Microsoft.Design" CheckId="CA1020" Created="2012-06-14 20:44:53Z">
+      <Issue>
+       <Item>SL.DuneApiCodePack.DuneUtilities</Item>
+      </Issue>
+     </Message>
+    </Messages>
+   </Namespace>
+  </Namespaces>
+  <Targets>
+   <Target Name="$(ProjectDir)/../bin/Release/SL.DuneApiCodePack.dll">
+    <Modules>
+     <Module Name="sl.duneapicodepack.dll">
+      <Namespaces>
+       <Namespace Name="SL.DuneApiCodePack">
+        <Types>
+         <Type Name="ConnectedEventHandler">
+          <Messages>
+           <Message TypeName="UseGenericEventHandlerInstances" Category="Microsoft.Design" CheckId="CA1003" Created="2012-06-15 17:37:05Z">
+            <Issue Name="VB">
+             <Item>'ConnectedEventHandler'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="Constants">
+          <Members>
+           <Member Name="#FormatProvider">
+            <Messages>
+             <Message TypeName="DoNotDeclareReadOnlyMutableReferenceTypes" Category="Microsoft.Security" CheckId="CA2104" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'Constants.FormatProvider'</Item>
+               <Item>'IFormatProvider'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="Constants+ActionOnFinishSettings">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.ActionOnFinishSettings'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="Constants+CommandResults">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.CommandResults'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="Constants+Commands">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.Commands'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="Constants+ErrorKinds">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.ErrorKinds'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="Constants+InfraredCodeParameters">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.InfraredCodeParameters'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="Constants+InterfaceLanguages">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.InterfaceLanguages'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="Constants+LastPlaybackEventSettings">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.LastPlaybackEventSettings'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="Constants+NavigationActions">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.NavigationActions'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="Constants+NavigationParameters">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.NavigationParameters'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="Constants+PlaybackSpeedSettings">
+          <Messages>
+           <Message TypeName="EnumStorageShouldBeInt32" Category="Microsoft.Design" CheckId="CA1028" Created="2012-06-15 17:37:05Z">
+            <Issue Name="NotInt32">
+             <Item>'Constants.PlaybackSpeedSettings'</Item>
+             <Item>'Short'</Item>
+            </Issue>
+           </Message>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.PlaybackSpeedSettings'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="Constants+PlaybackStateSettings">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.PlaybackStateSettings'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="Constants+PlayerStateSettings">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.PlayerStateSettings'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="Constants+ProductIdentifiers">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.ProductIdentifiers'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+          <Members>
+           <Member Name="#HDTV101">
+            <Messages>
+             <Message Id="HDTV" TypeName="IdentifiersShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1709" Created="2012-06-15 17:37:05Z">
+              <Issue Name="Member">
+               <Item>HDTV</Item>
+               <Item>'Constants.ProductIdentifiers.HDTV101'</Item>
+               <Item>Hdtv</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#HDTV301">
+            <Messages>
+             <Message Id="HDTV" TypeName="IdentifiersShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1709" Created="2012-06-15 17:37:05Z">
+              <Issue Name="Member">
+               <Item>HDTV</Item>
+               <Item>'Constants.ProductIdentifiers.HDTV301'</Item>
+               <Item>Hdtv</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="Constants+RemoteControls">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.RemoteControls'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="Constants+RemoteControls+BigRemote2Buttons">
+          <Messages>
+           <Message TypeName="EnumStorageShouldBeInt32" Category="Microsoft.Design" CheckId="CA1028" Created="2012-06-15 17:37:05Z">
+            <Issue Name="NotInt32">
+             <Item>'Constants.RemoteControls.BigRemote2Buttons'</Item>
+             <Item>'Short'</Item>
+            </Issue>
+           </Message>
+           <Message TypeName="EnumsShouldHaveZeroValue" Category="Microsoft.Design" CheckId="CA1008" Created="2012-06-15 17:37:05Z" FixCategory="NonBreaking">
+            <Issue Name="NotFlagsNoZeroValue">
+             <Item>'Constants.RemoteControls.BigRemote2Buttons'</Item>
+            </Issue>
+           </Message>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.RemoteControls.BigRemote2Buttons'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="Constants+RemoteControls+BigRemoteButtons">
+          <Messages>
+           <Message TypeName="EnumStorageShouldBeInt32" Category="Microsoft.Design" CheckId="CA1028" Created="2012-06-15 17:37:05Z">
+            <Issue Name="NotInt32">
+             <Item>'Constants.RemoteControls.BigRemoteButtons'</Item>
+             <Item>'Short'</Item>
+            </Issue>
+           </Message>
+           <Message TypeName="EnumsShouldHaveZeroValue" Category="Microsoft.Design" CheckId="CA1008" Created="2012-06-15 17:37:05Z" FixCategory="NonBreaking">
+            <Issue Name="NotFlagsNoZeroValue">
+             <Item>'Constants.RemoteControls.BigRemoteButtons'</Item>
+            </Issue>
+           </Message>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.RemoteControls.BigRemoteButtons'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+          <Members>
+           <Member Name="#Url2ndAudio">
+            <Messages>
+             <Message Id="nd" TypeName="IdentifiersShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1709" Created="2012-06-15 17:37:05Z">
+              <Issue Name="Member">
+               <Item>nd</Item>
+               <Item>'Constants.RemoteControls.BigRemoteButtons.Url2ndAudio'</Item>
+               <Item>ND</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="Constants+RemoteControls+SmallRemoteButtons">
+          <Messages>
+           <Message TypeName="EnumStorageShouldBeInt32" Category="Microsoft.Design" CheckId="CA1028" Created="2012-06-15 17:37:05Z">
+            <Issue Name="NotInt32">
+             <Item>'Constants.RemoteControls.SmallRemoteButtons'</Item>
+             <Item>'Short'</Item>
+            </Issue>
+           </Message>
+           <Message TypeName="EnumsShouldHaveZeroValue" Category="Microsoft.Design" CheckId="CA1008" Created="2012-06-15 17:37:05Z" FixCategory="NonBreaking">
+            <Issue Name="NotFlagsNoZeroValue">
+             <Item>'Constants.RemoteControls.SmallRemoteButtons'</Item>
+            </Issue>
+           </Message>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.RemoteControls.SmallRemoteButtons'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="Constants+RemoteControls+SpecialButtons">
+          <Messages>
+           <Message TypeName="EnumStorageShouldBeInt32" Category="Microsoft.Design" CheckId="CA1028" Created="2012-06-15 17:37:05Z">
+            <Issue Name="NotInt32">
+             <Item>'Constants.RemoteControls.SpecialButtons'</Item>
+             <Item>'Short'</Item>
+            </Issue>
+           </Message>
+           <Message TypeName="EnumsShouldHaveZeroValue" Category="Microsoft.Design" CheckId="CA1008" Created="2012-06-15 17:37:05Z" FixCategory="NonBreaking">
+            <Issue Name="NotFlagsNoZeroValue">
+             <Item>'Constants.RemoteControls.SpecialButtons'</Item>
+            </Issue>
+           </Message>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.RemoteControls.SpecialButtons'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="Constants+SetKeyframeSettings">
+          <Messages>
+           <Message TypeName="EnumsShouldHaveZeroValue" Category="Microsoft.Design" CheckId="CA1008" Created="2012-06-15 17:37:05Z" FixCategory="NonBreaking">
+            <Issue Name="NotFlagsNoZeroValue">
+             <Item>'Constants.SetKeyframeSettings'</Item>
+            </Issue>
+           </Message>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.SetKeyframeSettings'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="Constants+SetPlaybackStateParameters">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.SetPlaybackStateParameters'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="Constants+SetTextParameters">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.SetTextParameters'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="Constants+StartPlaybackParameters">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.StartPlaybackParameters'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="Constants+Status">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.Status'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="Constants+VideoZoomSettings">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.VideoZoomSettings'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="Constants+WebbrowserParameters">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'Constants.WebbrowserParameters'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="DisconnectedEventHandler">
+          <Messages>
+           <Message TypeName="UseGenericEventHandlerInstances" Category="Microsoft.Design" CheckId="CA1003" Created="2012-06-15 17:37:05Z">
+            <Issue Name="VB">
+             <Item>'DisconnectedEventHandler'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="NativeMethods+Networking">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'NativeMethods.Networking'</Item>
+            </Issue>
+           </Message>
+           <Message TypeName="TypeNamesShouldNotMatchNamespaces" Category="Microsoft.Naming" CheckId="CA1724" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'NativeMethods.Networking'</Item>
+             <Item>SL.DuneApiCodePack.Networking</Item>
+            </Issue>
+           </Message>
+          </Messages>
+          <Members>
+           <Member Name="#GetDiskFreeSpace(System.String,System.UInt32&amp;,System.UInt32&amp;,System.UInt32&amp;,System.UInt32&amp;)">
+            <Messages>
+             <Message TypeName="MarkBooleanPInvokeArgumentsWithMarshalAs" Category="Microsoft.Interoperability" CheckId="CA1414" Created="2012-06-15 17:37:05Z">
+              <Issue Name="Return">
+               <Item>'NativeMethods.Networking.GetDiskFreeSpace(String, ByRef UInteger, ByRef UInteger, ByRef UInteger, ByRef UInteger)'</Item>
+              </Issue>
+             </Message>
+             <Message Id="0" TypeName="SpecifyMarshalingForPInvokeStringArguments" Category="Microsoft.Globalization" CheckId="CA2101" Created="2012-06-15 17:37:05Z">
+              <Issue Name="ParameterImplicitAnsi">
+               <Item>'lpRootPathName'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="NativeMethods+Networking+Share">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'NativeMethods.Networking.Share'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+          <Members>
+           <Member Name="#MatchesPath(System.String)">
+            <Messages>
+             <Message Id="System.String.ToLower" TypeName="SpecifyCultureInfo" Category="Microsoft.Globalization" CheckId="CA1304" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'String.ToLower()'</Item>
+               <Item>'NativeMethods.Networking.Share.MatchesPath(String)'</Item>
+               <Item>'String.ToLower(CultureInfo)'</Item>
+              </Issue>
+              <Issue>
+               <Item>'String.ToLower()'</Item>
+               <Item>'NativeMethods.Networking.Share.MatchesPath(String)'</Item>
+               <Item>'String.ToLower(CultureInfo)'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.String.StartsWith(System.String)" TypeName="SpecifyStringComparison" Category="Microsoft.Globalization" CheckId="CA1307" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'String.StartsWith(String)'</Item>
+               <Item>'NativeMethods.Networking.Share.MatchesPath(String)'</Item>
+               <Item>'String.StartsWith(String, StringComparison)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="NativeMethods+Networking+ShareCollection">
+          <Messages>
+           <Message TypeName="CollectionsShouldImplementGenericInterface" Category="Microsoft.Design" CheckId="CA1010" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'NativeMethods.Networking.ShareCollection'</Item>
+             <Item>ICollection</Item>
+            </Issue>
+           </Message>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'NativeMethods.Networking.ShareCollection'</Item>
+            </Issue>
+           </Message>
+           <Message TypeName="TypesShouldNotExtendCertainBaseTypes" Category="Microsoft.Design" CheckId="CA1058" Created="2012-06-15 17:37:05Z">
+            <Issue Name="System.Collections.ReadOnlyCollectionBase">
+             <Item>'NativeMethods.Networking.ShareCollection'</Item>
+             <Item>'ReadOnlyCollectionBase'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+          <Members>
+           <Member Name="#Add(SL.DuneApiCodePack.NativeMethods+Networking+Share)">
+            <Messages>
+             <Message TypeName="AvoidUncalledPrivateCode" Category="Microsoft.Performance" CheckId="CA1811" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'NativeMethods.Networking.ShareCollection.Add(NativeMethods.Networking.Share)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#EnumerateShares(System.String,SL.DuneApiCodePack.NativeMethods+Networking+ShareCollection)">
+            <Messages>
+             <Message Id="System.String.ToUpper" TypeName="SpecifyCultureInfo" Category="Microsoft.Globalization" CheckId="CA1304" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'String.ToUpper()'</Item>
+               <Item>'NativeMethods.Networking.ShareCollection.EnumerateShares(String, NativeMethods.Networking.ShareCollection)'</Item>
+               <Item>'String.ToUpper(CultureInfo)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#EnumerateSharesNT(System.String,SL.DuneApiCodePack.NativeMethods+Networking+ShareCollection)">
+            <Messages>
+             <Message Id="SL.DuneApiCodePack.NativeMethods+Networking+ShareCollection.NetApiBufferFree(System.IntPtr)" TypeName="DoNotIgnoreMethodResults" Category="Microsoft.Usage" CheckId="CA1806" Created="2012-06-15 17:37:05Z">
+              <Issue Name="HResultOrErrorCode">
+               <Item>'NativeMethods.Networking.ShareCollection.EnumerateSharesNT(String, NativeMethods.Networking.ShareCollection)'</Item>
+               <Item>'NativeMethods.Networking.ShareCollection.NetApiBufferFree(IntPtr)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#IsValidFilePath(System.String)">
+            <Messages>
+             <Message Id="System.Char.ToUpper(System.Char)" TypeName="SpecifyCultureInfo" Category="Microsoft.Globalization" CheckId="CA1304" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'Char.ToUpper(Char)'</Item>
+               <Item>'NativeMethods.Networking.ShareCollection.IsValidFilePath(String)'</Item>
+               <Item>'Char.ToUpper(Char, CultureInfo)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#NetShareEnum(System.String,System.Int32,System.IntPtr,System.Int16,System.Int16&amp;,System.Int16&amp;)">
+            <Messages>
+             <Message Id="0" TypeName="SpecifyMarshalingForPInvokeStringArguments" Category="Microsoft.Globalization" CheckId="CA2101" Created="2012-06-15 17:37:05Z">
+              <Issue Name="ParameterImplicitAnsi">
+               <Item>'lpServerName'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#WNetGetUniversalName(System.String,System.Int32,SL.DuneApiCodePack.NativeMethods+Networking+ShareCollection+UNIVERSAL_NAME_INFO&amp;,System.Int32&amp;)">
+            <Messages>
+             <Message Id="0" TypeName="SpecifyMarshalingForPInvokeStringArguments" Category="Microsoft.Globalization" CheckId="CA2101" Created="2012-06-15 17:37:05Z">
+              <Issue Name="Parameter">
+               <Item>'lpLocalPath'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#WNetGetUniversalName(System.String,System.Int32,System.IntPtr,System.Int32&amp;)">
+            <Messages>
+             <Message Id="0" TypeName="SpecifyMarshalingForPInvokeStringArguments" Category="Microsoft.Globalization" CheckId="CA2101" Created="2012-06-15 17:37:05Z">
+              <Issue Name="Parameter">
+               <Item>'lpLocalPath'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="NativeMethods+Networking+ShareInfo">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'NativeMethods.Networking.ShareInfo'</Item>
+            </Issue>
+           </Message>
+           <Message TypeName="OverrideEqualsAndOperatorEqualsOnValueTypes" Category="Microsoft.Performance" CheckId="CA1815" Created="2012-06-15 17:37:05Z">
+            <Issue Name="Equals">
+             <Item>'NativeMethods.Networking.ShareInfo'</Item>
+            </Issue>
+            <Issue Name="op_Equality">
+             <Item>'NativeMethods.Networking.ShareInfo'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="NativeMethods+Networking+ShareType">
+          <Messages>
+           <Message TypeName="DoNotMarkEnumsWithFlags" Category="Microsoft.Usage" CheckId="CA2217" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'NativeMethods.Networking.ShareType'</Item>
+             <Item>0x80000000, 0x100000000, 0x200000000, 0x400000000, 0x800000000, 0x1000000000, 0x2000000000, 0x4000000000, 0x8000000000, 0x10000000000, 0x20000000000, 0x40000000000, 0x80000000000, 0x100000000000, 0x200000000000, 0x400000000000, 0x800000000000, 0x1000000000000, 0x2000000000000, 0x4000000000000, 0x8000000000000, 0x10000000000000, 0x20000000000000, 0x40000000000000, 0x80000000000000, 0x100000000000000, 0x200000000000000, 0x400000000000000, 0x800000000000000, 0x1000000000000000, 0x2000000000000000, 0x4000000000000000, 0x8000000000000000</Item>
+            </Issue>
+           </Message>
+           <Message TypeName="EnumsShouldHaveZeroValue" Category="Microsoft.Design" CheckId="CA1008" Created="2012-06-15 17:37:05Z" FixCategory="Breaking">
+            <Issue Name="FlagsRename">
+             <Item>'NativeMethods.Networking.ShareType'</Item>
+             <Item>'NativeMethods.Networking.ShareType.Disk'</Item>
+            </Issue>
+           </Message>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'NativeMethods.Networking.ShareType'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+          <Members>
+           <Member Name="#IPC">
+            <Messages>
+             <Message Id="IPC" TypeName="IdentifiersShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1709" Created="2012-06-15 17:37:05Z">
+              <Issue Name="Member">
+               <Item>IPC</Item>
+               <Item>'NativeMethods.Networking.ShareType.IPC'</Item>
+               <Item>Ipc</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+        </Types>
+       </Namespace>
+       <Namespace Name="SL.DuneApiCodePack.DuneUtilities">
+        <Types>
+         <Type Name="Dune">
+          <Members>
+           <Member Name="#AvailableFirmwares">
+            <Accessors>
+             <Accessor Name="#get_AvailableFirmwares()">
+              <Messages>
+               <Message TypeName="DoNotCatchGeneralExceptionTypes" Category="Microsoft.Design" CheckId="CA1031" Created="2012-06-15 17:37:05Z">
+                <Issue>
+                 <Item>'Dune.AvailableFirmwares.Get()'</Item>
+                 <Item>'Exception'</Item>
+                </Issue>
+               </Message>
+              </Messages>
+             </Accessor>
+            </Accessors>
+           </Member>
+           <Member Name="#CloseDiscTray()">
+            <Messages>
+             <Message TypeName="DoNotCatchGeneralExceptionTypes" Category="Microsoft.Design" CheckId="CA1031" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'Dune.CloseDiscTray()'</Item>
+               <Item>'Exception'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Disconnect(System.Boolean)">
+            <Messages>
+             <Message Id="expected" TypeName="ReviewUnusedParameters" Category="Microsoft.Usage" CheckId="CA1801" Created="2012-06-15 17:37:05Z" FixCategory="NonBreaking">
+              <Issue>
+               <Item>'expected'</Item>
+               <Item>'Dune.Disconnect(Boolean)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#GetStatus()">
+            <Messages>
+             <Message TypeName="UsePropertiesWhereAppropriate" Category="Microsoft.Design" CheckId="CA1024" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'Dune.GetStatus()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#GetText()">
+            <Messages>
+             <Message TypeName="UsePropertiesWhereAppropriate" Category="Microsoft.Design" CheckId="CA1024" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'Dune.GetText()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#PlaybackUrl">
+            <Messages>
+             <Message TypeName="UriPropertiesShouldNotBeStrings" Category="Microsoft.Design" CheckId="CA1056" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'Dune.PlaybackUrl()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Reboot()">
+            <Messages>
+             <Message TypeName="DoNotCatchGeneralExceptionTypes" Category="Microsoft.Design" CheckId="CA1031" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'Dune.Reboot()'</Item>
+               <Item>'Exception'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#StatusUpdater">
+            <Accessors>
+             <Accessor Name="#get_StatusUpdater()">
+              <Messages>
+               <Message TypeName="DoNotUseTimersThatPreventPowerStateChanges" Category="Microsoft.Mobility" CheckId="CA1601" Created="2012-06-15 17:37:05Z">
+                <Issue>
+                 <Item>'Timer.Interval.Set(Double)'</Item>
+                 <Item>'Dune.StatusUpdater.Get()'</Item>
+                </Issue>
+               </Message>
+              </Messages>
+             </Accessor>
+            </Accessors>
+           </Member>
+           <Member Name="#Text">
+            <Messages>
+             <Message TypeName="PropertyNamesShouldNotMatchGetMethods" Category="Microsoft.Naming" CheckId="CA1721" Created="2012-06-15 17:37:05Z">
+              <Issue Name="SameType">
+               <Item>'Dune.Text()'</Item>
+               <Item>'Dune.GetText()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#TextUpdater">
+            <Accessors>
+             <Accessor Name="#get_TextUpdater()">
+              <Messages>
+               <Message TypeName="DoNotUseTimersThatPreventPowerStateChanges" Category="Microsoft.Mobility" CheckId="CA1601" Created="2012-06-15 17:37:05Z">
+                <Issue>
+                 <Item>'Timer.Interval.Set(Double)'</Item>
+                 <Item>'Dune.TextUpdater.Get()'</Item>
+                </Issue>
+               </Message>
+              </Messages>
+             </Accessor>
+            </Accessors>
+           </Member>
+           <Member Name="#ToggleDiscTray()">
+            <Messages>
+             <Message TypeName="DoNotCatchGeneralExceptionTypes" Category="Microsoft.Design" CheckId="CA1031" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'Dune.ToggleDiscTray()'</Item>
+               <Item>'Exception'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#TryGetText(System.String&amp;)">
+            <Messages>
+             <Message Id="0#" TypeName="DoNotPassTypesByReference" Category="Microsoft.Design" CheckId="CA1045" Created="2012-06-15 17:37:05Z">
+              <Issue Level="CriticalWarning">
+               <Item>'text'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="Playlist">
+          <Members>
+           <Member Name="#.ctor(SL.DuneApiCodePack.DuneUtilities.Dune,System.Uri)">
+            <Messages>
+             <Message Id="path" TypeName="ReviewUnusedParameters" Category="Microsoft.Usage" CheckId="CA1801" Created="2012-06-15 17:37:05Z" FixCategory="DependsOnFix">
+              <Issue>
+               <Item>'path'</Item>
+               <Item>'Playlist.New(Dune, Uri)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Start()">
+            <Messages>
+             <Message Id="System.String.ToLower" TypeName="SpecifyCultureInfo" Category="Microsoft.Globalization" CheckId="CA1304" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'String.ToLower()'</Item>
+               <Item>'Playlist.Start()'</Item>
+               <Item>'String.ToLower(CultureInfo)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+        </Types>
+       </Namespace>
+       <Namespace Name="SL.DuneApiCodePack.DuneUtilities.ApiWrappers">
+        <Types>
+         <Type Name="Command">
+          <Members>
+           <Member Name="#GetCommandBase()">
+            <Messages>
+             <Message Id="System.String.Format(System.String,System.Object)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2012-06-15 17:37:05Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'String.Format(String, Object)'</Item>
+               <Item>'Command.GetCommandBase()'</Item>
+               <Item>'String.Format(IFormatProvider, String, ParamArray Object())'</Item>
+               <Item>'CultureInfo.CurrentCulture()'</Item>
+               <Item>'CultureInfo.InvariantCulture()'</Item>
+              </Issue>
+             </Message>
+             <Message TypeName="UsePropertiesWhereAppropriate" Category="Microsoft.Design" CheckId="CA1024" Created="2012-06-15 17:37:05Z">
+              <Issue Certainty="50">
+               <Item>'Command.GetCommandBase()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#GetQuery()">
+            <Messages>
+             <Message TypeName="UsePropertiesWhereAppropriate" Category="Microsoft.Design" CheckId="CA1024" Created="2012-06-15 17:37:05Z">
+              <Issue Certainty="50">
+               <Item>'Command.GetQuery()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#GetQueryString()">
+            <Messages>
+             <Message TypeName="UsePropertiesWhereAppropriate" Category="Microsoft.Design" CheckId="CA1024" Created="2012-06-15 17:37:05Z">
+              <Issue Certainty="50">
+               <Item>'Command.GetQueryString()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#GetResult()">
+            <Messages>
+             <Message TypeName="UsePropertiesWhereAppropriate" Category="Microsoft.Design" CheckId="CA1024" Created="2012-06-15 17:37:05Z">
+              <Issue Certainty="50">
+               <Item>'Command.GetResult()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#SetUserAgent(System.Net.WebRequest)">
+            <Messages>
+             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2012-06-15 17:37:05Z" FixCategory="NonBreaking">
+              <Issue>
+               <Item>'Command.SetUserAgent(WebRequest)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#WritePostData(System.Net.WebRequest,System.String)">
+            <Messages>
+             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2012-06-15 17:37:05Z" FixCategory="NonBreaking">
+              <Issue>
+               <Item>'Command.WritePostData(WebRequest, String)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="CommandException">
+          <Messages>
+           <Message TypeName="ImplementStandardExceptionConstructors" Category="Microsoft.Design" CheckId="CA1032" Created="2012-06-15 17:37:05Z">
+            <Issue Name="MissingConstructor">
+             <Item>'CommandException'</Item>
+             <Item>public CommandException(String)</Item>
+            </Issue>
+            <Issue Name="MissingConstructor">
+             <Item>'CommandException'</Item>
+             <Item>public CommandException(String, Exception)</Item>
+            </Issue>
+           </Message>
+          </Messages>
+          <Members>
+           <Member Name="#.ctor()">
+            <Messages>
+             <Message TypeName="ImplementStandardExceptionConstructors" Category="Microsoft.Design" CheckId="CA1032" Created="2012-06-15 17:37:05Z">
+              <Issue Name="Accessibility">
+               <Item>'CommandException.New()'</Item>
+               <Item>public</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="CommandResult">
+          <Members>
+           <Member Name="#GetSpeedFromBuggedValue(System.String)">
+            <Messages>
+             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2012-06-15 17:37:05Z" FixCategory="NonBreaking">
+              <Issue>
+               <Item>'CommandResult.GetSpeedFromBuggedValue(String)'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.Convert.ToInt32(System.String)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2012-06-15 17:37:05Z">
+              <Issue Name="IFormatProviderAlternate">
+               <Item>'Convert.ToInt32(String)'</Item>
+               <Item>'CommandResult.GetSpeedFromBuggedValue(String)'</Item>
+               <Item>'Convert.ToInt32(String, IFormatProvider)'</Item>
+               <Item>'CultureInfo.CurrentCulture()'</Item>
+               <Item>'CultureInfo.InvariantCulture()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#ParseVersionNumber(System.String)">
+            <Messages>
+             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2012-06-15 17:37:05Z" FixCategory="NonBreaking">
+              <Issue>
+               <Item>'CommandResult.ParseVersionNumber(String)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#PlaybackUrl">
+            <Messages>
+             <Message TypeName="UriPropertiesShouldNotBeStrings" Category="Microsoft.Design" CheckId="CA1056" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'CommandResult.PlaybackUrl()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#ProcessParameter()">
+            <Messages>
+             <Message TypeName="DoNotCatchGeneralExceptionTypes" Category="Microsoft.Design" CheckId="CA1031" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'CommandResult.ProcessParameter()'</Item>
+               <Item>'Exception'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="FirmwareProperties">
+          <Members>
+           <Member Name="#.ctor(System.String)">
+            <Messages>
+             <Message Id="System.Int32.Parse(System.String)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2012-06-15 17:37:05Z">
+              <Issue Name="IFormatProviderAlternate">
+               <Item>'Integer.Parse(String)'</Item>
+               <Item>'FirmwareProperties.New(String)'</Item>
+               <Item>'Integer.Parse(String, IFormatProvider)'</Item>
+               <Item>'CultureInfo.CurrentCulture()'</Item>
+               <Item>'CultureInfo.InvariantCulture()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#BuildDate">
+            <Accessors>
+             <Accessor Name="#get_BuildDate()">
+              <Messages>
+               <Message Id="System.DateTime.TryParseExact(System.String,System.String,System.IFormatProvider,System.Globalization.DateTimeStyles,System.DateTime@)" TypeName="DoNotIgnoreMethodResults" Category="Microsoft.Usage" CheckId="CA1806" Created="2012-06-15 17:37:05Z">
+                <Issue Name="TryParse">
+                 <Item>'FirmwareProperties.BuildDate.Get()'</Item>
+                 <Item>'Date.TryParseExact(String, String, IFormatProvider, DateTimeStyles, ByRef Date)'</Item>
+                </Issue>
+               </Message>
+              </Messages>
+             </Accessor>
+            </Accessors>
+           </Member>
+           <Member Name="#GetAvailableFirmwaresAsync(System.String)">
+            <Messages>
+             <Message TypeName="DoNotNestGenericTypesInMemberSignatures" Category="Microsoft.Design" CheckId="CA1006" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'FirmwareProperties.GetAvailableFirmwaresAsync(String)'</Item>
+               <Item>'Task(Of Collection(Of FirmwareProperties))'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#GetSize(System.Uri)">
+            <Messages>
+             <Message TypeName="DoNotCatchGeneralExceptionTypes" Category="Microsoft.Design" CheckId="CA1031" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'FirmwareProperties.GetSize(Uri)'</Item>
+               <Item>'Exception'</Item>
+              </Issue>
+             </Message>
+             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2012-06-15 17:37:05Z" FixCategory="NonBreaking">
+              <Issue>
+               <Item>'FirmwareProperties.GetSize(Uri)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#ToString()">
+            <Messages>
+             <Message Id="System.Double.ToString" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2012-06-15 17:37:05Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'Double.ToString()'</Item>
+               <Item>'FirmwareProperties.ToString()'</Item>
+               <Item>'Double.ToString(IFormatProvider)'</Item>
+               <Item>'CultureInfo.CurrentCulture()'</Item>
+               <Item>'CultureInfo.InvariantCulture()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="Folder">
+          <Members>
+           <Member Name="#Exists">
+            <Accessors>
+             <Accessor Name="#get_Exists()">
+              <Messages>
+               <Message TypeName="DoNotRaiseExceptionsInUnexpectedLocations" Category="Microsoft.Design" CheckId="CA1065" Created="2012-06-15 17:37:05Z" FixCategory="Breaking">
+                <Issue Name="PropertyGetter" Level="Warning">
+                 <Item>'Folder.Exists.Get()'</Item>
+                 <Item>'NotImplementedException'</Item>
+                </Issue>
+               </Message>
+              </Messages>
+             </Accessor>
+            </Accessors>
+           </Member>
+           <Member Name="#Name">
+            <Accessors>
+             <Accessor Name="#get_Name()">
+              <Messages>
+               <Message TypeName="DoNotRaiseExceptionsInUnexpectedLocations" Category="Microsoft.Design" CheckId="CA1065" Created="2012-06-15 17:37:05Z" FixCategory="Breaking">
+                <Issue Name="PropertyGetter" Level="Warning">
+                 <Item>'Folder.Name.Get()'</Item>
+                 <Item>'NotImplementedException'</Item>
+                </Issue>
+               </Message>
+              </Messages>
+             </Accessor>
+            </Accessors>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="LanguageTrack">
+          <Members>
+           <Member Name="#GetTerminologyCode(System.String)">
+            <Messages>
+             <Message Id="System.String.ToLower" TypeName="SpecifyCultureInfo" Category="Microsoft.Globalization" CheckId="CA1304" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'String.ToLower()'</Item>
+               <Item>'LanguageTrack.GetTerminologyCode(String)'</Item>
+               <Item>'String.ToLower(CultureInfo)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Type">
+            <Messages>
+             <Message TypeName="PropertyNamesShouldNotMatchGetMethods" Category="Microsoft.Naming" CheckId="CA1721" Created="2012-06-15 17:37:05Z">
+              <Issue Name="BaseType">
+               <Item>'LanguageTrack.Type()'</Item>
+               <Item>'Object.GetType()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="LaunchFlashLiteCommand">
+          <Members>
+           <Member Name="#.ctor(SL.DuneApiCodePack.DuneUtilities.Dune,System.String)">
+            <Messages>
+             <Message Id="1#" TypeName="UriParametersShouldNotBeStrings" Category="Microsoft.Design" CheckId="CA1054" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'mediaUrl'</Item>
+               <Item>'LaunchFlashLiteCommand.New(Dune, String)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#.ctor(SL.DuneApiCodePack.DuneUtilities.Dune,System.String,SL.DuneApiCodePack.Networking.HttpQuery)">
+            <Messages>
+             <Message Id="1#" TypeName="UriParametersShouldNotBeStrings" Category="Microsoft.Design" CheckId="CA1054" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'mediaUrl'</Item>
+               <Item>'LaunchFlashLiteCommand.New(Dune, String, HttpQuery)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#MediaUrl">
+            <Messages>
+             <Message TypeName="UriPropertiesShouldNotBeStrings" Category="Microsoft.Design" CheckId="CA1056" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'LaunchFlashLiteCommand.MediaUrl()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="LaunchWebsiteCommand">
+          <Members>
+           <Member Name="#GetQueryString()">
+            <Messages>
+             <Message Id="System.Int16.ToString" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2012-06-15 17:37:05Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'Short.ToString()'</Item>
+               <Item>'LaunchWebsiteCommand.GetQueryString()'</Item>
+               <Item>'Short.ToString(IFormatProvider)'</Item>
+               <Item>'CultureInfo.CurrentCulture()'</Item>
+               <Item>'CultureInfo.InvariantCulture()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="NavigationCommand">
+          <Members>
+           <Member Name="#GetQuery()">
+            <Messages>
+             <Message Id="System.String.ToLower" TypeName="SpecifyCultureInfo" Category="Microsoft.Globalization" CheckId="CA1304" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'String.ToLower()'</Item>
+               <Item>'NavigationCommand.GetQuery()'</Item>
+               <Item>'String.ToLower(CultureInfo)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="SetKeyframeCommand">
+          <Members>
+           <Member Name="#GetQuery()">
+            <Messages>
+             <Message Id="System.Int32.ToString" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2012-06-15 17:37:05Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'Integer.ToString()'</Item>
+               <Item>'SetKeyframeCommand.GetQuery()'</Item>
+               <Item>'Integer.ToString(IFormatProvider)'</Item>
+               <Item>'CultureInfo.CurrentCulture()'</Item>
+               <Item>'CultureInfo.InvariantCulture()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="SetPlaybackClipZoomCommand">
+          <Members>
+           <Member Name="#GetQuery()">
+            <Messages>
+             <Message Id="System.Int16.ToString" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2012-06-15 17:37:05Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'Short.ToString()'</Item>
+               <Item>'SetPlaybackClipZoomCommand.GetQuery()'</Item>
+               <Item>'Short.ToString(IFormatProvider)'</Item>
+               <Item>'CultureInfo.CurrentCulture()'</Item>
+               <Item>'CultureInfo.InvariantCulture()'</Item>
+              </Issue>
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'Short.ToString()'</Item>
+               <Item>'SetPlaybackClipZoomCommand.GetQuery()'</Item>
+               <Item>'Short.ToString(IFormatProvider)'</Item>
+               <Item>'CultureInfo.CurrentCulture()'</Item>
+               <Item>'CultureInfo.InvariantCulture()'</Item>
+              </Issue>
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'Short.ToString()'</Item>
+               <Item>'SetPlaybackClipZoomCommand.GetQuery()'</Item>
+               <Item>'Short.ToString(IFormatProvider)'</Item>
+               <Item>'CultureInfo.CurrentCulture()'</Item>
+               <Item>'CultureInfo.InvariantCulture()'</Item>
+              </Issue>
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'Short.ToString()'</Item>
+               <Item>'SetPlaybackClipZoomCommand.GetQuery()'</Item>
+               <Item>'Short.ToString(IFormatProvider)'</Item>
+               <Item>'CultureInfo.CurrentCulture()'</Item>
+               <Item>'CultureInfo.InvariantCulture()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="SetPlaybackStateCommand">
+          <Members>
+           <Member Name="#GetQuery()">
+            <Messages>
+             <Message Id="System.Double.ToString" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2012-06-15 17:37:05Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'Double.ToString()'</Item>
+               <Item>'SetPlaybackStateCommand.GetQuery()'</Item>
+               <Item>'Double.ToString(IFormatProvider)'</Item>
+               <Item>'CultureInfo.CurrentCulture()'</Item>
+               <Item>'CultureInfo.InvariantCulture()'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.Int16.ToString" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2012-06-15 17:37:05Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'Short.ToString()'</Item>
+               <Item>'SetPlaybackStateCommand.GetQuery()'</Item>
+               <Item>'Short.ToString(IFormatProvider)'</Item>
+               <Item>'CultureInfo.CurrentCulture()'</Item>
+               <Item>'CultureInfo.InvariantCulture()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="SetPlaybackWindowZoomCommand">
+          <Members>
+           <Member Name="#GetQuery()">
+            <Messages>
+             <Message Id="System.Int16.ToString" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2012-06-15 17:37:05Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'Short.ToString()'</Item>
+               <Item>'SetPlaybackWindowZoomCommand.GetQuery()'</Item>
+               <Item>'Short.ToString(IFormatProvider)'</Item>
+               <Item>'CultureInfo.CurrentCulture()'</Item>
+               <Item>'CultureInfo.InvariantCulture()'</Item>
+              </Issue>
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'Short.ToString()'</Item>
+               <Item>'SetPlaybackWindowZoomCommand.GetQuery()'</Item>
+               <Item>'Short.ToString(IFormatProvider)'</Item>
+               <Item>'CultureInfo.CurrentCulture()'</Item>
+               <Item>'CultureInfo.InvariantCulture()'</Item>
+              </Issue>
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'Short.ToString()'</Item>
+               <Item>'SetPlaybackWindowZoomCommand.GetQuery()'</Item>
+               <Item>'Short.ToString(IFormatProvider)'</Item>
+               <Item>'CultureInfo.CurrentCulture()'</Item>
+               <Item>'CultureInfo.InvariantCulture()'</Item>
+              </Issue>
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'Short.ToString()'</Item>
+               <Item>'SetPlaybackWindowZoomCommand.GetQuery()'</Item>
+               <Item>'Short.ToString(IFormatProvider)'</Item>
+               <Item>'CultureInfo.CurrentCulture()'</Item>
+               <Item>'CultureInfo.InvariantCulture()'</Item>
+              </Issue>
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'Short.ToString()'</Item>
+               <Item>'SetPlaybackWindowZoomCommand.GetQuery()'</Item>
+               <Item>'Short.ToString(IFormatProvider)'</Item>
+               <Item>'CultureInfo.CurrentCulture()'</Item>
+               <Item>'CultureInfo.InvariantCulture()'</Item>
+              </Issue>
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'Short.ToString()'</Item>
+               <Item>'SetPlaybackWindowZoomCommand.GetQuery()'</Item>
+               <Item>'Short.ToString(IFormatProvider)'</Item>
+               <Item>'CultureInfo.CurrentCulture()'</Item>
+               <Item>'CultureInfo.InvariantCulture()'</Item>
+              </Issue>
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'Short.ToString()'</Item>
+               <Item>'SetPlaybackWindowZoomCommand.GetQuery()'</Item>
+               <Item>'Short.ToString(IFormatProvider)'</Item>
+               <Item>'CultureInfo.CurrentCulture()'</Item>
+               <Item>'CultureInfo.InvariantCulture()'</Item>
+              </Issue>
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'Short.ToString()'</Item>
+               <Item>'SetPlaybackWindowZoomCommand.GetQuery()'</Item>
+               <Item>'Short.ToString(IFormatProvider)'</Item>
+               <Item>'CultureInfo.CurrentCulture()'</Item>
+               <Item>'CultureInfo.InvariantCulture()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="StartPlaybackCommand">
+          <Members>
+           <Member Name="#.ctor(SL.DuneApiCodePack.DuneUtilities.Dune,System.String)">
+            <Messages>
+             <Message Id="1#" TypeName="UriParametersShouldNotBeStrings" Category="Microsoft.Design" CheckId="CA1054" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'mediaUrl'</Item>
+               <Item>'StartPlaybackCommand.New(Dune, String)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#MediaUrl">
+            <Messages>
+             <Message TypeName="UriPropertiesShouldNotBeStrings" Category="Microsoft.Design" CheckId="CA1056" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'StartPlaybackCommand.MediaUrl()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Type">
+            <Messages>
+             <Message TypeName="PropertyNamesShouldNotMatchGetMethods" Category="Microsoft.Naming" CheckId="CA1721" Created="2012-06-15 17:37:05Z">
+              <Issue Name="BaseType">
+               <Item>'StartPlaybackCommand.Type()'</Item>
+               <Item>'Object.GetType()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="StartPlaybackCommand+PlaybackType">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'StartPlaybackCommand.PlaybackType'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="SystemInformation">
+          <Members>
+           <Member Name="#GetBootTime()">
+            <Messages>
+             <Message TypeName="DoNotCatchGeneralExceptionTypes" Category="Microsoft.Design" CheckId="CA1031" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'SystemInformation.GetBootTime()'</Item>
+               <Item>'Exception'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.Double.Parse(System.String)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2012-06-15 17:37:05Z">
+              <Issue Name="IFormatProviderAlternate">
+               <Item>'Double.Parse(String)'</Item>
+               <Item>'SystemInformation.GetBootTime()'</Item>
+               <Item>'Double.Parse(String, IFormatProvider)'</Item>
+               <Item>'CultureInfo.CurrentCulture()'</Item>
+               <Item>'CultureInfo.InvariantCulture()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#GetSysinfo()">
+            <Messages>
+             <Message TypeName="DoNotCatchGeneralExceptionTypes" Category="Microsoft.Design" CheckId="CA1031" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'SystemInformation.GetSysinfo()'</Item>
+               <Item>'Exception'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+        </Types>
+       </Namespace>
+       <Namespace Name="SL.DuneApiCodePack.Extensions">
+        <Types>
+         <Type Name="BooleanExtensions">
+          <Members>
+           <Member Name="#Toggle(System.Boolean&amp;)">
+            <Messages>
+             <Message Id="0#" TypeName="DoNotPassTypesByReference" Category="Microsoft.Design" CheckId="CA1045" Created="2012-06-15 17:37:05Z">
+              <Issue Certainty="50">
+               <Item>'value'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="IntegerExtensions">
+          <Members>
+           <Member Name="#GetGreatestCommonFactor(System.Int32,System.Int32)">
+            <Messages>
+             <Message Id="int" TypeName="IdentifiersShouldNotContainTypeNames" Category="Microsoft.Naming" CheckId="CA1720" Created="2012-06-15 17:37:05Z">
+              <Issue Name="LanguageSpecificMemberParameter">
+               <Item>'IntegerExtensions.GetGreatestCommonFactor(Integer, Integer)'</Item>
+               <Item>int</Item>
+               <Item>'int'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="StringExtensions">
+          <Members>
+           <Member Name="#Clear(System.String&amp;)">
+            <Messages>
+             <Message Id="0#" TypeName="DoNotPassTypesByReference" Category="Microsoft.Design" CheckId="CA1045" Created="2012-06-15 17:37:05Z">
+              <Issue Level="CriticalWarning">
+               <Item>'text'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#ToBoolean(System.String)">
+            <Messages>
+             <Message Id="System.String.ToLower" TypeName="SpecifyCultureInfo" Category="Microsoft.Globalization" CheckId="CA1304" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'String.ToLower()'</Item>
+               <Item>'StringExtensions.ToBoolean(String)'</Item>
+               <Item>'String.ToLower(CultureInfo)'</Item>
+              </Issue>
+              <Issue>
+               <Item>'String.ToLower()'</Item>
+               <Item>'StringExtensions.ToBoolean(String)'</Item>
+               <Item>'String.ToLower(CultureInfo)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+        </Types>
+       </Namespace>
+       <Namespace Name="SL.DuneApiCodePack.Networking">
+        <Types>
+         <Type Name="HttpQuery">
+          <Messages>
+           <Message TypeName="ICollectionImplementationsHaveStronglyTypedMembers" Category="Microsoft.Design" CheckId="CA1035" Created="2012-06-15 17:37:05Z">
+            <Issue>
+             <Item>'HttpQuery'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="NetworkCardVendor">
+          <Members>
+           <Member Name="#GetResults(System.Net.NetworkInformation.PhysicalAddress)">
+            <Messages>
+             <Message TypeName="DoNotCatchGeneralExceptionTypes" Category="Microsoft.Design" CheckId="CA1031" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'NetworkCardVendor.GetResults(PhysicalAddress)'</Item>
+               <Item>'Exception'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="NetworkDevice">
+          <Members>
+           <Member Name="#GetShares()">
+            <Messages>
+             <Message TypeName="UsePropertiesWhereAppropriate" Category="Microsoft.Design" CheckId="CA1024" Created="2012-06-15 17:37:05Z">
+              <Issue Certainty="50">
+               <Item>'NetworkDevice.GetShares()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#IsDune(System.Boolean)">
+            <Messages>
+             <Message TypeName="DoNotCatchGeneralExceptionTypes" Category="Microsoft.Design" CheckId="CA1031" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'NetworkDevice.IsDune(Boolean)'</Item>
+               <Item>'Exception'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Scan()">
+            <Messages>
+             <Message TypeName="DoNotExposeGenericLists" Category="Microsoft.Design" CheckId="CA1002" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'List(Of NetworkDevice)'</Item>
+               <Item>'NetworkDevice.Scan()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Scan(System.DirectoryServices.DirectoryEntry)">
+            <Messages>
+             <Message TypeName="DoNotCatchGeneralExceptionTypes" Category="Microsoft.Design" CheckId="CA1031" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'NetworkDevice.Scan(DirectoryEntry)'</Item>
+               <Item>'Exception'</Item>
+              </Issue>
+             </Message>
+             <Message TypeName="DoNotExposeGenericLists" Category="Microsoft.Design" CheckId="CA1002" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'List(Of NetworkDevice)'</Item>
+               <Item>'NetworkDevice.Scan(DirectoryEntry)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="OptionCodes">
+          <Messages>
+           <Message TypeName="EnumStorageShouldBeInt32" Category="Microsoft.Design" CheckId="CA1028" Created="2012-06-15 17:37:05Z">
+            <Issue Name="NotInt32">
+             <Item>'OptionCodes'</Item>
+             <Item>'Byte'</Item>
+            </Issue>
+           </Message>
+           <Message TypeName="EnumsShouldHaveZeroValue" Category="Microsoft.Design" CheckId="CA1008" Created="2012-06-15 17:37:05Z" FixCategory="NonBreaking">
+            <Issue Name="NotFlagsNoZeroValue">
+             <Item>'OptionCodes'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+          <Members>
+           <Member Name="#DONT">
+            <Messages>
+             <Message Id="DONT" TypeName="IdentifiersShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1709" Created="2012-06-15 17:37:05Z">
+              <Issue Name="Member">
+               <Item>DONT</Item>
+               <Item>'OptionCodes.DONT'</Item>
+               <Item>Dont</Item>
+              </Issue>
+             </Message>
+             <Message Id="DONT" TypeName="UsePreferredTerms" Category="Microsoft.Naming" CheckId="CA1726" Created="2012-06-15 17:37:05Z">
+              <Issue Name="Member">
+               <Item>DONT</Item>
+               <Item>'OptionCodes.DONT'</Item>
+               <Item>DoNot</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#IAC">
+            <Messages>
+             <Message Id="IAC" TypeName="IdentifiersShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1709" Created="2012-06-15 17:37:05Z">
+              <Issue Name="Member">
+               <Item>IAC</Item>
+               <Item>'OptionCodes.IAC'</Item>
+               <Item>Iac</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#WILL">
+            <Messages>
+             <Message Id="WILL" TypeName="IdentifiersShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1709" Created="2012-06-15 17:37:05Z">
+              <Issue Name="Member">
+               <Item>WILL</Item>
+               <Item>'OptionCodes.WILL'</Item>
+               <Item>Will</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#WONT">
+            <Messages>
+             <Message Id="WONT" TypeName="IdentifiersShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1709" Created="2012-06-15 17:37:05Z">
+              <Issue Name="Member">
+               <Item>WONT</Item>
+               <Item>'OptionCodes.WONT'</Item>
+               <Item>Wont</Item>
+              </Issue>
+             </Message>
+             <Message Id="WONT" TypeName="UsePreferredTerms" Category="Microsoft.Naming" CheckId="CA1726" Created="2012-06-15 17:37:05Z">
+              <Issue Name="Member">
+               <Item>WONT</Item>
+               <Item>'OptionCodes.WONT'</Item>
+               <Item>WillNot</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="TelnetClient">
+          <Members>
+           <Member Name="#.ctor(System.Net.IPAddress,System.Int32)">
+            <Messages>
+             <Message Id="System.Int32.ToString" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2012-06-15 17:37:05Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'Integer.ToString()'</Item>
+               <Item>'TelnetClient.New(IPAddress, Integer)'</Item>
+               <Item>'Integer.ToString(IFormatProvider)'</Item>
+               <Item>'CultureInfo.CurrentCulture()'</Item>
+               <Item>'CultureInfo.InvariantCulture()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="TelnetOptions">
+          <Messages>
+           <Message TypeName="EnumStorageShouldBeInt32" Category="Microsoft.Design" CheckId="CA1028" Created="2012-06-15 17:37:05Z">
+            <Issue Name="NotInt32">
+             <Item>'TelnetOptions'</Item>
+             <Item>'Byte'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+          <Members>
+           <Member Name="#CHARSET">
+            <Messages>
+             <Message Id="CHARSET" TypeName="IdentifiersShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1709" Created="2012-06-15 17:37:05Z">
+              <Issue Name="Member">
+               <Item>CHARSET</Item>
+               <Item>'TelnetOptions.CHARSET'</Item>
+               <Item>Charset</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#ExtendedASCII">
+            <Messages>
+             <Message Id="ASCII" TypeName="IdentifiersShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1709" Created="2012-06-15 17:37:05Z">
+              <Issue Name="Member">
+               <Item>ASCII</Item>
+               <Item>'TelnetOptions.ExtendedASCII'</Item>
+               <Item>Ascii</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#KERMIT">
+            <Messages>
+             <Message Id="KERMIT" TypeName="IdentifiersShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1709" Created="2012-06-15 17:37:05Z">
+              <Issue Name="Member">
+               <Item>KERMIT</Item>
+               <Item>'TelnetOptions.KERMIT'</Item>
+               <Item>Kermit</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Logout">
+            <Messages>
+             <Message Id="Logout" TypeName="UsePreferredTerms" Category="Microsoft.Naming" CheckId="CA1726" Created="2012-06-15 17:37:05Z">
+              <Issue Name="Member">
+               <Item>Logout</Item>
+               <Item>'TelnetOptions.Logout'</Item>
+               <Item>LogOff</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#SUPDUP">
+            <Messages>
+             <Message Id="SUPDUP" TypeName="IdentifiersShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1709" Created="2012-06-15 17:37:05Z">
+              <Issue Name="Member">
+               <Item>SUPDUP</Item>
+               <Item>'TelnetOptions.SUPDUP'</Item>
+               <Item>Supdup</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#SUPDUPOutput">
+            <Messages>
+             <Message Id="SUPDUP" TypeName="IdentifiersShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1709" Created="2012-06-15 17:37:05Z">
+              <Issue Name="Member">
+               <Item>SUPDUP</Item>
+               <Item>'TelnetOptions.SUPDUPOutput'</Item>
+               <Item>Supdup</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#TACACSUserIdentification">
+            <Messages>
+             <Message Id="TACACS" TypeName="IdentifiersShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1709" Created="2012-06-15 17:37:05Z">
+              <Issue Name="Member">
+               <Item>TACACS</Item>
+               <Item>'TelnetOptions.TACACSUserIdentification'</Item>
+               <Item>Tacacs</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#X3PAD">
+            <Messages>
+             <Message Id="PAD" TypeName="IdentifiersShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1709" Created="2012-06-15 17:37:05Z">
+              <Issue Name="Member">
+               <Item>PAD</Item>
+               <Item>'TelnetOptions.X3PAD'</Item>
+               <Item>Pad</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+        </Types>
+       </Namespace>
+       <Namespace Name="SL.DuneApiCodePack.Storage">
+        <Types>
+         <Type Name="LocalStorage">
+          <Members>
+           <Member Name="#GetDuneFolderSettings()">
+            <Messages>
+             <Message Id="System.String.ToLower" TypeName="SpecifyCultureInfo" Category="Microsoft.Globalization" CheckId="CA1304" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'String.ToLower()'</Item>
+               <Item>'LocalStorage.GetDuneFolderSettings()'</Item>
+               <Item>'String.ToLower(CultureInfo)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#GetMediaUrl(System.IO.FileSystemInfo)">
+            <Messages>
+             <Message TypeName="UriReturnValuesShouldNotBeStrings" Category="Microsoft.Design" CheckId="CA1055" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'LocalStorage.GetMediaUrl(FileSystemInfo)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#GetMediaUrlFromStorageLabel(System.IO.FileSystemInfo)">
+            <Messages>
+             <Message TypeName="UriReturnValuesShouldNotBeStrings" Category="Microsoft.Design" CheckId="CA1055" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'LocalStorage.GetMediaUrlFromStorageLabel(FileSystemInfo)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#GetMediaUrlFromStorageName(System.IO.FileSystemInfo)">
+            <Messages>
+             <Message TypeName="UriReturnValuesShouldNotBeStrings" Category="Microsoft.Design" CheckId="CA1055" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'LocalStorage.GetMediaUrlFromStorageName(FileSystemInfo)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#GetMediaUrlFromStorageUuid(System.IO.FileSystemInfo)">
+            <Messages>
+             <Message TypeName="UriReturnValuesShouldNotBeStrings" Category="Microsoft.Design" CheckId="CA1055" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'LocalStorage.GetMediaUrlFromStorageUuid(FileSystemInfo)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#TryGetMediaUrlFromStorageLabel(System.IO.FileSystemInfo,System.String&amp;)">
+            <Messages>
+             <Message Id="1#" TypeName="DoNotPassTypesByReference" Category="Microsoft.Design" CheckId="CA1045" Created="2012-06-15 17:37:05Z">
+              <Issue Level="CriticalWarning">
+               <Item>'mediaUrl'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#TryGetMediaUrlFromStorageName(System.IO.FileSystemInfo,System.String&amp;)">
+            <Messages>
+             <Message Id="1#" TypeName="DoNotPassTypesByReference" Category="Microsoft.Design" CheckId="CA1045" Created="2012-06-15 17:37:05Z">
+              <Issue Level="CriticalWarning">
+               <Item>'mediaUrl'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#TryGetMediaUrlFromStorageUuid(System.IO.FileSystemInfo,System.String&amp;)">
+            <Messages>
+             <Message Id="1#" TypeName="DoNotPassTypesByReference" Category="Microsoft.Design" CheckId="CA1045" Created="2012-06-15 17:37:05Z">
+              <Issue Level="CriticalWarning">
+               <Item>'mediaUrl'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="NamedShare">
+          <Members>
+           <Member Name="#GetMediaUrl(System.IO.FileSystemInfo)">
+            <Messages>
+             <Message TypeName="UriReturnValuesShouldNotBeStrings" Category="Microsoft.Design" CheckId="CA1055" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'NamedShare.GetMediaUrl(FileSystemInfo)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#TryGetMediaUrl(System.IO.FileSystemInfo,System.String&amp;)">
+            <Messages>
+             <Message Id="1#" TypeName="DoNotPassTypesByReference" Category="Microsoft.Design" CheckId="CA1045" Created="2012-06-15 17:37:05Z">
+              <Issue Level="CriticalWarning">
+               <Item>'mediaUrl'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="NfsShare">
+          <Members>
+           <Member Name="#GetMediaUrl(System.IO.FileSystemInfo)">
+            <Messages>
+             <Message TypeName="UriReturnValuesShouldNotBeStrings" Category="Microsoft.Design" CheckId="CA1055" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'NfsShare.GetMediaUrl(FileSystemInfo)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#GetMediaUrl(System.String)">
+            <Messages>
+             <Message TypeName="UriReturnValuesShouldNotBeStrings" Category="Microsoft.Design" CheckId="CA1055" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'NfsShare.GetMediaUrl(String)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#TryGetMediaUrl(System.IO.DirectoryInfo,System.String&amp;)">
+            <Messages>
+             <Message Id="1#" TypeName="DoNotPassTypesByReference" Category="Microsoft.Design" CheckId="CA1045" Created="2012-06-15 17:37:05Z">
+              <Issue Level="CriticalWarning">
+               <Item>'mediaUrl'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="SmbShare">
+          <Members>
+           <Member Name="#.ctor(System.Uri)">
+            <Messages>
+             <Message Id="System.String.ToUpper" TypeName="SpecifyCultureInfo" Category="Microsoft.Globalization" CheckId="CA1304" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'String.ToUpper()'</Item>
+               <Item>'SmbShare.New(Uri)'</Item>
+               <Item>'String.ToUpper(CultureInfo)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#GetMediaUrl(System.IO.FileSystemInfo)">
+            <Messages>
+             <Message TypeName="UriReturnValuesShouldNotBeStrings" Category="Microsoft.Design" CheckId="CA1055" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'SmbShare.GetMediaUrl(FileSystemInfo)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#TryGetMediaUrl(System.IO.FileSystemInfo,System.String&amp;)">
+            <Messages>
+             <Message Id="1#" TypeName="DoNotPassTypesByReference" Category="Microsoft.Design" CheckId="CA1045" Created="2012-06-15 17:37:05Z">
+              <Issue Level="CriticalWarning">
+               <Item>'mediaUrl'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="StorageDevice">
+          <Members>
+           <Member Name="#GetMediaUrl()">
+            <Messages>
+             <Message TypeName="UriReturnValuesShouldNotBeStrings" Category="Microsoft.Design" CheckId="CA1055" Created="2012-06-15 17:37:05Z">
+              <Issue>
+               <Item>'StorageDevice.GetMediaUrl()'</Item>
+              </Issue>
+             </Message>
+             <Message TypeName="UsePropertiesWhereAppropriate" Category="Microsoft.Design" CheckId="CA1024" Created="2012-06-15 17:37:05Z">
+              <Issue Certainty="50">
+               <Item>'StorageDevice.GetMediaUrl()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+        </Types>
+       </Namespace>
+      </Namespaces>
+     </Module>
+    </Modules>
+   </Target>
+  </Targets>
+  <Rules>
+   <Rule TypeName="AvoidNamespacesWithFewTypes" Category="Microsoft.Design" CheckId="CA1020">
+    <Resolution Name="Default">Consider merging the types defined in '{0}' with another namespace.</Resolution>
+   </Rule>
+   <Rule TypeName="AvoidUncalledPrivateCode" Category="Microsoft.Performance" CheckId="CA1811">
+    <Resolution Name="Default">{0} appears to have no upstream public or protected callers.</Resolution>
+   </Rule>
+   <Rule TypeName="CollectionsShouldImplementGenericInterface" Category="Microsoft.Design" CheckId="CA1010">
+    <Resolution Name="Default">{0} appears to be a non-generic, strongly typed collection. Add an implementation to the instance of {1}&lt;T&gt; where T is the underlying element type of {0}.</Resolution>
+   </Rule>
+   <Rule TypeName="DoNotCatchGeneralExceptionTypes" Category="Microsoft.Design" CheckId="CA1031">
+    <Resolution Name="Default">Modify {0} to catch a more specific exception than {1} or rethrow the exception.</Resolution>
+   </Rule>
+   <Rule TypeName="DoNotDeclareReadOnlyMutableReferenceTypes" Category="Microsoft.Security" CheckId="CA2104">
+    <Resolution Name="Default">Remove the read-only designation from {0} or change the field to one that is an immutable reference type. If the reference type {1} is, in fact, immutable, exclude this message.</Resolution>
+   </Rule>
+   <Rule TypeName="DoNotExposeGenericLists" Category="Microsoft.Design" CheckId="CA1002">
+    <Resolution Name="Default">Change {0} in {1} to use Collection&lt;T&gt;, ReadOnlyCollection&lt;T&gt; or KeyedCollection&lt;K,V&gt;</Resolution>
+   </Rule>
+   <Rule TypeName="DoNotIgnoreMethodResults" Category="Microsoft.Usage" CheckId="CA1806">
+    <Resolution Name="HResultOrErrorCode">{0} calls {1} but does not use the HRESULT or error code that the method returns. This could lead to unexpected behavior in error conditions or low-resource situations. Use the result in a conditional statement, assign the result to a variable, or pass it as an argument to another method.</Resolution>
+    <Resolution Name="TryParse">{0} calls {1} but does not explicitly check whether the conversion succeeded. Either use the return value in a conditional statement or verify that the call site expects that the out argument will be set to the default value when the conversion fails.</Resolution>
+   </Rule>
+   <Rule TypeName="DoNotMarkEnumsWithFlags" Category="Microsoft.Usage" CheckId="CA2217">
+    <Resolution Name="Default">{0} is marked with FlagsAttribute but a discrete member cannot be found for every settable bit that is used across the range of enum values. Remove FlagsAttribute from the type or define new members for the following (currently missing) values: {1}</Resolution>
+   </Rule>
+   <Rule TypeName="DoNotNestGenericTypesInMemberSignatures" Category="Microsoft.Design" CheckId="CA1006">
+    <Resolution Name="Default">Consider a design where {0} doesn't nest generic type {1}.</Resolution>
+   </Rule>
+   <Rule TypeName="DoNotPassTypesByReference" Category="Microsoft.Design" CheckId="CA1045">
+    <Resolution Name="Default">Consider a design that does not require that {0} be a reference parameter.</Resolution>
+   </Rule>
+   <Rule TypeName="DoNotRaiseExceptionsInUnexpectedLocations" Category="Microsoft.Design" CheckId="CA1065">
+    <Resolution Name="PropertyGetter">{0} creates an exception of type {1}, an exception type that should not be raised in a property. If this exception instance might be raised, use a different exception type, convert this property into a method, or change this property's logic so that it no longer raises an exception.</Resolution>
+   </Rule>
+   <Rule TypeName="DoNotUseTimersThatPreventPowerStateChanges" Category="Microsoft.Mobility" CheckId="CA1601">
+    <Resolution Name="Default">Modify the call to {0} in method {1} to set the timer interval to a value that's greater than or equal to one second.</Resolution>
+   </Rule>
+   <Rule TypeName="EnumStorageShouldBeInt32" Category="Microsoft.Design" CheckId="CA1028">
+    <Resolution Name="NotInt32">If possible, make the underlying type of {0} System.Int32 instead of {1}.</Resolution>
+   </Rule>
+   <Rule TypeName="EnumsShouldHaveZeroValue" Category="Microsoft.Design" CheckId="CA1008">
+    <Resolution Name="FlagsRename">In enum {0}, change the name of {1} to 'None'.</Resolution>
+    <Resolution Name="NotFlagsNoZeroValue">Add a member to {0} that has a value of zero with a suggested name of 'None'.</Resolution>
+   </Rule>
+   <Rule TypeName="ICollectionImplementationsHaveStronglyTypedMembers" Category="Microsoft.Design" CheckId="CA1035">
+    <Resolution Name="Default">{0} should provide a strongly typed implementation of ICollection.CopyTo.</Resolution>
+   </Rule>
+   <Rule TypeName="IdentifiersShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1709">
+    <Resolution Name="Member">Correct the casing of '{0}' in member name {1} by changing it to '{2}'.</Resolution>
+   </Rule>
+   <Rule TypeName="IdentifiersShouldNotContainTypeNames" Category="Microsoft.Naming" CheckId="CA1720">
+    <Resolution Name="LanguageSpecificMemberParameter">In member {0}, consider replacing the language-specific data type identifier '{1}' in parameter name {2} with a more generic term, such as 'value'.</Resolution>
+   </Rule>
+   <Rule TypeName="ImplementStandardExceptionConstructors" Category="Microsoft.Design" CheckId="CA1032">
+    <Resolution Name="Accessibility">Change the accessibility of {0} to {1}.</Resolution>
+    <Resolution Name="MissingConstructor">Add the following constructor to {0}: {1}.</Resolution>
+   </Rule>
+   <Rule TypeName="MarkBooleanPInvokeArgumentsWithMarshalAs" Category="Microsoft.Interoperability" CheckId="CA1414">
+    <Resolution Name="Return">Add the MarshalAsAttribute to the return type of P/Invoke {0}. If the corresponding unmanaged return type is a 4-byte Win32 'BOOL', use MarshalAs(UnmanagedType.Bool). For a 1-byte C++ 'bool', use MarshalAs(UnmanagedType.U1).</Resolution>
+   </Rule>
+   <Rule TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822">
+    <Resolution Name="Default">The 'this' parameter (or 'Me' in Visual Basic) of {0} is never used. Mark the member as static (or Shared in Visual Basic) or use 'this'/'Me' in the method body or at least one property accessor, if appropriate.</Resolution>
+   </Rule>
+   <Rule TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034">
+    <Resolution Name="Default">Do not nest type {0}. Alternatively, change its accessibility so that it is not externally visible.</Resolution>
+   </Rule>
+   <Rule TypeName="OverrideEqualsAndOperatorEqualsOnValueTypes" Category="Microsoft.Performance" CheckId="CA1815">
+    <Resolution Name="Equals">{0} should override Equals.</Resolution>
+    <Resolution Name="op_Equality">{0} should override the equality (==) and inequality (!=) operators.</Resolution>
+   </Rule>
+   <Rule TypeName="PropertyNamesShouldNotMatchGetMethods" Category="Microsoft.Naming" CheckId="CA1721">
+    <Resolution Name="BaseType">The property name {0} is confusing given the existence of inherited method {1}. Rename or remove this property.</Resolution>
+    <Resolution Name="SameType">The property name {0} is confusing given the existence of method {1}. Rename or remove one of these members.</Resolution>
+   </Rule>
+   <Rule TypeName="ReviewUnusedParameters" Category="Microsoft.Usage" CheckId="CA1801">
+    <Resolution Name="Default">Parameter {0} of {1} is never used. Remove the parameter or use it in the method body.</Resolution>
+   </Rule>
+   <Rule TypeName="SpecifyCultureInfo" Category="Microsoft.Globalization" CheckId="CA1304">
+    <Resolution Name="Default">Because the behavior of {0} could vary based on the current user's locale settings, replace this call in {1} with a call to {2}. If the result of {2} will be displayed to the user, specify 'CultureInfo.CurrentCulture' as the 'CultureInfo' parameter. Otherwise, if the result will be stored and accessed by software, such as when it is persisted to disk or to a database, specify 'CultureInfo.InvariantCulture'.</Resolution>
+   </Rule>
+   <Rule TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305">
+    <Resolution Name="IFormatProviderAlternate">Because the behavior of {0} could vary based on the current user's locale settings, replace this call in {1} with a call to {2}. If the result of {2} will be based on input from the user, specify {3} as the 'IFormatProvider' parameter. Otherwise, if the result will based on input stored and accessed by software, such as when it is loaded from disk or from a database, specify {4}.</Resolution>
+    <Resolution Name="IFormatProviderAlternateString">Because the behavior of {0} could vary based on the current user's locale settings, replace this call in {1} with a call to {2}. If the result of {2} will be displayed to the user, specify {3} as the 'IFormatProvider' parameter. Otherwise, if the result will be stored and accessed by software, such as when it is persisted to disk or to a database, specify {4}.</Resolution>
+   </Rule>
+   <Rule TypeName="SpecifyMarshalingForPInvokeStringArguments" Category="Microsoft.Globalization" CheckId="CA2101">
+    <Resolution Name="Parameter">To reduce security risk, marshal parameter {0} as Unicode, by setting DllImport.CharSet to CharSet.Unicode, or by explicitly marshaling the parameter as UnmanagedType.LPWStr. If you need to marshal this string as ANSI or system-dependent, set BestFitMapping=false; for added security, also set ThrowOnUnmappableChar=true.</Resolution>
+    <Resolution Name="ParameterImplicitAnsi">To reduce security risk, marshal parameter {0} as Unicode, by setting DllImport.CharSet to CharSet.Unicode, or by explicitly marshaling the parameter as UnmanagedType.LPWStr. If you need to marshal this string as ANSI or system-dependent, specify MarshalAs explicitly, and set BestFitMapping=false; for added security, also set ThrowOnUnmappableChar=true.</Resolution>
+   </Rule>
+   <Rule TypeName="SpecifyStringComparison" Category="Microsoft.Globalization" CheckId="CA1307">
+    <Resolution Name="Default">Because the behavior of {0} could vary based on the current user's locale settings, replace this call in {1} with a call to {2}. If the result of {2} will be displayed to the user, such as when sorting a list of items for display in a list box, specify 'StringComparison.CurrentCulture' or 'StringComparison.CurrentCultureIgnoreCase' as the 'StringComparison' parameter. If comparing case-insensitive identifiers, such as file paths, environment variables, or registry keys and values, specify 'StringComparison.OrdinalIgnoreCase'. Otherwise, if comparing case-sensitive identifiers, specify 'StringComparison.Ordinal'.</Resolution>
+   </Rule>
+   <Rule TypeName="TypeNamesShouldNotMatchNamespaces" Category="Microsoft.Naming" CheckId="CA1724">
+    <Resolution Name="Default">The type name {0} conflicts in whole or in part with the namespace name '{1}'. Change either name to eliminate the conflict.</Resolution>
+   </Rule>
+   <Rule TypeName="TypesShouldNotExtendCertainBaseTypes" Category="Microsoft.Design" CheckId="CA1058">
+    <Resolution Name="System.Collections.ReadOnlyCollectionBase">Change the base type of {0} from {1} to its generic equivalent 'System.Collections.ObjectModel.ReadOnlyCollection'.</Resolution>
+   </Rule>
+   <Rule TypeName="UriParametersShouldNotBeStrings" Category="Microsoft.Design" CheckId="CA1054">
+    <Resolution Name="Default">Change the type of parameter {0} of method {1} from string to System.Uri, or provide an overload of {1}, that allows {0} to be passed as a System.Uri object.</Resolution>
+   </Rule>
+   <Rule TypeName="UriPropertiesShouldNotBeStrings" Category="Microsoft.Design" CheckId="CA1056">
+    <Resolution Name="Default">Change the type of property {0} from string to System.Uri.</Resolution>
+   </Rule>
+   <Rule TypeName="UriReturnValuesShouldNotBeStrings" Category="Microsoft.Design" CheckId="CA1055">
+    <Resolution Name="Default">Change the return type of {0} from string to System.Uri.</Resolution>
+   </Rule>
+   <Rule TypeName="UseGenericEventHandlerInstances" Category="Microsoft.Design" CheckId="CA1003">
+    <Resolution Name="VB">Visual Basic generates EventHandler delegates for events that use the following pattern: Event MyEvent(ByVal Sender As Object, ByVal e as MyEventArgs). Change the event that defines EventHandler {0} to use EventHandler&lt;T&gt; by defining the event type explicitly, e.g. Event MyEvent As EventHandler(Of MyEventArgs).</Resolution>
+   </Rule>
+   <Rule TypeName="UsePreferredTerms" Category="Microsoft.Naming" CheckId="CA1726">
+    <Resolution Name="Member">Replace the term '{0}' in member name {1} with the preferred alternate '{2}'.</Resolution>
+   </Rule>
+   <Rule TypeName="UsePropertiesWhereAppropriate" Category="Microsoft.Design" CheckId="CA1024">
+    <Resolution Name="Default">Change {0} to a property if appropriate.</Resolution>
+   </Rule>
+  </Rules>
+ </FxCopReport>
+</FxCopProject>

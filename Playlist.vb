@@ -32,7 +32,7 @@ Namespace DuneUtilities
         ''' Use the methods and properties on the <see cref="Files"/> list to populate it.
         ''' </summary>
         ''' <param name="dune">The target device.</param>
-        Public Sub New(ByVal dune As Dune)
+        Public Sub New(dune As Dune)
             _dune = dune
             _files = New ObservableCollection(Of FileInfo)
             _random = New Random
@@ -44,7 +44,7 @@ Namespace DuneUtilities
         ''' </summary>
         ''' <param name="dune">The target device.</param>
         ''' <param name="files">The collection of files to add to the playlist.</param>
-        Public Sub New(ByVal dune As Dune, ByVal files As Collection(Of FileInfo))
+        Public Sub New(dune As Dune, files As Collection(Of FileInfo))
             Me.New(dune)
 
             For Each file As FileInfo In files
@@ -57,7 +57,7 @@ Namespace DuneUtilities
         ''' </summary>
         ''' <param name="dune">The target device.</param>
         ''' <param name="path">Path to a playlist file.</param>
-        Public Sub New(ByVal dune As Dune, ByVal path As Uri)
+        Public Sub New(dune As Dune, path As Uri)
             Me.New(dune)
 
             ' TODO: implement playlist parsers
@@ -84,7 +84,7 @@ Namespace DuneUtilities
             End Get
             Set(value As Integer)
                 If value >= Files.Count Then
-                    If Repeat = True Then
+                    If Repeat.IsTrue Then
                         value = 0
                     Else
                         value = -1
@@ -111,7 +111,7 @@ Namespace DuneUtilities
                 If value <> _shuffle Then
                     _shuffle = value
                     RaisePropertyChanged("Shuffle")
-                    If value = True Then
+                    If value.IsTrue Then
                         Position = _random.Next(0, Files.Count - 1)
                     End If
                 End If
@@ -163,7 +163,7 @@ Namespace DuneUtilities
             command.Timeout = _dune.Timeout
 
 
-            Select Case file.Extension.ToLower
+            Select Case file.Extension.ToLowerInvariant
                 Case ".iso"
                     If file.Length > (8.5 * 1024 ^ 3) Then ' assume it is a bluray disc image
                         command.Type = StartPlaybackCommand.PlaybackType.Bluray
@@ -176,7 +176,7 @@ Namespace DuneUtilities
 
             Console.WriteLine(file)
 
-            Dim result As CommandResult = CommandResult.FromCommand(command)
+            Dim result As CommandResult = command.GetResult
 
             If result.CommandStatus = "ok" Or result.CommandStatus = "timeout" Then
                 _statusWatchTimer.Start()
@@ -223,13 +223,13 @@ Namespace DuneUtilities
 
 
                 If Shuffle = False Then
-                    If RemoveLastFile = True Then
+                    If RemoveLastFile.IsTrue Then
                         Files.RemoveAt(Position)
                     Else
                         Position += 1
                     End If
                 Else
-                    If RemoveLastFile = True Then
+                    If RemoveLastFile.IsTrue Then
                         Files.RemoveAt(Position)
                     End If
                     Position = _random.Next(0, Files.Count - 1)
@@ -248,7 +248,7 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Helper method for the INotifyPropertyChanged implementation.
         ''' </summary>
-        Private Sub RaisePropertyChanged(ByVal propertyName As String)
+        Private Sub RaisePropertyChanged(propertyName As String)
             RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(propertyName))
         End Sub
 

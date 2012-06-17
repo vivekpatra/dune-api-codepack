@@ -1,5 +1,4 @@
-﻿Imports System.Text
-Imports System.Collections.Specialized
+﻿Imports SL.DuneApiCodePack.Networking
 
 Namespace DuneUtilities.ApiWrappers
     ''' <summary>
@@ -10,21 +9,13 @@ Namespace DuneUtilities.ApiWrappers
     ''' so there is little point in checking whether the player state is DVD or file playback.
     ''' Also, playback needs to be paused for this to work at all, but this is done automatically by the code pack.</remarks>
     Public Class SetKeyframeCommand
-        Inherits DuneCommand
+        Inherits Command
 
-        ''' <summary>
-        ''' Enumeration of supported actions.
-        ''' </summary>
-        Public Enum Keyframe
-            Previous = -1
-            [Next] = 1
-        End Enum
-
-        Private _keyframe As Keyframe
+        Private _keyframe As Constants.SetKeyframeValues
 
         ''' <param name="dune">The target device.</param>
         ''' <param name="keyframe">The action that needs to be performed.</param>
-        Public Sub New(ByVal dune As Dune, ByVal keyframe As Keyframe)
+        Public Sub New(dune As Dune, keyframe As Constants.SetKeyframeValues)
             MyBase.New(dune)
             _keyframe = keyframe
         End Sub
@@ -32,18 +23,18 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the action that needs to be performed.
         ''' </summary>
-        Public ReadOnly Property Action As Keyframe
+        Public ReadOnly Property Action As Constants.SetKeyframeValues
             Get
                 Return _keyframe
             End Get
         End Property
 
-        Protected Overrides Function GetQuery() As NameValueCollection
-            Dim query As New NameValueCollection
+        Protected Overrides Function GetQuery() As HttpQuery
+            Dim query As New HttpQuery
 
-            query.Add("cmd", Constants.Commands.SetPlaybackState)
-            query.Add(Constants.SetPlaybackStateParameters.PlaybackSpeed, Constants.PlaybackSpeedSettings.Pause.ToString)
-            query.Add(Constants.SetPlaybackStateParameters.SetKeyframe, CInt(Action).ToString)
+            query.Add("cmd", Constants.CommandValues.SetPlaybackState)
+            query.Add(Constants.SetPlaybackStateParameterNames.PlaybackSpeed, Constants.PlaybackSpeedValues.Pause.ToString)
+            query.Add(Constants.SetPlaybackStateParameterNames.SetKeyframe, CInt(Action).ToString)
 
             Return query
         End Function

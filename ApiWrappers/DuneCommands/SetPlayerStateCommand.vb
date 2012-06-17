@@ -1,17 +1,17 @@
-﻿Imports System.Collections.Specialized
+﻿Imports SL.DuneApiCodePack.Networking
 
 Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>This command is used to set the player state.</summary>
     Public Class SetPlayerStateCommand
-        Inherits DuneCommand
+        Inherits Command
 
         Private _state As String
 
-        ''' <param name="dune">The target device.</param>
+        ''' <param name="target">The target device.</param>
         ''' <param name="state">The requested player state.</param>
-        Public Sub New(ByRef dune As Dune, ByVal state As String)
-            MyBase.New(dune)
+        Public Sub New(target As Dune, state As String)
+            MyBase.New(target)
             _state = state
         End Sub
 
@@ -21,8 +21,8 @@ Namespace DuneUtilities.ApiWrappers
             End Get
         End Property
 
-        Protected Overrides Function GetQuery() As NameValueCollection
-            Dim query As New NameValueCollection
+        Protected Overrides Function GetQuery() As HttpQuery
+            Dim query As New HttpQuery
 
             query.Add("cmd", State)
 

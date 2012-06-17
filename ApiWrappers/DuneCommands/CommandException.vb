@@ -25,18 +25,18 @@ Namespace DuneUtilities.ApiWrappers
             MyBase.New()
         End Sub
 
-        Public Sub New(ByVal errorKind As String, ByVal errorDescription As String)
+        Public Sub New(errorKind As String, errorDescription As String)
             MyBase.New(errorDescription)
             _errorKind = errorKind
         End Sub
 
-        Public Sub New(ByVal errorKind As String, ByVal errorDescription As String, ByVal inner As Exception)
+        Public Sub New(errorKind As String, errorDescription As String, inner As Exception)
             MyBase.New(errorDescription, inner)
             _errorKind = errorKind
         End Sub
 
         ''' <remarks>This constructor is needed for serialization.</remarks>
-        Protected Sub New(ByVal info As SerializationInfo, ByVal context As StreamingContext)
+        Protected Sub New(info As SerializationInfo, context As StreamingContext)
             MyBase.New(info, context)
 
             If info IsNot Nothing Then

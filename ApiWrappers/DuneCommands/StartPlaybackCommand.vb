@@ -1,11 +1,10 @@
-﻿Imports System.Text
-Imports System.Collections.Specialized
+﻿Imports SL.DuneApiCodePack.Networking
 
 Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>This command is used to send a new playback request.</summary>
     Public Class StartPlaybackCommand
-        Inherits DuneCommand
+        Inherits Command
 
         Private _type As PlaybackType
         Private _mediaUrl As String
@@ -14,14 +13,15 @@ Namespace DuneUtilities.ApiWrappers
         Private _blackScreen As Boolean
         Private _hideOnScreenDisplay As Boolean
         Private _repeat As Boolean
+        Private _startIndex As Integer
 
-        ''' <param name="dune">The target device.</param>
+        ''' <param name="target">The target device.</param>
         ''' <param name="mediaUrl">The media URL.</param>
         ''' <remarks>Does not support playlists.</remarks>
-        Public Sub New(ByRef dune As Dune, ByVal mediaUrl As String)
-            MyBase.New(dune)
+        Public Sub New(target As Dune, mediaUrl As String)
+            MyBase.New(target)
             Type = PlaybackType.File
-            _mediaUrl = UrlConverter.FormatUrl(dune, mediaUrl)
+            _mediaUrl = mediaUrl
         End Sub
 
         ''' <summary>
@@ -106,47 +106,68 @@ Namespace DuneUtilities.ApiWrappers
         End Property
 
         ''' <summary>
+        ''' Gets or sets the playlist start index.
+        ''' </summary>
+        Public Property StartIndex As Integer
+            Get
+                Return _startIndex
+            End Get
+            Set(value As Integer)
+                _startIndex = value
+            End Set
+        End Property
+
+        ''' <summary>
         ''' Enumeration of supported playback types.
         ''' </summary>
-        ''' <remarks>"File" includes everything that is not a DVD or blu-ray iso or folder, although playlist files are not supported.</remarks>
         Public Enum PlaybackType
-            File = 0
-            Dvd = 1
-            Bluray = 2
+            Auto = 0
+            File = 1
+            Dvd = 2
+            Bluray = 3
+            Playlist = 4
         End Enum
 
-        Protected Overrides Function GetQuery() As NameValueCollection
-            Dim query As New NameValueCollection
+        Protected Overrides Function GetQuery() As HttpQuery
+            Dim query As New HttpQuery
 
             Select Case Type
+                Case PlaybackType.Auto
+                    query.Add("cmd", Constants.CommandValues.LaunchMediaUrl)
                 Case PlaybackType.File
-                    query.Add("cmd", Constants.Commands.StartFilePlayback)
+                    query.Add("cmd", Constants.CommandValues.StartFilePlayback)
                 Case PlaybackType.Dvd
-                    query.Add("cmd", Constants.Commands.StartDvdPlayback)
+                    query.Add("cmd", Constants.CommandValues.StartDvdPlayback)
                 Case PlaybackType.Bluray
-                    query.Add("cmd", Constants.Commands.StartBlurayPlayback)
+                    query.Add("cmd", Constants.CommandValues.StartBlurayPlayback)
+                Case PlaybackType.Playlist
+                    query.Add("cmd", Constants.CommandValues.StartPlaylistPlayback)
             End Select
 
-            query.Add(Constants.StartPlaybackParameters.MediaLocation, MediaUrl)
+            query.Add(Constants.StartPlaybackParameterNames.MediaUrl, MediaUrl)
 
             If Paused Then
-                query.Add(Constants.StartPlaybackParameters.PlaybackSpeed, "0")
+                query.Add(Constants.StartPlaybackParameterNames.PlaybackSpeed, "0")
             End If
 
             If Position <> Nothing Then
-                query.Add(Constants.StartPlaybackParameters.PlaybackPosition, Position.TotalSeconds.ToString)
+                query.Add(Constants.StartPlaybackParameterNames.PlaybackPosition, Position.TotalSeconds.ToString(Constants.FormatProvider))
             End If
 
             If BlackScreen Then
-                query.Add(Constants.StartPlaybackParameters.BlackScreen, "1")
+                query.Add(Constants.StartPlaybackParameterNames.BlackScreen, "1")
             End If
 
             If HideOnScreenDisplay Then
-                query.Add(Constants.StartPlaybackParameters.HideOnScreenDisplay, "1")
+                query.Add(Constants.StartPlaybackParameterNames.HideOnScreenDisplay, "1")
             End If
 
             If Repeat Then
-                query.Add(Constants.StartPlaybackParameters.ActionOnFinish, Constants.ActionOnFinishSettings.RestartPlayback)
+                query.Add(Constants.StartPlaybackParameterNames.ActionOnFinish, Constants.ActionOnFinishValues.RestartPlayback)
+            End If
+
+            If StartIndex > 0 Then
+                query.Add(Constants.StartPlaybackParameterNames.StartIndex, StartIndex.ToString(Constants.FormatProvider))
             End If
 
             Return query
