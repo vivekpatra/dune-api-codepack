@@ -21,6 +21,7 @@ Imports System.Net
 Imports System.IO
 Imports SL.DuneApiCodePack.NativeMethods.Networking
 Imports System.ComponentModel
+Imports SL.DuneApiCodePack.DuneUtilities
 
 Namespace Sources
 
@@ -44,10 +45,31 @@ Namespace Sources
         ''' </remarks>
         Public Sub New(host As IPHostEntry, path As FileSystemInfo)
             MyBase.New(host)
-            _root = path.GetRoot
-            _name = _root.Name
+            Dim root As DirectoryInfo = path.GetRoot
+            _name = root.Name
 
+            ParseStorageDetails(root)
+        End Sub
 
+        Public Sub New(host As Dune, storageName As String)
+            MyBase.New(host.HostEntry)
+
+            _name = storageName
+
+            Dim hostNameOrAddress As String
+            If host.Address IsNot Nothing Then
+                hostNameOrAddress = host.Address.ToString
+            Else
+                hostNameOrAddress = host.HostName
+            End If
+
+            Dim root As New DirectoryInfo(String.Concat("\\", hostNameOrAddress, "\", storageName))
+
+            ParseStorageDetails(Root)
+        End Sub
+
+        Private Sub ParseStorageDetails(root As FileSystemInfo)
+            _root = root.ToDirectoryInfo
             If _root.Exists Then
                 Dim settings As Dictionary(Of String, String) = GetDuneFolderSettings()
 
@@ -82,6 +104,7 @@ Namespace Sources
                 _uuid = _name.Substring(_label.Length + 1)
             End If
         End Sub
+
 
         ''' <summary>
         ''' The storage name.
@@ -259,30 +282,15 @@ Namespace Sources
             Return settings
         End Function
 
-        ''' <summary>
-        ''' Scans and retrieves storage devices on the specified Dune device.
-        ''' </summary>
-        ''' <param name="host">The host Dune device.</param>
         Public Shared Function FromHost(host As DuneApiCodePack.DuneUtilities.Dune) As LocalStorage()
-            Dim shares As ShareCollection = Nothing
-            Dim sources As New Collection(Of LocalStorage)
+            Dim sources As New ArrayList
+            Dim client As New FtpClient(host)
 
-            If host.HostName.IsNotNullOrEmpty Then
-                shares = ShareCollection.GetShares(host.HostName)
-            ElseIf host.Address IsNot Nothing Then
-                shares = ShareCollection.GetShares(host.Address.ToString)
-            End If
+            For Each directory As String In client.ListDirectory(client.Root)
+                sources.Add(New LocalStorage(host, directory))
+            Next
 
-            If shares IsNot Nothing Then
-                For Each share As Share In shares
-                    If share.ShareType = ShareType.Disk Then
-                        Dim localStorage As New LocalStorage(host.HostEntry, share.Root)
-                        sources.Add(localStorage)
-                    End If
-                Next
-            End If
-
-            Return sources.ToArray
+            Return DirectCast(sources.ToArray(GetType(LocalStorage)), LocalStorage())
         End Function
 
         ''' <summary>

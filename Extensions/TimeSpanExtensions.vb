@@ -21,23 +21,16 @@ Imports System.Runtime.CompilerServices
 
 Namespace Extensions
     ''' <summary>
-    ''' Extensions for the <see cref="Version"/> type.
+    ''' Extensions for the <see cref="TimeSpan"/> type.
     ''' </summary>
-    Public Module VersionExtensions
+    Public Module TimeSpanExtensions
 
         <Extension()>
-        Public Function Parse(version As Version, input As String, strict As Boolean) As Version
-            If strict Then
-                Return System.Version.Parse(input)
-            Else
-                If input.Contains("."c).IsFalse Then
-                    input += ".0"
-                End If
-                Return System.Version.Parse(input)
-            End If
+        Public Function RoundToSecond(value As TimeSpan) As TimeSpan
+            Dim roundValue As Double = Math.Round(value.TotalSeconds, 0)
+            Return TimeSpan.FromSeconds(roundValue)
         End Function
 
-        
 
     End Module
 End Namespace

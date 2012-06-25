@@ -567,6 +567,10 @@ Namespace DuneUtilities
                 result = command.GetResult
                 Status = result
 
+#If DEBUG Then
+                _requestCount += 1
+#End If
+
                 If suppressError.IsFalse AndAlso result.CommandError IsNot Nothing Then
                     Throw result.CommandError
                 End If
@@ -639,6 +643,18 @@ Namespace DuneUtilities
         End Function
 
 #End Region ' App methods
+
+#If DEBUG Then
+#Region "Debugging help"
+        Private _requestCount As Long
+        Public ReadOnly Property RequestCount As Long
+            Get
+                Return _requestCount
+            End Get
+        End Property
+
+#End Region
+#End If
 
 #Region "Telnet Properties"
 
@@ -736,10 +752,9 @@ Namespace DuneUtilities
         Public ReadOnly Property Uptime As TimeSpan?
             Get
                 If SystemInfo IsNot Nothing AndAlso SystemInfo.BootTime <> Nothing Then
+                    Dim start As New TimeSpan(BootTime.Ticks)
                     Dim current As New TimeSpan(Now.Ticks)
-                    current = TimeSpan.FromSeconds(Math.Round(current.TotalSeconds))
-
-                    Return current.Subtract(TimeSpan.FromSeconds(Math.Round(TimeSpan.FromTicks(BootTime.Ticks).TotalSeconds)))
+                    Return current.Subtract(start).RoundToSecond
                 Else
                     Return Nothing
                 End If
@@ -991,7 +1006,7 @@ Namespace DuneUtilities
         ''' Sets whether to hide the OSD during playback.
         ''' </summary>
         <DisplayName("Hide on-screen display")>
-        <Description("indicates whether to hide overlay graphics.")>
+        <Description("Indicates whether to hide overlay graphics.")>
         <Category("Playback information")>
         Public Property HideOnScreenDisplay As Boolean?
             Get
@@ -1531,10 +1546,27 @@ Namespace DuneUtilities
         <DisplayName("Playback URL")>
         <Description("Indicates the media URL that is currently playing.")>
         <Category("Playback information")>
-        Public ReadOnly Property PlaybackUrl As String
+        Public Property PlaybackUrl As String
             Get
                 If IsConnected Then
                     Return Status.PlaybackUrl
+                Else
+                    Return String.Empty
+                End If
+            End Get
+            Set(value As String)
+                Dim command As New StartPlaybackCommand(Me, value)
+                ProcessCommand(command)
+            End Set
+        End Property
+
+        <DisplayName("Playback name")>
+        <Description("Indicates the file that is currently playing.")>
+        <Category("Playback information")>
+        Public ReadOnly Property PlaybackName As String
+            Get
+                If IsConnected AndAlso PlaybackUrl.IsNotNullOrWhiteSpace Then
+                    Return PlaybackUrl.Substring(PlaybackUrl.LastIndexOf("/"c) + 1)
                 Else
                     Return String.Empty
                 End If

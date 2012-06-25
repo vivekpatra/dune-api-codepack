@@ -525,23 +525,26 @@ Namespace DuneUtilities.ApiWrappers
                 RawData.Add(parameterName, parameterValue)
             Next
 
-            If Command.CommandType = Constants.CommandValues.GetText Then
+            ' Set parameters that are always present
+            _protocolVersion = _protocolVersion.Parse(RawData.Item(Constants.CommandResultParameterNames.ProtocolVersion), False)
+            _playerState = RawData.Item(Constants.CommandResultParameterNames.PlayerState)
+
+            ' Check if this is the result of a get_text command
+            If Command.CommandType = Constants.CommandValues.GetText Then ' find out if the text editor is active
                 _textAvailable = RawData.AllKeys.Contains(Constants.CommandResultParameterNames.Text)
             End If
 
+            ' loop through the remaining paremeters
             Parallel.ForEach(RawData.AllKeys, Sub(key As String)
                                                   Dim parameterName As String = key
-                                                  Dim parameterValue As String = RawData.Item(key)
-
+                                                  Dim parameterValue As String = RawData.Get(key)
                                                   Try
                                                       If parameterValue <> "-1" Then
                                                           Select Case True
-                                                              Case parameterName.Equals(Constants.CommandResultParameterNames.ProtocolVersion)
-                                                                  _protocolVersion = _protocolVersion.Parse(parameterValue, False)
+                                                              Case parameterName.Equals(Constants.CommandResultParameterNames.ProtocolVersion), parameterName.Equals(Constants.CommandResultParameterNames.PlayerState)
+                                                                  Exit Select
                                                               Case parameterName.Equals(Constants.CommandResultParameterNames.CommandStatus)
                                                                   _commandStatus = parameterValue
-                                                              Case parameterName.Equals(Constants.CommandResultParameterNames.PlayerState)
-                                                                  _playerState = parameterValue
                                                               Case parameterName.Equals(Constants.CommandResultParameterNames.Text)
                                                                   _text = parameterValue
                                                               Case parameterName.Contains("error")
