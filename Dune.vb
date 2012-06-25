@@ -882,6 +882,7 @@ Namespace DuneUtilities
         <DisplayName("Playback speed")>
         <Description("Indicates the playback speed.")>
         <Category("Playback information")>
+        <TypeConverter(GetType(PlaybackSpeedConverter))>
         Public Property PlaybackSpeed As Constants.PlaybackSpeedValues?
             Get
                 If IsConnected Then
@@ -1052,12 +1053,7 @@ Namespace DuneUtilities
                 Dim command As New SetPlaybackStateCommand(Me)
                 command.PlaybackVolume = value
 
-                Try
-                    ProcessCommand(command)
-                Catch ex As CommandException
-                    RaisePropertyChanged("PlaybackVolume")
-                    Throw
-                End Try
+                ProcessCommand(command)
             End Set
         End Property
 
