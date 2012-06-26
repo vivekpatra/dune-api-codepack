@@ -110,47 +110,46 @@ Namespace DuneUtilities.ApiWrappers
             End Set
         End Property
 
+        Private Function GetBrowserSettings() As HttpQuery
+            Dim parameters As New HttpQuery
+
+            If Fullscreen.HasValue Then
+                parameters.Add(Constants.WebbrowserParameterNames.Fullscreen, Fullscreen.Value.ToNumberString)
+            End If
+            If WebAppKeys.HasValue Then
+                parameters.Add(Constants.WebbrowserParameterNames.WebappKeys, WebAppKeys.Value.ToNumberString)
+            End If
+            If ZoomLevel.HasValue Then
+                parameters.Add(Constants.WebbrowserParameterNames.ZoomLevel, ZoomLevel.Value.ToString)
+            End If
+            If Overscan.HasValue Then
+                parameters.Add(Constants.WebbrowserParameterNames.Overscan, Overscan.Value.ToNumberString)
+            End If
+            If UserAgent.IsNotNullOrWhiteSpace Then
+                parameters.Add(Constants.WebbrowserParameterNames.UserAgent, UserAgent)
+            End If
+            If BackgroundColor.IsNotNullOrWhiteSpace Then
+                parameters.Add(Constants.WebbrowserParameterNames.BackgroundColor, BackgroundColor)
+            End If
+
+            Return parameters
+        End Function
+
         Protected Overrides Function GetQuery() As HttpQuery
             Dim query As New HttpQuery
 
             query.Add("cmd", Constants.CommandValues.LaunchMediaUrl)
-            query.Add(Constants.StartPlaybackParameterNames.MediaUrl, "www://" + _website.AbsoluteUri)
 
-            Return query
-        End Function
+            Dim mediaUrl = "www://" + _website.AbsoluteUri
 
-        Protected Overrides Function GetQueryString() As String
-            If Fullscreen.HasValue Or WebAppKeys.HasValue Or ZoomLevel.HasValue Or Overscan.HasValue Or UserAgent.IsNotNullOrWhiteSpace Or BackgroundColor.IsNotNullOrWhiteSpace Then
-                Dim parameters As New HttpQuery
-
-                If Fullscreen.HasValue Then
-                    parameters.Add(Constants.WebbrowserParameterNames.Fullscreen, Fullscreen.Value.ToNumberString)
-                End If
-                If WebAppKeys.HasValue Then
-                    parameters.Add(Constants.WebbrowserParameterNames.WebappKeys, WebAppKeys.Value.ToNumberString)
-                End If
-                If ZoomLevel.HasValue Then
-                    parameters.Add(Constants.WebbrowserParameterNames.ZoomLevel, ZoomLevel.Value.ToString)
-                End If
-                If Overscan.HasValue Then
-                    parameters.Add(Constants.WebbrowserParameterNames.Overscan, Overscan.Value.ToNumberString)
-                End If
-                If UserAgent.IsNotNullOrWhiteSpace Then
-                    parameters.Add(Constants.WebbrowserParameterNames.UserAgent, UserAgent)
-                End If
-                If BackgroundColor.IsNotNullOrWhiteSpace Then
-                    parameters.Add(Constants.WebbrowserParameterNames.BackgroundColor, BackgroundColor)
-                End If
-
-                Dim query As New Text.StringBuilder
-                query.Append(MyBase.GetQueryString())
-                query.Append(":::")
-                query.Append(parameters.ToString)
-                Return query.ToString
-            Else
-                Return MyBase.GetQueryString
+            Dim extras = GetBrowserSettings()
+            If extras.Count > 0 Then
+                mediaUrl += ":::" + extras.ToString
             End If
 
+            query.Add(Constants.StartPlaybackParameterNames.MediaUrl, mediaUrl)
+
+            Return query
         End Function
     End Class
 

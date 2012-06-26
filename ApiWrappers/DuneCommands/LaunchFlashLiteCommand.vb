@@ -59,23 +59,15 @@ Namespace DuneUtilities.ApiWrappers
         Protected Overrides Function GetQuery() As HttpQuery
             Dim query As New HttpQuery
 
-            query.Add("cmd", Constants.CommandValues.LaunchMediaUrl)
-            query.Add(Constants.StartPlaybackParameterNames.MediaUrl, "swf://" + MediaUrl)
-
-            Return query
-        End Function
-
-        Protected Overrides Function GetQueryString() As String
+            Dim mediaUrl As String = Me.MediaUrl
             If Flashvars.Count > 0 Then
-                Dim query As New Text.StringBuilder
-                query.Append(MyBase.GetQueryString())
-                query.Append(":::")
-                query.Append(Flashvars.ToString)
-                Return query.ToString
-            Else
-                Return MyBase.GetQueryString
+                mediaUrl += ":::" + Flashvars.ToString
             End If
 
+            query.Add("cmd", Constants.CommandValues.LaunchMediaUrl)
+            query.Add(Constants.StartPlaybackParameterNames.MediaUrl, "swf://" + mediaUrl)
+
+            Return query
         End Function
     End Class
 

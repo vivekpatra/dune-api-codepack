@@ -98,7 +98,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets the command query string.
         ''' </summary>
-        Protected Overridable Function GetQueryString() As String
+        Private Function GetQueryString() As String
             Dim request As New Networking.HttpQuery
 
             request.Add(GetQuery)
