@@ -59,7 +59,7 @@ Namespace Networking
                 Return NetworkAdapter.PhysicalAddress.ToString.Contains("0016E8")
             Else
                 Try
-                    Using dune As DuneUtilities.Dune = New DuneUtilities.Dune(Host)
+                    Using dune As DuneUtilities.Dune = New DuneUtilities.Dune(Host.HostName)
                         Return dune.IsConnected
                     End Using
                 Catch ex As Exception

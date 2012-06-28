@@ -38,17 +38,15 @@ Namespace Networking
         Public Sub New(address As IPAddress)
             _ipAddress = address
 
-            For Each nic In NetworkInterface.GetAllNetworkInterfaces
+            For Each nic In NetworkInterface.GetAllNetworkInterfaces ' check if this is a local IP address
                 If nic.GetIPProperties.UnicastAddresses.Where(Function(unicastAddress) unicastAddress.Address.Equals(address)).Count > 0 Then
                     _physicalAddress = nic.GetPhysicalAddress
                 End If
             Next
 
-            If _physicalAddress Is Nothing Then
+            If _physicalAddress Is Nothing Then ' get address from remote target
                 _physicalAddress = NativeMethods.Networking.GetMacAddress(address)
             End If
-
-            _vendor = New NetworkCardVendor(_physicalAddress)
         End Sub
 
         ''' <summary>
@@ -74,6 +72,9 @@ Namespace Networking
         ''' </summary>
         Public ReadOnly Property Vendor As NetworkCardVendor
             Get
+                If _vendor Is Nothing Then
+                    _vendor = New NetworkCardVendor(_physicalAddress)
+                End If
                 Return _vendor
             End Get
         End Property
@@ -85,7 +86,7 @@ Namespace Networking
             Dim text As New Text.StringBuilder
 
             text.AppendLine("IP address: " + Address.ToString)
-            text.Append("MAC address: " + PhysicalAddress.ToDelimitedString)
+            text.Append("MAC address: " + PhysicalAddress.ToString)
 
             Return text.ToString
         End Function

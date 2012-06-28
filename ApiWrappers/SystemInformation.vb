@@ -29,7 +29,6 @@ Namespace DuneUtilities.ApiWrappers
         Private _productId As String
         Private _bootTime As Date
 
-
         Private Sub New(host As Dune)
             _host = host
         End Sub
@@ -76,7 +75,7 @@ Namespace DuneUtilities.ApiWrappers
                 info.GetSysinfo()
                 info.GetBootTime()
             Else
-                Console.WriteLine("The specified host does not have telnet enabled!")
+                Console.WriteLine("The specified host does not have telnet enabled.")
             End If
 
             Return info

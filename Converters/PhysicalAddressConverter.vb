@@ -17,20 +17,17 @@
 ' You should have received a copy of the GNU Lesser General Public License
 ' along with DuneApiCodepack.  If not, see <http://www.gnu.org/licenses/>.
 #End Region ' License
-Imports System.Runtime.CompilerServices
-Imports System.Net.NetworkInformation
+Imports System.ComponentModel
 
-Namespace Extensions
-    ''' <summary>
-    ''' Extensions for the <see cref="PhysicalAddress"/> type.
-    ''' </summary>
-    Public Module PhysicalAddressExtensions
+Public Class PhysicalAddressConverter
+    Inherits TypeConverter
 
-        <Extension()>
-        Public Function ToString(value As PhysicalAddress, delimiter As Char) As String
-            Dim address() As Byte = value.GetAddressBytes
-            Return BitConverterExtensions.ToString(address, delimiter)
-        End Function
+    Public Overrides Function ConvertTo(context As System.ComponentModel.ITypeDescriptorContext, culture As System.Globalization.CultureInfo, value As Object, destinationType As System.Type) As Object
+        If destinationType = GetType(String) Then
+            Return DirectCast(value, Net.NetworkInformation.PhysicalAddress).ToString(":"c)
+        Else
+            Return MyBase.ConvertTo(context, culture, value, destinationType)
+        End If
+    End Function
 
-    End Module
-End Namespace
+End Class

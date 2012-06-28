@@ -72,65 +72,111 @@ Namespace DuneUtilities
 
 #Region "Constructors"
 
+        ''' <summary>
+        ''' Default constructor. Use an overload of <see cref="Connect"/> to connect the object instance.
+        ''' </summary>
         Public Sub New()
         End Sub
 
+        ''' <summary>
+        ''' Constructor overload that attempts to connect to the specified host name or IP address.
+        ''' </summary>
+        ''' <param name="hostNameOrAddress">The host name or IP address on which to connect.</param>
         Public Sub New(hostNameOrAddress As String)
             Connect(hostNameOrAddress)
         End Sub
 
+        ''' <summary>
+        ''' Constructor overload that attempts to connect to the specified IP address.
+        ''' </summary>
+        ''' <param name="address">The IP address on which to connect.</param>
         Public Sub New(address As IPAddress)
             Connect(address)
         End Sub
 
-        Public Sub New(address As IPHostEntry)
-            Connect(address)
-        End Sub
-
-        Public Sub New(endpoint As IPEndPoint)
-            Connect(endpoint)
-        End Sub
-
+        ''' <summary>
+        ''' Constructor overload that attempts to connect to the specified host name or IP address on the specified port number.
+        ''' </summary>
+        ''' <param name="hostNameOrAddress">The host name or IP address on which to connect.</param>
+        ''' <param name="port">The port number on which to connect.</param>
         Public Sub New(hostNameOrAddress As String, port As Integer)
             Connect(hostNameOrAddress, port)
         End Sub
 
+        ''' <summary>
+        ''' Constructor overload that attempts to connect to the specified IP address on the specified port number.
+        ''' </summary>
+        ''' <param name="address">The IP address on which to connect.</param>
+        ''' <param name="port">The port number on which to connect.</param>
         Public Sub New(address As IPAddress, port As Integer)
             Connect(address, port)
         End Sub
 
-        Public Sub New(address As IPHostEntry, port As Integer)
-            Connect(address, port)
+        ''' <summary>
+        ''' Constructor overload that attempts to connect to the specified IP endpoint.
+        ''' </summary>
+        ''' <param name="endpoint">The IP endpoint on which to connect.</param>
+        Public Sub New(endpoint As IPEndPoint)
+            If endpoint.AddressFamily <> AddressFamily.InterNetwork Then
+                Throw New ArgumentException("IP address must be in IPv4 format.", "endpoint")
+            Else
+                Connect(endpoint)
+            End If
         End Sub
+#End Region ' Constructors
 
+#Region "Initialization"
+
+        ''' <summary>
+        ''' Connects the object instance to the specified host name or IP address.
+        ''' </summary>
+        ''' <param name="hostNameOrAddress">The host name or IP address on which to connect.</param>
         Public Sub Connect(hostNameOrAddress As String)
             Connect(hostNameOrAddress, 80)
         End Sub
 
+        ''' <summary>
+        ''' Connects the object instance to the specified IP address.
+        ''' </summary>
+        ''' <param name="address">The IP address on which to connect.</param>
         Public Sub Connect(address As IPAddress)
             Connect(address, 80)
         End Sub
 
-        Public Sub Connect(address As IPHostEntry)
-            Connect(address, 80)
-        End Sub
-
+        ''' <summary>
+        ''' Connects the object instance to the specified IP endpoint.
+        ''' </summary>
+        ''' <param name="endpoint">The IP endpoint on which to connect.</param>
         Public Sub Connect(endpoint As IPEndPoint)
             Dim hostEntry As IPHostEntry = Dns.GetHostEntry(endpoint.Address)
             Connect(hostEntry, Port)
         End Sub
 
+        ''' <summary>
+        ''' Connects the object instance to the specified host name or IP address on the specified port number.
+        ''' </summary>
+        ''' <param name="hostNameOrAddress">The host name or IP address on which to connect.</param>
+        ''' <param name="port">The port number on which to connect.</param>
         Public Sub Connect(hostNameOrAddress As String, port As Integer)
             Dim hostEntry As IPHostEntry = Dns.GetHostEntry(hostNameOrAddress)
             Connect(hostEntry, port)
         End Sub
 
+        ''' <summary>
+        ''' Connects the object instance to the specified IP address on the specified port number.
+        ''' </summary>
+        ''' <param name="address">The IP address on which to connect.</param>
+        ''' <param name="port">The port number on which to connect.</param>
         Public Sub Connect(address As IPAddress, port As Integer)
             Dim hostEntry As IPHostEntry = Dns.GetHostEntry(address)
             Connect(hostEntry, port)
         End Sub
 
-        Public Sub Connect(address As IPHostEntry, port As Integer)
+        ''' <summary>
+        ''' Sets connection details and attempts to initialize the object instance.
+        ''' </summary>
+        ''' <remarks>This method is for internal use only.</remarks>
+        Private Sub Connect(address As IPHostEntry, port As Integer)
             _hostentry = address
             _endpoint = New IPEndPoint(address.AddressList.GetIPv4Addresses.First, port)
 
@@ -140,15 +186,23 @@ Namespace DuneUtilities
         ''' <summary>
         ''' Initialization process.
         ''' </summary>
+        ''' <remarks>This method is for internal use only.</remarks>
         Private Sub Initialize()
-            IsConnected = True
+            Try
+                GetStatus()
+                _connected = True
 
-            If IsConnected Then
-                _networkAdapterInfo = New NetworkAdapterInfo(Address)
-            End If
+                StatusUpdater.Start()
+                If Status.ProtocolVersion.Major >= 3 Then
+                    TextUpdater.Start()
+                End If
+            Catch ex As WebException
+                Disconnect()
+                Throw
+            End Try
         End Sub
 
-#End Region ' Constructors
+#End Region ' Initialization
 
 #Region "App Properties"
 
@@ -201,13 +255,10 @@ Namespace DuneUtilities
         <DisplayName("MAC address")>
         <Description("Indicates the hardware address of the device's network interface.")>
         <Category("Connection details")>
-        Public ReadOnly Property PhysicalAddress As String
+        <TypeConverter(GetType(PhysicalAddressConverter))>
+        Public ReadOnly Property PhysicalAddress As NetworkInformation.PhysicalAddress
             Get
-                If NetworkAdapterInfo IsNot Nothing Then
-                    Return NetworkAdapterInfo.PhysicalAddress.ToDelimitedString(":"c)
-                Else
-                    Return String.Empty
-                End If
+                Return NetworkAdapterInfo.PhysicalAddress
             End Get
         End Property
 
@@ -263,6 +314,9 @@ Namespace DuneUtilities
         <Browsable(False)>
         Public ReadOnly Property NetworkAdapterInfo As NetworkAdapterInfo
             Get
+                If _networkAdapterInfo Is Nothing Then
+                    _networkAdapterInfo = New NetworkAdapterInfo(Me.Address)
+                End If
                 Return _networkAdapterInfo
             End Get
         End Property
@@ -302,22 +356,10 @@ Namespace DuneUtilities
         <DisplayName("Connected")>
         <Description("Indicates whether the app is still connected.")>
         <Category("Connection details")>
-        Public Property IsConnected As Boolean
+        Public ReadOnly Property IsConnected As Boolean
             Get
                 Return _connected
             End Get
-            Set(value As Boolean)
-                If _connected <> value Then
-                    RaisePropertyChanging("IsConnected")
-                    _connected = value
-                    If value.IsFalse Then
-                        Disconnect()
-                    Else
-                        Reconnect()
-                    End If
-                    RaisePropertyChanged("IsConnected")
-                End If
-            End Set
         End Property
 
         ''' <summary>
@@ -492,16 +534,16 @@ Namespace DuneUtilities
         ''' Scans the network and retrieves a collection of all Dune devices.
         ''' </summary>
         ''' <param name="ignoreNonSigmaNic">Specifies whether to ignore devices whose network card is not made by Sigma Designs.</param>
-        Public Shared Function Scan(ignoreNonSigmaNic As Boolean) As Collection(Of Dune)
-            Dim dunes As New Collection(Of Dune)
+        Public Shared Function Scan(ignoreNonSigmaNic As Boolean) As Dune()
+            Dim dunes As New ArrayList
 
             For Each device As Networking.NetworkDevice In Networking.NetworkDevice.Scan
                 If device.IsDune(ignoreNonSigmaNic) Then
-                    dunes.Add(New Dune(device.Host))
+                    dunes.Add(New Dune(device.Host.HostName))
                 End If
             Next
 
-            Return dunes
+            Return DirectCast(dunes.ToArray(GetType(Dune)), Dune())
         End Function
 
         ''' <summary>
@@ -538,7 +580,7 @@ Namespace DuneUtilities
                         RaisePropertyChanged("Text")
                     End If
                 Catch ex As Exception
-                    IsConnected = False
+                    Disconnect()
                 Finally
                     TextUpdater.Start()
                 End Try
@@ -553,60 +595,6 @@ Namespace DuneUtilities
         Public Function ProcessCommand(command As Command) As CommandResult
             Return ProcessCommand(command, False)
         End Function
-
-        ''' <summary>
-        ''' Executes the specified command and processes its results.
-        ''' </summary>
-        ''' <param name="command">The command to execute.</param>
-        ''' <param name="suppressError">Indicates whether to throw an exception when a command returns an error.</param>
-        ''' <exception cref="CommandException">: command execution failed.</exception>
-        Public Function ProcessCommand(command As Command, suppressError As Boolean) As CommandResult
-            Dim result As CommandResult = Nothing
-
-            Try
-                result = command.GetResult
-                Status = result
-
-#If DEBUG Then
-                _requestCount += 1
-#End If
-
-                If suppressError.IsFalse AndAlso result.CommandError IsNot Nothing Then
-                    Throw result.CommandError
-                End If
-            Catch ex As WebException
-                IsConnected = False
-
-            End Try
-
-            Return result
-        End Function
-
-        ''' <summary>
-        ''' Cleans up a bunch of fields that are not related to the API when disconnecting.
-        ''' </summary> ' TODO: disconnected event
-        Private Sub Disconnect()
-            If SystemInfo IsNot Nothing Then
-                SystemInfo.Clear()
-            End If
-            _telnetClient = Nothing
-        End Sub
-
-        ''' <summary>
-        ''' Reinitializes a connection.
-        ''' </summary>
-        Private Sub Reconnect()
-            If SystemInfo IsNot Nothing Then
-                SystemInfo.Refresh()
-            Else
-                _systemInfo = SystemInformation.FromHost(Me)
-            End If
-            GetStatus()
-            StatusUpdater.Start()
-            If Status.ProtocolVersion.Major >= 3 Then
-                TextUpdater.Start()
-            End If
-        End Sub
 
         ''' <summary>
         ''' Executes the specified command and processes its results asynchronously.
@@ -624,23 +612,87 @@ Namespace DuneUtilities
         ''' <param name="suppressError">Indicates whether to throw an exception when a command returns an error.</param>
         ''' <exception cref="CommandException">: command execution failed.</exception>
         Public Function ProcessCommandAsync(command As Command, suppressError As Boolean) As Task(Of CommandResult)
-            Dim resultTask As Task(Of CommandResult)
-
-            resultTask = Task(Of CommandResult).Factory.StartNew(Function()
-                                                                     Dim result As CommandResult = command.GetResult
-
-                                                                     If result IsNot Nothing Then
-                                                                         Status = result
-
-                                                                         If suppressError.IsFalse AndAlso result.CommandError IsNot Nothing Then
-                                                                             Throw result.CommandError
-                                                                         End If
-                                                                     End If
-                                                                     Return result
-                                                                 End Function)
-
-            Return resultTask
+            Return Task(Of CommandResult).Factory.StartNew(Function() ProcessCommand(command, suppressError))
         End Function
+
+        ''' <summary>
+        ''' Executes the specified command and processes its results.
+        ''' </summary>
+        ''' <param name="command">The command to execute.</param>
+        ''' <param name="suppressError">Indicates whether to throw an exception when a command returns an error.</param>
+        ''' <exception cref="CommandException">: command execution failed.</exception>
+        Public Function ProcessCommand(command As Command, suppressError As Boolean) As CommandResult
+            Try
+                Dim result As CommandResult = command.GetResult
+                Status = result
+
+#If DEBUG Then
+                _requestCount += 1
+#End If
+
+                If suppressError.IsFalse Then
+                    Select Case result.ErrorKind
+                        Case String.Empty
+                            Exit Select
+                        Case Constants.ErrorKindValues.UnknownCommand, Constants.ErrorKindValues.InvalidParameters
+                            Throw New ArgumentException(result.ErrorDescription) With {.Source = result.Command.ToString}
+                        Case Constants.ErrorKindValues.IllegalState
+                            Throw New InvalidOperationException(result.ErrorDescription) With {.Source = result.Command.ToString}
+                        Case Else
+                            Throw New CommandException(result.ErrorKind, result.ErrorDescription) With {.Source = result.Command.ToString}
+                    End Select
+                End If
+
+                Return result
+            Catch ex As WebException
+                Disconnect()
+                If suppressError.IsFalse Then ' rethrow
+                    Throw
+                End If
+            End Try
+
+            Return Nothing
+        End Function
+
+        ''' <summary>
+        ''' Disconnect the object instance from the target.
+        ''' </summary>
+        Private Sub Disconnect()
+            If IsConnected Then
+                RaisePropertyChanging("IsConnected")
+
+                SystemInfo.Clear()
+                TelnetClient.Dispose()
+                _telnetClient = Nothing
+
+                _connected = False
+                RaisePropertyChanged("IsConnected")
+            End If
+        End Sub
+
+        ''' <summary>
+        ''' Reinitializes a connection.
+        ''' </summary>
+        Public Sub Reconnect()
+            If IsConnected.IsFalse Then
+                Try
+                    GetStatus()
+
+                    RaisePropertyChanging("IsConnected")
+                    SystemInfo.Refresh()
+
+                    _connected = True
+                    RaisePropertyChanged("IsConnected")
+
+                    StatusUpdater.Start()
+                    If ProtocolVersion.Major >= 3 Then
+                        TextUpdater.Start()
+                    End If
+                Catch ex As WebException
+                    Throw New InvalidOperationException("A connection could not be established.", ex)
+                End Try
+            End If
+        End Sub
 
 #End Region ' App methods
 
@@ -675,6 +727,9 @@ Namespace DuneUtilities
         <Browsable(False)>
         Private ReadOnly Property SystemInfo As SystemInformation
             Get
+                If _systemInfo Is Nothing Then
+                    _systemInfo = SystemInformation.FromHost(Me)
+                End If
                 Return _systemInfo
             End Get
         End Property
@@ -769,33 +824,21 @@ Namespace DuneUtilities
         ''' Closes the disc tray (if any) using a telnet connection.
         ''' </summary>
         Public Sub CloseDiscTray()
-            Try
-                TelnetClient.ExecuteCommand("eject -t /dev/sr0")
-            Catch ex As Exception
-                Console.WriteLine("Telnet error: " + ex.Message)
-            End Try
+            TelnetClient.ExecuteCommand("eject -t /dev/sr0")
         End Sub
 
         ''' <summary>
         ''' Toggles between open/close disc tray (if any) using a telnet connection.
         ''' </summary>
         Public Sub ToggleDiscTray()
-            Try
-                TelnetClient.ExecuteCommand("eject -T /dev/sr0")
-            Catch ex As Exception
-                Console.WriteLine("Telnet error: " + ex.Message)
-            End Try
+            TelnetClient.ExecuteCommand("eject -T /dev/sr0")
         End Sub
 
         ''' <summary>
         ''' Sends a reboot command using telnet.
         ''' </summary>
         Public Sub Reboot()
-            Try
-                TelnetClient.ExecuteCommand("reboot")
-            Catch ex As Exception
-                Console.WriteLine("Telnet error: " + ex.Message)
-            End Try
+            TelnetClient.ExecuteCommand("reboot")
         End Sub
 
 #End Region ' Telnet Methods
@@ -2143,6 +2186,9 @@ Namespace DuneUtilities
                     _textUpdater.Dispose()
                 End If
 
+                _telnetClient = Nothing
+                _statusUpdater = Nothing
+                _textUpdater = Nothing
                 _status = Nothing
                 _systemInfo = Nothing
                 _firmwares = Nothing

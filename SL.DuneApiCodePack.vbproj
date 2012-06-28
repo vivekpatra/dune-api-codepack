@@ -101,6 +101,7 @@
     <Compile Include="ApiWrappers\Storage\SmbShare.vb" />
     <Compile Include="ApiWrappers\Storage\Storage.vb" />
     <Compile Include="ApiWrappers\SystemInformation.vb" />
+    <Compile Include="Converters\PhysicalAddressConverter.vb" />
     <Compile Include="Converters\PlaybackSpeedConverter.vb" />
     <Compile Include="Converters\PlayerStateConverter.vb" />
     <Compile Include="Converters\ZoomConverter.vb" />
