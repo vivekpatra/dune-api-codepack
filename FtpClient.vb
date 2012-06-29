@@ -139,6 +139,25 @@ Public Class FtpClient
         End Using
     End Function
 
+    Public Function UploadText(target As Uri, text As String) As FtpStatusCode
+        Dim request = FtpWebRequest.Create(target)
+        request.Method = WebRequestMethods.Ftp.UploadFile
+
+        Using writer As New IO.BinaryWriter(request.GetRequestStream, System.Text.Encoding.UTF8)
+            Using stream = New IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(text))
+                Do
+                    Dim buffer(16384) As Byte
+                    Dim buffered = stream.Read(buffer, 0, buffer.Length)
+                    writer.Write(buffer, 0, buffered)
+                Loop Until stream.Position = stream.Length
+            End Using
+        End Using
+
+        Using response As FtpWebResponse = CType(request.GetResponse, FtpWebResponse)
+            Return response.StatusCode
+        End Using
+    End Function
+
     ''' <summary>
     ''' Permanently deletes the specified file.
     ''' </summary>

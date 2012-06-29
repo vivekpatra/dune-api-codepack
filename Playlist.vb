@@ -38,43 +38,56 @@ Namespace DuneUtilities
         Public Sub Save(location As FileSystemInfo)
             Using stream As New FileStream(location.FullName, FileMode.Create)
                 Using writer As New StreamWriter(stream, Text.Encoding.UTF8)
-                    If location.Extension.EqualsInvariantIgnoreCaseAny(".m3u", ".m3u8") Then
-                        WriteAsExtendedM3u(writer)
-                    ElseIf location.Extension.EqualsInvariantIgnoreCase(".pls") Then
-                        WriteAsPls(writer)
-                    Else
-                        WriteAsPlainText(writer)
-                    End If
+                    writer.Write(ToString(location.Extension))
                 End Using
             End Using
         End Sub
 
-        Private Sub WriteAsPlainText(writer As StreamWriter)
+        Public Overrides Function ToString() As String
+            Return ToPlainString()
+        End Function
+
+        Private Overloads Function ToString(extension As String) As String
+            If extension.EqualsInvariantIgnoreCaseAny(".m3u", ".m3u8") Then
+                Return ToExtendedM3uString()
+            ElseIf extension.EqualsInvariantIgnoreCase(".pls") Then
+                Return ToPlsString()
+            Else
+                Return ToPlainString()
+            End If
+        End Function
+
+        Public Function ToPlainString() As String
+            Dim playlist As New Text.StringBuilder
             For Each location In _media
-                writer.WriteLine(location)
+                playlist.AppendLine(location)
             Next
-        End Sub
+            Return playlist.ToString
+        End Function
 
-        Private Sub WriteAsExtendedM3u(writer As StreamWriter)
-            writer.WriteLine("#EXTM3U")
-
+        Public Function ToExtendedM3uString() As String
+            Dim playlist As New Text.StringBuilder
+            playlist.AppendLine("#EXTM3U")
             For Each location In _media
-                writer.WriteLine("#EXTINF:{0},{1}", -1, location)
-                writer.WriteLine(location)
+                playlist.AppendFormat("#EXTINF:{0},{1}", -1, location)
+                playlist.AppendLine()
+                playlist.AppendLine(location)
             Next
-        End Sub
+            Return playlist.ToString
+        End Function
 
-        Private Sub WriteAsPls(writer As StreamWriter)
-            writer.WriteLine("[playlist]")
-
+        Public Function ToPlsString() As String
+            Dim playlist As New Text.StringBuilder
+            playlist.AppendLine("[playlist]")
             For index As Integer = 0 To _media.Count - 1
-                writer.WriteLine("File{0}={1}", index + 1, _media(index))
-                writer.WriteLine("Title{0}={1}", index + 1, _media(index))
-                writer.WriteLine("Length{0}=-1", index + 1)
+                playlist.AppendFormat("File{0}={1}", index + 1, _media(index)) : playlist.AppendLine()
+                playlist.AppendFormat("Title{0}={1}", index + 1, _media(index)) : playlist.AppendLine()
+                playlist.AppendFormat("Length{0}=-1", index + 1) : playlist.AppendLine()
             Next
-            writer.WriteLine("NumberOfEntries={0}", _media.Count)
-            writer.Write("Version=2")
-        End Sub
+            playlist.AppendFormat("NumberOfEntries={0}", _media.Count) : playlist.AppendLine()
+            playlist.Append("Version=2")
+            Return playlist.ToString
+        End Function
 
     End Class
 
