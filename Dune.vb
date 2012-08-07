@@ -193,9 +193,6 @@ Namespace DuneUtilities
                 _connected = True
 
                 StatusUpdater.Start()
-                If Status.ProtocolVersion.Major >= 3 Then
-                    TextUpdater.Start()
-                End If
             Catch ex As WebException
                 Disconnect()
                 Throw
@@ -485,28 +482,11 @@ Namespace DuneUtilities
                 If _statusUpdater Is Nothing Then
                     _statusUpdater = New Timer
                     _statusUpdater.AutoReset = False
-                    _statusUpdater.Interval = 1
+                    _statusUpdater.Interval = 100
                     AddHandler _statusUpdater.Elapsed, AddressOf StatusUpdater_elapsed
                 End If
 
                 Return _statusUpdater
-            End Get
-        End Property
-
-        ''' <summary>
-        ''' Gets the timer that's responsible for automatic text updates.
-        ''' </summary>
-        <Browsable(False)>
-        Private ReadOnly Property TextUpdater As Timer
-            Get
-                If _textUpdater Is Nothing Then
-                    _textUpdater = New Timer
-                    _textUpdater.AutoReset = False
-                    _textUpdater.Interval = 1
-                    AddHandler _textUpdater.Elapsed, AddressOf TextUpdater_elapsed
-                End If
-
-                Return _textUpdater
             End Get
         End Property
 
@@ -552,20 +532,11 @@ Namespace DuneUtilities
         <DebuggerStepThrough()>
         Private Sub StatusUpdater_elapsed(sender As Object, e As System.Timers.ElapsedEventArgs)
             If IsConnected Then
-                GetStatus()
-                StatusUpdater.Start()
-            End If
-        End Sub
+                Dim status As CommandResult = GetStatus()
+                If status.ProtocolVersion IsNot Nothing AndAlso status.ProtocolVersion.Major >= 3 Then
+                    Dim command As New GetTextCommand(Me)
+                    Dim result As CommandResult
 
-        ''' <summary>
-        ''' Updates the text property.
-        ''' </summary>
-        Private Sub TextUpdater_elapsed(sender As Object, e As System.Timers.ElapsedEventArgs)
-            If IsConnected Then
-                Dim command As New GetTextCommand(Me)
-                Dim result As CommandResult
-
-                Try
                     result = command.GetResult
 
                     If Not Nullable.Equals(_textAvailable, result.TextAvailable) Then
@@ -579,11 +550,8 @@ Namespace DuneUtilities
                         _text = result.Text
                         RaisePropertyChanged("Text")
                     End If
-                Catch ex As Exception
-                    Disconnect()
-                Finally
-                    TextUpdater.Start()
-                End Try
+                End If
+                StatusUpdater.Start()
             End If
         End Sub
 
@@ -685,9 +653,6 @@ Namespace DuneUtilities
                     RaisePropertyChanged("IsConnected")
 
                     StatusUpdater.Start()
-                    If ProtocolVersion.Major >= 3 Then
-                        TextUpdater.Start()
-                    End If
                 Catch ex As WebException
                     Throw New InvalidOperationException("A connection could not be established.", ex)
                 End Try
@@ -1605,6 +1570,7 @@ Namespace DuneUtilities
         Public ReadOnly Property PlaybackName As String
             Get
                 If IsConnected AndAlso PlaybackUrl.IsNotNullOrWhiteSpace Then
+                    'Return IO.Path.GetFileName(PlaybackUrl)
                     Return PlaybackUrl.Substring(PlaybackUrl.LastIndexOf("/"c) + 1)
                 Else
                     Return String.Empty
