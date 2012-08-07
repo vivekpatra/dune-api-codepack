@@ -30,7 +30,7 @@ Imports System.Runtime.InteropServices
 ' Review the values of the assembly attributes
 
 <Assembly: AssemblyTitle("Dune API Code Pack")> 
-<Assembly: AssemblyDescription("Collection of code wrappers for the Dune HD IP control API.")> 
+<Assembly: AssemblyDescription("Collection of code wrappers for Dune HD devices.")> 
 <Assembly: AssemblyCompany("")> 
 <Assembly: AssemblyProduct("DuneApiCodePack")> 
 <Assembly: AssemblyCopyright("steven.liekens@gmail.com")> 
@@ -53,7 +53,7 @@ Imports System.Runtime.InteropServices
 ' <Assembly: AssemblyVersion("1.0.*")> 
 
 <Assembly: AssemblyVersion("3.0.0.0")> 
-<Assembly: AssemblyFileVersion("3.2012.0617.0")> 
+<Assembly: AssemblyFileVersion("3.2012.0807.0")> 
 
 <Assembly: NeutralResourcesLanguageAttribute("en")> 
 <Assembly: CLSCompliant(True)> 
