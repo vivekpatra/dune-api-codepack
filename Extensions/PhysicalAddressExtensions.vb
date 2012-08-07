@@ -27,12 +27,7 @@ Namespace Extensions
     Public Module PhysicalAddressExtensions
 
         <Extension()>
-        Public Function ToDelimitedString(value As PhysicalAddress) As String
-            Return ToDelimitedString(value, ":"c)
-        End Function
-
-        <Extension()>
-        Public Function ToDelimitedString(value As PhysicalAddress, delimiter As Char) As String
+        Public Function ToString(value As PhysicalAddress, delimiter As Char) As String
             Dim address() As Byte = value.GetAddressBytes
             Return BitConverterExtensions.ToString(address, delimiter)
         End Function

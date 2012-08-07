@@ -93,6 +93,21 @@ Namespace Extensions
             End Select
         End Function
 
+        <Extension()>
+        Public Function EqualsInvariantIgnoreCase(str As String, value As String) As Boolean
+            Return String.Equals(str, value, StringComparison.InvariantCultureIgnoreCase)
+        End Function
+
+        <Extension()>
+        Public Function EqualsInvariantIgnoreCaseAny(value As String, ParamArray values() As String) As Boolean
+            For Each Str As String In values
+                If String.Equals(value, Str, StringComparison.InvariantCultureIgnoreCase) Then
+                    Return True
+                End If
+            Next
+            Return False
+        End Function
+
     End Module
 
 End Namespace

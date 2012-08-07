@@ -775,4 +775,35 @@ Public NotInheritable Class Constants
         Public Const BackgroundColor As String = "background_color"
     End Class
 
+    Public NotInheritable Class DuneFolder
+        Private Sub New()
+        End Sub
+
+        ' Parameters influencing visual representation of F2 in F1 (when F1 is current folder and icon view is used)
+        Public Const IconPath As String = "icon_path"
+        Public Const IconVerticalAlign As String = "icon_valign"
+        Public Const IconHorizontalOffset As String = "icon_dx"
+        Public Const IconVerticalOffset As String = "icon_dy"
+        Public Const IconScaleFactor As String = "icon_scale_factor"
+
+        ' Parameters enabling "media folder" behavior for F2 (e.g. when ENTER is pressed on F2)
+        Public Const MediaUrl As String = "media_url"
+
+        ' Parameters enabling icon view when F2 is current folder
+        Public Const UseIconView As String = "use_icon_view"
+        Public Const NumberOfColumns As String = "num_cols"
+        Public Const NumberOfRows As String = "num_rows"
+        Public Const IconTop As String = "icon_top"
+        Public Const IconBottom As String = "icon_bottom"
+        Public Const CaptionFontSize As String = "caption_font_size"
+
+        ' Parameters enabling custom image when F2 is current folder
+        Public Const BackgroundPath As String = "background_path"
+        Public Const BackgroundHorizontalOffset As String = "background_x"
+        Public Const BackgroundVerticalOffset As String = "background_y"
+        Public Const BackgroundWidth As String = "background_width"
+        Public Const BackgroundHeight As String = "background_height"
+
+    End Class
+
 End Class

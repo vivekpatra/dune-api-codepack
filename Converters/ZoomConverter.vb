@@ -45,4 +45,56 @@ Public Class ZoomConverter
     Public Overrides Function GetStandardValues(context As System.ComponentModel.ITypeDescriptorContext) As System.ComponentModel.TypeConverter.StandardValuesCollection
         Return New StandardValuesCollection(_standardValues)
     End Function
+
+    Public Overrides Function ConvertTo(context As System.ComponentModel.ITypeDescriptorContext, culture As System.Globalization.CultureInfo, value As Object, destinationType As System.Type) As Object
+        Select Case DirectCast(value, String)
+            Case Constants.VideoZoomValues.Normal
+                Return "Normal"
+            Case Constants.VideoZoomValues.FullEnlarge
+                Return "Full screen"
+            Case Constants.VideoZoomValues.FullStretch
+                Return "Stretch to full screen"
+            Case Constants.VideoZoomValues.FillScreen
+                Return "Non-linear stretch"
+            Case Constants.VideoZoomValues.FillFullScreen
+                Return "Non-linear stretch to full screen"
+            Case Constants.VideoZoomValues.Enlarge
+                Return "Enlarge"
+            Case Constants.VideoZoomValues.MakeWider
+                Return "Make wider"
+            Case Constants.VideoZoomValues.MakeTaller
+                Return "Make taller"
+            Case Constants.VideoZoomValues.CutEdges
+                Return "Cut edges"
+            Case Constants.VideoZoomValues.Other
+                Return "Other"
+            Case Else
+                Return MyBase.ConvertTo(context, culture, value, destinationType)
+        End Select
+    End Function
+
+    Public Overrides Function ConvertFrom(context As System.ComponentModel.ITypeDescriptorContext, culture As System.Globalization.CultureInfo, value As Object) As Object
+        Select Case DirectCast(value, String)
+            Case "Normal"
+                Return Constants.VideoZoomValues.Normal
+            Case "Full screen"
+                Return Constants.VideoZoomValues.FullEnlarge
+            Case "Stretch to full screen"
+                Return Constants.VideoZoomValues.FullStretch
+            Case "Non-linear stretch"
+                Return Constants.VideoZoomValues.FillScreen
+            Case "Non-linear stretch to full screen"
+                Return Constants.VideoZoomValues.FillFullScreen
+            Case "Enlarge"
+                Return Constants.VideoZoomValues.Enlarge
+            Case "Make wider"
+                Return Constants.VideoZoomValues.MakeWider
+            Case "Make taller"
+                Return Constants.VideoZoomValues.MakeTaller
+            Case "Cut edges"
+                Return Constants.VideoZoomValues.CutEdges
+            Case Else
+                Return MyBase.ConvertFrom(context, culture, value)
+        End Select
+    End Function
 End Class

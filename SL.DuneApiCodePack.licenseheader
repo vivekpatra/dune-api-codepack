@@ -1,10 +1,3 @@
-extensions: designer.cs
-extensions: .cs
-//Sample license text.
-extensions: .aspx .ascx
-<%-- 
-Sample license text.
---%>
 extensions: .vb
 #Region "License"
 ' Copyright 2012 Steven Liekens

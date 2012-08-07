@@ -40,6 +40,8 @@ Namespace DuneUtilities.ApiWrappers
 
         ' command result parameters
         Private _commandStatus As String
+        Private _errorKind As String
+        Private _errorDescription As String
         Private _protocolVersion As Version
         Private _playerState As String
         Private _playbackSpeed As Short?
@@ -61,9 +63,6 @@ Namespace DuneUtilities.ApiWrappers
         Private _videoZoom As String
         Private _audioTracks As SortedList(Of Short, LanguageTrack)
         Private _subtitles As SortedList(Of Short, LanguageTrack)
-        Private _errorKind As String
-        Private _errorDescription As String
-        Private _commandError As CommandException
         Private _playbackDvdMenu As Boolean?
         Private _playbackBlurayMenu As Boolean?
         Private _playbackClipRectangleX As Short?
@@ -351,12 +350,15 @@ Namespace DuneUtilities.ApiWrappers
             End Get
         End Property
 
-        ''' <summary>
-        ''' Gets the command error, if any.
-        ''' </summary>
-        Public ReadOnly Property CommandError As CommandException
+        Public ReadOnly Property ErrorKind As String
             Get
-                Return _commandError
+                Return _errorKind
+            End Get
+        End Property
+
+        Public ReadOnly Property ErrorDescription As String
+            Get
+                Return _errorDescription
             End Get
         End Property
 
@@ -525,23 +527,26 @@ Namespace DuneUtilities.ApiWrappers
                 RawData.Add(parameterName, parameterValue)
             Next
 
-            If Command.CommandType = Constants.CommandValues.GetText Then
+            ' Set parameters that are always present
+            _protocolVersion = _protocolVersion.Parse(RawData.Item(Constants.CommandResultParameterNames.ProtocolVersion), False)
+            _playerState = RawData.Item(Constants.CommandResultParameterNames.PlayerState)
+
+            ' Check if this is the result of a get_text command
+            If Command.CommandType = Constants.CommandValues.GetText Then ' find out if the text editor is active
                 _textAvailable = RawData.AllKeys.Contains(Constants.CommandResultParameterNames.Text)
             End If
 
+            ' loop through the remaining paremeters
             Parallel.ForEach(RawData.AllKeys, Sub(key As String)
                                                   Dim parameterName As String = key
-                                                  Dim parameterValue As String = RawData.Item(key)
-
+                                                  Dim parameterValue As String = RawData.Get(key)
                                                   Try
                                                       If parameterValue <> "-1" Then
                                                           Select Case True
-                                                              Case parameterName.Equals(Constants.CommandResultParameterNames.ProtocolVersion)
-                                                                  _protocolVersion = _protocolVersion.Parse(parameterValue, False)
+                                                              Case parameterName.Equals(Constants.CommandResultParameterNames.ProtocolVersion), parameterName.Equals(Constants.CommandResultParameterNames.PlayerState)
+                                                                  Exit Select
                                                               Case parameterName.Equals(Constants.CommandResultParameterNames.CommandStatus)
                                                                   _commandStatus = parameterValue
-                                                              Case parameterName.Equals(Constants.CommandResultParameterNames.PlayerState)
-                                                                  _playerState = parameterValue
                                                               Case parameterName.Equals(Constants.CommandResultParameterNames.Text)
                                                                   _text = parameterValue
                                                               Case parameterName.Contains("error")
@@ -572,8 +577,6 @@ Namespace DuneUtilities.ApiWrappers
             Select Case parameterName
                 Case Constants.CommandResultParameterNames.ErrorKind : _errorKind = parameterValue
                 Case Constants.CommandResultParameterNames.ErrorDescription : _errorDescription = parameterValue
-                    _commandError = New CommandException(_errorKind, _errorDescription)
-                    _commandError.Source = Command.ToString
                 Case Else : Console.WriteLine("No parsing logic in place for error parameter {0} (value: {1})", parameterName, parameterValue)
             End Select
         End Sub
@@ -690,8 +693,9 @@ Namespace DuneUtilities.ApiWrappers
 
             If result.CommandStatus.IsNotNullOrEmpty Then ' command status is always unique (and so is the command error)
                 differences.Add("CommandStatus")
-                If result.CommandError IsNot Nothing Then
-                    differences.Add("CommandError")
+                If result.ErrorKind.IsNotNullOrEmpty Then
+                    differences.Add("ErrorKind")
+                    differences.Add("ErrorDescription")
                 End If
             End If
 

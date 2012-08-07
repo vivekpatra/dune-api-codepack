@@ -18,6 +18,7 @@
 ' along with DuneApiCodepack.  If not, see <http://www.gnu.org/licenses/>.
 #End Region ' License
 Imports System.Runtime.Serialization
+Imports System.Collections.Specialized
 
 Namespace Networking
 
@@ -26,7 +27,7 @@ Namespace Networking
     ''' </summary>
     <Serializable()>
     Public Class HttpQuery
-        Inherits System.Collections.Specialized.NameValueCollection
+        Inherits NameValueCollection
 
         Public Sub New()
             ' default constructor
@@ -36,6 +37,19 @@ Namespace Networking
             MyBase.New(info, context)
         End Sub
 
+        Public Shared Function ParseQueryString(query As String) As NameValueCollection
+            Dim collection As New HttpQuery
+
+            Dim parts = query.Split("="c, "="c)
+
+            For index As Integer = 0 To parts.Length - 1
+                If index Mod 2 = 0 Then
+                    collection.Add(parts(index), parts(index + 1))
+                End If
+            Next
+
+            Return collection
+        End Function
 
         Public Overrides Function ToString() As String
             Dim queryBuilder As New Text.StringBuilder

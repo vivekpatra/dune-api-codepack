@@ -39,7 +39,11 @@ Namespace DuneUtilities.ApiWrappers
         ''' <remarks>Does not support playlists.</remarks>
         Public Sub New(target As Dune, mediaUrl As String)
             MyBase.New(target)
-            Type = PlaybackType.File
+            If target.ProtocolVersion.Major >= 3 Then
+                Type = PlaybackType.Auto
+            Else
+                Type = PlaybackType.File
+            End If
             _mediaUrl = mediaUrl
         End Sub
 

@@ -60,6 +60,7 @@
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.DirectoryServices" />
+    <Reference Include="System.Net" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -100,6 +101,8 @@
     <Compile Include="ApiWrappers\Storage\SmbShare.vb" />
     <Compile Include="ApiWrappers\Storage\Storage.vb" />
     <Compile Include="ApiWrappers\SystemInformation.vb" />
+    <Compile Include="Converters\PhysicalAddressConverter.vb" />
+    <Compile Include="Converters\PlaybackSpeedConverter.vb" />
     <Compile Include="Converters\PlayerStateConverter.vb" />
     <Compile Include="Converters\ZoomConverter.vb" />
     <Compile Include="Extensions\BitConverterExtensions.vb" />
@@ -110,7 +113,9 @@
     <Compile Include="Extensions\StringExtensions.vb" />
     <Compile Include="Constants.vb" />
     <Compile Include="ApiWrappers\DuneCommands\StartPlaybackCommand.vb" />
+    <Compile Include="Extensions\TimeSpanExtensions.vb" />
     <Compile Include="Extensions\VersionExtensions.vb" />
+    <Compile Include="FtpClient.vb" />
     <Compile Include="Networking\HttpQuery.vb" />
     <Compile Include="Networking\NetworkDevice.vb" />
     <Compile Include="RemoteControl.vb" />
