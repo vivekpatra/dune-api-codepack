@@ -68,19 +68,15 @@ Namespace Extensions
         End Function
 
         ''' <summary>
-        ''' Gets a list of all IPv4 addresses from the IPAddress array.
+        ''' Gets all IPv4 addresses from an IPAddress array.
         ''' </summary>
         <Extension()>
-        Public Function GetIPv4Addresses(addressList As IPAddress()) As IPAddress()
-            Dim list As New ArrayList
-
+        Public Iterator Function GetIPv4Addresses(addressList As IPAddress()) As IEnumerable(Of IPAddress)
             For Each address In addressList
                 If address.AddressFamily = Sockets.AddressFamily.InterNetwork Then
-                    list.Add(address)
+                    Yield address
                 End If
             Next
-
-            Return DirectCast(list.ToArray(GetType(IPAddress)), IPAddress())
         End Function
 
     End Module

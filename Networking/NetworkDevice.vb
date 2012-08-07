@@ -37,7 +37,7 @@ Namespace Networking
             End Get
         End Property
 
-        Public Function GetShares() As Collection(Of SmbShare)
+        Public Function GetShares() As IEnumerable(Of SmbShare)
             Return SmbShare.FromHost(Host)
         End Function
 
@@ -71,38 +71,27 @@ Namespace Networking
         ''' <summary>
         ''' Scans all workgroups and retrieves a list of network devices.
         ''' </summary>
-        Public Shared Function Scan() As List(Of NetworkDevice)
-            Dim devices As New List(Of NetworkDevice)
-
+        Public Shared Iterator Function Scan() As IEnumerable(Of NetworkDevice)
             Using network As New DirectoryEntry()
                 network.Path = "WinNT:"
 
                 For Each workgroup As DirectoryEntry In network.Children()
-                    devices.AddRange(Scan(workgroup))
+                    For Each node In Scan(workgroup)
+                        Yield node
+                    Next
                 Next
             End Using
-
-            Return devices
         End Function
 
         ''' <summary>
         ''' Scans the specified workgroup and retrieves a list of network devices.
         ''' </summary>
-        Public Shared Function Scan(workgroup As DirectoryEntry) As List(Of NetworkDevice)
-            Dim devices As New List(Of NetworkDevice)
-
-            Try
-                For Each computer As DirectoryEntry In workgroup.Children
-                    If computer.SchemaClassName = "Computer" Then
-                        Dim device As New NetworkDevice(Dns.GetHostEntry(computer.Name))
-                        devices.Add(device)
-                    End If
-                Next
-            Catch ex As Exception
-                Console.WriteLine(ex.Message)
-            End Try
-            
-            Return devices
+        Public Shared Iterator Function Scan(workgroup As DirectoryEntry) As IEnumerable(Of NetworkDevice)
+            For Each computer As DirectoryEntry In workgroup.Children
+                If computer.SchemaClassName = "Computer" Then
+                    Yield New NetworkDevice(Dns.GetHostEntry(computer.Name))
+                End If
+            Next
         End Function
 
     End Class

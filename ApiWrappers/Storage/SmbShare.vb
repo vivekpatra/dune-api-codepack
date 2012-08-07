@@ -138,18 +138,14 @@ Namespace Sources
         ''' </summary>
         ''' <param name="host">The host to scan for network shares.</param>
         ''' <remarks>This method can only be used to return disk shares. Printer shares (or otherwise) are ignored.</remarks>
-        Public Shared Function FromHost(host As IPHostEntry) As Collection(Of SmbShare)
+        Public Shared Iterator Function FromHost(host As IPHostEntry) As IEnumerable(Of SmbShare)
             Dim shares As ShareCollection = ShareCollection.GetShares(host.HostName)
-            Dim smbShares As New Collection(Of SmbShare)
 
             For Each share As Share In shares
                 If share.ShareType = ShareType.Disk Then
-                    Dim smbShare As New SmbShare(share.Root.GetUri)
-                    smbShares.Add(smbShare)
+                    Yield New SmbShare(share.Root.GetUri)
                 End If
             Next
-
-            Return smbShares
         End Function
 
         Public Shared Function Parse(path As String) As SmbShare

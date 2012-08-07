@@ -282,15 +282,12 @@ Namespace Sources
             Return settings
         End Function
 
-        Public Shared Function FromHost(host As DuneApiCodePack.DuneUtilities.Dune) As LocalStorage()
-            Dim sources As New ArrayList
+        Public Shared Iterator Function FromHost(host As DuneApiCodePack.DuneUtilities.Dune) As IEnumerable(Of LocalStorage)
             Dim client As New FtpClient(host)
 
             For Each directory As String In client.ListDirectory(client.Root)
-                sources.Add(New LocalStorage(host, directory))
+                Yield New LocalStorage(host, directory)
             Next
-
-            Return DirectCast(sources.ToArray(GetType(LocalStorage)), LocalStorage())
         End Function
 
         ''' <summary>

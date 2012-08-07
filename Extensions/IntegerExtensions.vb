@@ -29,7 +29,6 @@ Namespace Extensions
         <Extension()>
         Public Function GetGreatestCommonFactor(int As Integer, value As Integer) As Integer
             Dim temp As Integer
-
             Do
                 temp = int Mod value
                 int = value

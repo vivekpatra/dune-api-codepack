@@ -244,10 +244,8 @@ Namespace DuneUtilities.ApiWrappers
             End Try
         End Function
 
-        Public Shared Function GetAvailableFirmwares(product As String) As FirmwareProperties()
+        Public Shared Iterator Function GetAvailableFirmwares(product As String) As IEnumerable(Of FirmwareProperties)
             Dim results() As String
-
-            Dim firmwares As New ArrayList()
 
             Using client As New WebClient
                 Using reader As StringReader = New StringReader(client.DownloadString(New Uri(BaseUri + product + ".txt")))
@@ -257,21 +255,9 @@ Namespace DuneUtilities.ApiWrappers
             End Using
 
             ' get the firmware properties and add to the list
-            Parallel.ForEach(results, Sub(firmware)
-                                          Dim properties As New FirmwareProperties(firmware)
-                                          firmwares.Add(properties)
-                                      End Sub)
-
-            Dim unsorted As FirmwareProperties() = CType(firmwares.ToArray(GetType(FirmwareProperties)), FirmwareProperties())
-            Dim sorted = From firmware In unsorted
-                         Select firmware
-                         Order By firmware.Version Descending.ToArray
-
-            Return sorted
-        End Function
-
-        Public Shared Function GetAvailableFirmwaresAsync(product As String) As Task(Of FirmwareProperties())
-            Return Task(Of FirmwareProperties()).Factory.StartNew(Function() GetAvailableFirmwares(product))
+            For Each firmware In results
+                Yield New FirmwareProperties(firmware)
+            Next
         End Function
 
         Public Overrides Function ToString() As String

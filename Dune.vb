@@ -216,7 +216,7 @@ Namespace DuneUtilities
                 If Status Is Nothing Then
                     _status = value
                 Else
-                    Dim updates() As String = Status.GetDifferences(value)
+                    Dim updates = Status.GetDifferences(value)
 
                     For Each update As String In updates
                         RaisePropertyChanging(update)
@@ -340,7 +340,7 @@ Namespace DuneUtilities
         Public ReadOnly Property NetworkShares As ReadOnlyCollection(Of LocalStorage)
             Get
                 If _shares Is Nothing Then
-                    _shares = New ReadOnlyCollection(Of LocalStorage)(LocalStorage.FromHost(Me))
+                    _shares = New List(Of LocalStorage)(LocalStorage.FromHost(Me)).AsReadOnly
                 End If
 
                 Return _shares
@@ -424,24 +424,15 @@ Namespace DuneUtilities
         Public ReadOnly Property AvailableFirmwares As ReadOnlyCollection(Of FirmwareProperties)
             Get
                 If _firmwares Is Nothing Then
-                    Dim list() As FirmwareProperties
+                    Dim list As New List(Of FirmwareProperties)
 
                     If ProductId.IsNotNullOrEmpty Then
-                        Try
-                            list = FirmwareProperties.GetAvailableFirmwares(ProductId)
-                        Catch ex As Exception
-                            Console.WriteLine(ex.Message)
-                            list = Nothing
-                        End Try
+                        list.AddRange(FirmwareProperties.GetAvailableFirmwares(ProductId))
                     Else
-                        list = Nothing
+                        list = New List(Of FirmwareProperties)
                     End If
 
-                    If list IsNot Nothing Then
-                        _firmwares = New ReadOnlyCollection(Of FirmwareProperties)(list)
-                    Else
-
-                    End If
+                    _firmwares = list.AsReadOnly
                 End If
 
                 Return _firmwares
@@ -460,16 +451,11 @@ Namespace DuneUtilities
                     Return Nothing
                 Else
                     If FirmwareVersion.IsNotNullOrEmpty Then
-                        Return (AvailableFirmwares.Item(0).Version <> FirmwareVersion)
+                        Return (AvailableFirmwares.First.Version <> FirmwareVersion)
                     Else
                         Return Nothing
                     End If
                 End If
-                'If FirmwareVersion.IsNotNullOrEmpty AndAlso AvailableFirmwares.Count > 0 Then
-                '    Return (AvailableFirmwares.Item(0).Version <> FirmwareVersion)
-                'Else
-                '    Return Nothing
-                'End If
             End Get
         End Property
 
@@ -514,16 +500,14 @@ Namespace DuneUtilities
         ''' Scans the network and retrieves a collection of all Dune devices.
         ''' </summary>
         ''' <param name="ignoreNonSigmaNic">Specifies whether to ignore devices whose network card is not made by Sigma Designs.</param>
-        Public Shared Function Scan(ignoreNonSigmaNic As Boolean) As Dune()
+        Public Shared Iterator Function Scan(ignoreNonSigmaNic As Boolean) As IEnumerable(Of Dune)
             Dim dunes As New ArrayList
 
             For Each device As Networking.NetworkDevice In Networking.NetworkDevice.Scan
                 If device.IsDune(ignoreNonSigmaNic) Then
-                    dunes.Add(New Dune(device.Host.HostName))
+                    Yield New Dune(device.Host.HostName)
                 End If
             Next
-
-            Return DirectCast(dunes.ToArray(GetType(Dune)), Dune())
         End Function
 
         ''' <summary>
@@ -1564,6 +1548,9 @@ Namespace DuneUtilities
             End Set
         End Property
 
+        ''' <summary>
+        ''' Gets the file name for the current playback.
+        ''' </summary>
         <DisplayName("Playback name")>
         <Description("Indicates the file that is currently playing.")>
         <Category("Playback information")>
@@ -2084,24 +2071,6 @@ Namespace DuneUtilities
             Dim command As New GetTextCommand(Me)
             Return ProcessCommand(command)
         End Function
-
-        ' ''' <summary>
-        ' ''' Tries to get text from the selected text input field.
-        ' ''' </summary>
-        ' ''' <param name="text">The string variable that will be populated with text from the input field.</param>
-        ' ''' <returns>True if text is returned; otherwise false.</returns>
-        ' ''' <remarks>I felt that this function is necessary because cmd=get_text is basically the same as a cmd=status, yet can return command errors.</remarks>
-        'Public Function TryGetText(ByRef text As String) As Boolean
-        '    Dim command As New GetTextCommand(Me)
-        '    Dim result As CommandResult = ProcessCommand(command, True)
-        '    If result.CommandStatus <> Constants.Status.Failed Then
-        '        text = result.Text
-        '        Return True
-        '    Else
-        '        Return False
-        '    End If
-        'End Function
-
 
         ''' <summary>
         ''' Sets text to the selected text input field, if any.

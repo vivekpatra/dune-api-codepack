@@ -684,8 +684,8 @@ Namespace DuneUtilities.ApiWrappers
         ''' <param name="result">The command results to compare with this instance.</param>
         ''' <returns>String array containing the names of properties that are different.</returns>
         ''' <remarks>This is intended as a helper function for implementing INotifyPropertyUpdated.</remarks>
-        Public Function GetDifferences(result As CommandResult) As String()
-            Dim differences As New ArrayList
+        Public Function GetDifferences(result As CommandResult) As IList(Of String)
+            Dim differences As New List(Of String)
 
             If ProtocolVersion <> result.ProtocolVersion Then
                 differences.Add("ProtocolVersion")
@@ -842,7 +842,7 @@ Namespace DuneUtilities.ApiWrappers
                 End If
             End If
 
-            Return DirectCast(differences.ToArray(GetType(String)), String())
+            Return differences
         End Function
 
 #End Region ' Methods
