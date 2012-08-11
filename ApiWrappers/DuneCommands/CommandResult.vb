@@ -536,7 +536,7 @@ Namespace DuneUtilities.ApiWrappers
                 _textAvailable = RawData.AllKeys.Contains(Constants.CommandResultParameterNames.Text)
             End If
 
-            ' loop through the remaining paremeters
+            ' loop through the remaining parameters
             Parallel.ForEach(RawData.AllKeys, Sub(key As String)
                                                   Dim parameterName As String = key
                                                   Dim parameterValue As String = RawData.Get(key)

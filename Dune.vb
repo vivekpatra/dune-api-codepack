@@ -468,7 +468,7 @@ Namespace DuneUtilities
                 If _statusUpdater Is Nothing Then
                     _statusUpdater = New Timer
                     _statusUpdater.AutoReset = False
-                    _statusUpdater.Interval = 100
+                    _statusUpdater.Interval = 250
                     AddHandler _statusUpdater.Elapsed, AddressOf StatusUpdater_elapsed
                 End If
 

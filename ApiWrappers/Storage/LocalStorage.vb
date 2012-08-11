@@ -284,8 +284,9 @@ Namespace Sources
 
         Public Shared Iterator Function FromHost(host As DuneApiCodePack.DuneUtilities.Dune) As IEnumerable(Of LocalStorage)
             Dim client As New FtpClient(host)
+            Dim shares() As String = client.ListDirectory(client.Root)
 
-            For Each directory As String In client.ListDirectory(client.Root)
+            For Each directory As String In shares
                 Yield New LocalStorage(host, directory)
             Next
         End Function

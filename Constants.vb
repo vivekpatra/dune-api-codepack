@@ -182,7 +182,7 @@ Public NotInheritable Class Constants
         ''' <summary>Indicates whether a DVD menu is currently shown.</summary>
         Public Const PlaybackDvdMenu As String = "playback_dvd_menu"
         ''' <summary>Indicates whether a Blu-ray menu is currently shown.</summary>
-        Public Const PlaybackBlurayMenu As String = "playback_bluray_menu"
+        Public Const PlaybackBlurayMenu As String = "playback_bluray_dmenu"
         ''' <summary>Indicates the playback volume percentage (0 to 150).</summary>
         ''' <remarks>This parameter was new in version 2.</remarks>
         Public Const PlaybackVolume As String = "playback_volume"
