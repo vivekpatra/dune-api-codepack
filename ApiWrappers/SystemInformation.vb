@@ -24,7 +24,9 @@ Namespace DuneUtilities.ApiWrappers
     Public Class SystemInformation
 
         Private _host As Dune
-        Private _firmwareVersion As String
+        Private _firmware As FirmwareProperties
+        Private _latestFirmware As FirmwareProperties
+        Private _availableFirmwares As List(Of FirmwareProperties)
         Private _serialNumber As String
         Private _productId As String
         Private _bootTime As Date
@@ -33,9 +35,42 @@ Namespace DuneUtilities.ApiWrappers
             _host = host
         End Sub
 
-        Public ReadOnly Property FirmareVersion As String
+        Public ReadOnly Property Firmware As FirmwareProperties
             Get
-                Return _firmwareVersion
+                Return _firmware
+            End Get
+        End Property
+
+        Public ReadOnly Property AvailableFirmwares As ReadOnlyCollection(Of FirmwareProperties)
+            Get
+                If _availableFirmwares Is Nothing Then
+                    If ProductId.IsNotNullOrEmpty Then
+                        _availableFirmwares = FirmwareProperties.GetAvailableFirmwares(ProductId).ToList
+                    Else
+                        _availableFirmwares = New List(Of FirmwareProperties)
+                    End If
+                End If
+
+                Return _availableFirmwares.AsReadOnly
+            End Get
+        End Property
+
+        Public ReadOnly Property LastestFirmware As FirmwareProperties
+            Get
+                If _latestFirmware Is Nothing And AvailableFirmwares.Count > 0 Then
+                    _latestFirmware = AvailableFirmwares.OrderByDescending(Function(firmware) firmware.BuildDate).First
+                End If
+                Return _latestFirmware
+            End Get
+        End Property
+
+        Public ReadOnly Property UpdateAvailable As Boolean?
+            Get
+                If Firmware IsNot Nothing And AvailableFirmwares.Count > 0 Then
+                    Return Firmware.Version <> LastestFirmware.Version
+                Else
+                    Return Nothing
+                End If
             End Get
         End Property
 
@@ -84,7 +119,7 @@ Namespace DuneUtilities.ApiWrappers
         Public Sub Clear()
             _productId.Clear()
             _serialNumber.Clear()
-            _firmwareVersion.Clear()
+            _firmware = Nothing
             _bootTime = Nothing
         End Sub
 
@@ -94,14 +129,19 @@ Namespace DuneUtilities.ApiWrappers
         Private Sub GetSysinfo()
             Try
                 Dim file As String = Host.TelnetClient.ExecuteCommand("cat /tmp/sysinfo.txt")
-                Dim split() As String = {"product_id: ", "serial_number: ", "firmware_version: "}
 
-                Dim info() As String = file.Split(split, StringSplitOptions.RemoveEmptyEntries)
+                If Not file.Contains("No such file or directory") Then
+                    Dim split() As String = {"product_id: ", "serial_number: ", "firmware_version: "}
 
-                _productId = info(0).TrimEnd
-                _serialNumber = info(1).TrimEnd
-                _firmwareVersion = info(2).TrimEnd
-            Catch ex As Exception
+                    Dim info() As String = file.Split(split, StringSplitOptions.RemoveEmptyEntries)
+
+                    _productId = info(0).TrimEnd
+                    _serialNumber = info(1).TrimEnd
+
+                    Dim firmware = info(2).TrimEnd
+                    _firmware = FirmwareProperties.Create(_productId, firmware)
+                End If
+            Catch ex As Net.Sockets.SocketException
                 Console.WriteLine("GetSysinfo error: " + ex.Message)
             End Try
         End Sub
@@ -116,7 +156,7 @@ Namespace DuneUtilities.ApiWrappers
                 Dim uptime As TimeSpan = TimeSpan.FromSeconds(Double.Parse(uptimeSeconds))
 
                 _bootTime = Now.Subtract(uptime)
-            Catch ex As Exception
+            Catch ex As Net.Sockets.SocketException
                 Console.WriteLine("GetBootTime error: " + ex.Message)
             End Try
         End Sub

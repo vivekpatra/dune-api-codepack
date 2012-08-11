@@ -28,9 +28,10 @@ Namespace DuneUtilities.ApiWrappers
     ''' Provides information about firmware versions.
     ''' </summary>
     Public Class FirmwareProperties
-        Private Const BaseUri As String = "http://dune-hd.com/firmware/online_upgrade/" ' + productid.txt
+        Private Const api As String = "http://dune-hd.com/firmware/online_upgrade/" ' + productid.txt
 
-        Private _firmware As String
+        Private _public As Boolean
+        Private _version As String
         Private _uncompressedLocation As Uri
         Private _uncompressedLength As Long
         Private _gzipLocation As Uri
@@ -39,24 +40,53 @@ Namespace DuneUtilities.ApiWrappers
         Private _zipLength As Long
         Private _beta As Boolean
         Private _approximateLength As Integer
+        Private _buildDate As Date
+
+        Private Sub New()
+            ' default constructor
+        End Sub
+
+        Public Shared Function Create(product As String, version As String) As FirmwareProperties
+            If product.IsNullOrWhiteSpace Then
+                Throw New ArgumentNullException("product")
+            ElseIf version.IsNullOrWhiteSpace Then
+                Throw New ArgumentNullException("version")
+            End If
+
+            Dim firmware = GetAvailableFirmwares(product).Where(Function(fw) fw.Version = version).FirstOrDefault
+
+            If firmware Is Nothing Then
+                If version.ToLowerInvariant.Contains("devel") Then
+                    MsgBox("A developer firmware?? WHO ARE YOU?")
+                End If
+                firmware = New FirmwareProperties()
+
+                With firmware
+                    ._public = False
+                    ._version = version
+                    ._approximateLength = -1
+                    ._uncompressedLength = -1
+                    ._gzipLength = -1
+                    ._zipLength = -1
+                    ._beta = version.ToLowerInvariant.Contains("beta")
+                End With
+            End If
+
+            Return firmware
+        End Function
 
         Private Sub New(firmware As String)
-            Dim pieces() As String = firmware.Split(Convert.ToChar(32))
+            Dim pieces() As String = firmware.Split(" "c)
 
-            _firmware = pieces(0)
+            _version = pieces(0)
 
             _gzipLocation = New Uri(pieces(1))
             _zipLocation = New Uri(pieces(1).Replace(".gz", ".zip"))
             _uncompressedLocation = New Uri(pieces(1).Replace(".gz", String.Empty))
-
-            Dim t1 As Action = Sub() _gzipLength = GetSize(_gzipLocation)
-            Dim t2 As Action = Sub() _zipLength = GetSize(_zipLocation)
-            Dim t3 As Action = (Sub() _uncompressedLength = GetSize(_uncompressedLocation))
-
-            Parallel.Invoke(t1, t2, t3)
-
             _beta = String.Equals(pieces(2), "non-stable")
             _approximateLength = CInt(Integer.Parse(pieces(3)) / 2)
+
+            _public = True
         End Sub
 
         ''' <summary>
@@ -65,7 +95,7 @@ Namespace DuneUtilities.ApiWrappers
         <Category("Firmware information")>
         Public Property Version As String
             Get
-                Return _firmware
+                Return _version
             End Get
             Set(value As String)
                 Throw New ArgumentException("Please don't try to change this value!")
@@ -101,14 +131,10 @@ Namespace DuneUtilities.ApiWrappers
         <DisplayName("Date")>
         Public ReadOnly Property BuildDate As Date
             Get
-                Dim dt As Date
-                Dim format As String = "yyMMdd_HHmm"
-
-                If DateTime.TryParseExact(Version.Substring(0, format.Length), format, Globalization.CultureInfo.InvariantCulture, Globalization.DateTimeStyles.None, dt) Then
-                    Return dt
-                Else
-                    Return Nothing
+                If _buildDate = Nothing Then
+                    _buildDate = GetBuildDate(Me.Version)
                 End If
+                Return _buildDate
             End Get
         End Property
 
@@ -130,23 +156,10 @@ Namespace DuneUtilities.ApiWrappers
         <DisplayName("Size (bytes)")>
         Public ReadOnly Property UncompressedLength As Long
             Get
+                If _uncompressedLength = 0 Then
+                    _uncompressedLength = GetLength(_uncompressedLocation)
+                End If
                 Return _uncompressedLength
-            End Get
-        End Property
-
-        <Category("Uncompressed")>
-        <DisplayName("Size (kibibytes)")>
-        Public ReadOnly Property UncompressedLengthKibibyte As Double
-            Get
-                Return UncompressedLength / 1024
-            End Get
-        End Property
-
-        <Category("Uncompressed")>
-        <DisplayName("Size (mebibytes)")>
-        Public ReadOnly Property UncompressedLengthMebibyte As Double
-            Get
-                Return UncompressedLengthKibibyte / 1024
             End Get
         End Property
 
@@ -168,23 +181,10 @@ Namespace DuneUtilities.ApiWrappers
         <DisplayName("Size (bytes)")>
         Public ReadOnly Property ZipLength As Long
             Get
+                If _zipLength = 0 Then
+                    _zipLength = GetLength(_zipLocation)
+                End If
                 Return _zipLength
-            End Get
-        End Property
-
-        <Category("Zip")>
-        <DisplayName("Size (kibibytes)")>
-        Public ReadOnly Property ZipLengthKibibyte As Double
-            Get
-                Return ZipLength / 1024
-            End Get
-        End Property
-
-        <Category("Zip")>
-        <DisplayName("Size (mebibytes)")>
-        Public ReadOnly Property ZipLengthMebibyte As Double
-            Get
-                Return ZipLengthKibibyte / 1024
             End Get
         End Property
 
@@ -206,23 +206,10 @@ Namespace DuneUtilities.ApiWrappers
         <DisplayName("Size (bytes)")>
         Public ReadOnly Property GzipLength As Long
             Get
+                If _gzipLength = 0 Then
+                    _gzipLength = GetLength(_gzipLocation)
+                End If
                 Return _gzipLength
-            End Get
-        End Property
-
-        <Category("Gzip")>
-        <DisplayName("Size (kibibytes)")>
-        Public ReadOnly Property GzipLengthKibibyte As Double
-            Get
-                Return GzipLength / 1024
-            End Get
-        End Property
-
-        <Category("Gzip")>
-        <DisplayName("Size (mebibytes)")>
-        Public ReadOnly Property GzipLengthMebibyte As Double
-            Get
-                Return GzipLengthKibibyte / 1024
             End Get
         End Property
 
@@ -231,7 +218,7 @@ Namespace DuneUtilities.ApiWrappers
         ''' </summary>
         ''' <param name="file">The link to the file.</param>
         ''' <returns>The filesize in bytes.</returns>
-        Private Function GetSize(file As Uri) As Long
+        Private Shared Function GetLength(file As Uri) As Long
             Dim request As WebRequest = DirectCast(HttpWebRequest.Create(file), WebRequest)
             request.Method = "HEAD"
 
@@ -244,11 +231,22 @@ Namespace DuneUtilities.ApiWrappers
             End Try
         End Function
 
+        Private Shared Function GetBuildDate(version As String) As Date
+            Dim dt As Date
+            Dim format As String = "yyMMdd_HHmm"
+
+            If DateTime.TryParseExact(version.Substring(0, format.Length), format, Globalization.CultureInfo.InvariantCulture, Globalization.DateTimeStyles.None, dt) Then
+                Return dt
+            Else
+                Return Nothing
+            End If
+        End Function
+
         Public Shared Iterator Function GetAvailableFirmwares(product As String) As IEnumerable(Of FirmwareProperties)
             Dim results() As String
 
             Using client As New WebClient
-                Using reader As StringReader = New StringReader(client.DownloadString(New Uri(BaseUri + product + ".txt")))
+                Using reader As StringReader = New StringReader(client.DownloadString(New Uri(api + product + ".txt")))
                     Dim delimiters() As String = {vbCr, vbLf}
                     results = reader.ReadToEnd.Split(delimiters, StringSplitOptions.RemoveEmptyEntries)
                 End Using

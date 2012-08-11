@@ -24,7 +24,7 @@ Imports System.Collections.Specialized
 Namespace DuneUtilities.ApiWrappers
 
     ''' <summary>
-    ''' This class is a stub. This class is a wraps the dune_folder concept.
+    ''' This class is a stub. This class wraps the dune_folder concept.
     ''' </summary>
     <Serializable()>
     Public Class Folder

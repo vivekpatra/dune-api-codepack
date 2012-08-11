@@ -423,19 +423,11 @@ Namespace DuneUtilities
         <Category("Firmware information")>
         Public ReadOnly Property AvailableFirmwares As ReadOnlyCollection(Of FirmwareProperties)
             Get
-                If _firmwares Is Nothing Then
-                    Dim list As New List(Of FirmwareProperties)
-
-                    If ProductId.IsNotNullOrEmpty Then
-                        list.AddRange(FirmwareProperties.GetAvailableFirmwares(ProductId))
-                    Else
-                        list = New List(Of FirmwareProperties)
-                    End If
-
-                    _firmwares = list.AsReadOnly
+                If SystemInfo IsNot Nothing Then
+                    Return SystemInfo.AvailableFirmwares
+                Else
+                    Return Nothing
                 End If
-
-                Return _firmwares
             End Get
         End Property
 
@@ -447,15 +439,7 @@ Namespace DuneUtilities
         <Category("Firmware information")>
         Public ReadOnly Property UpdateAvailable As Boolean?
             Get
-                If AvailableFirmwares Is Nothing OrElse AvailableFirmwares.Count = 0 Then
-                    Return Nothing
-                Else
-                    If FirmwareVersion.IsNotNullOrEmpty Then
-                        Return (AvailableFirmwares.First.Version <> FirmwareVersion)
-                    Else
-                        Return Nothing
-                    End If
-                End If
+                Return SystemInfo.UpdateAvailable
             End Get
         End Property
 
@@ -721,12 +705,12 @@ Namespace DuneUtilities
         <DisplayName("Firmware version")>
         <Description("Indicates the installed firmware version.")>
         <Category("Firmware information")>
-        Public ReadOnly Property FirmwareVersion As String
+        Public ReadOnly Property FirmwareVersion As FirmwareProperties
             Get
                 If SystemInfo IsNot Nothing Then
-                    Return SystemInfo.FirmareVersion
+                    Return SystemInfo.Firmware
                 Else
-                    Return String.Empty
+                    Return Nothing
                 End If
             End Get
         End Property
