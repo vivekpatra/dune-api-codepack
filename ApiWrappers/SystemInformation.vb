@@ -165,6 +165,7 @@ Namespace DuneUtilities.ApiWrappers
             Clear()
             GetSysinfo()
             GetBootTime()
+            _availableFirmwares = FirmwareProperties.GetAvailableFirmwares(ProductId).ToList
         End Sub
 
     End Class

@@ -60,6 +60,22 @@ Public Class PlayerStateConverter
                 Return CObj("Loading")
             Case Constants.PlayerStateValues.SafeMode
                 Return CObj("Safe mode")
+            Case Constants.PlayerStateValues.IndexSetup
+                Return CObj("Index setup")
+            Case Constants.PlayerStateValues.GenericSetup
+                Return CObj("Generic setup")
+            Case Constants.PlayerStateValues.VideoSetup
+                Return CObj("Video setup")
+            Case Constants.PlayerStateValues.NetworkSetup
+                Return CObj("Network setup")
+            Case Constants.PlayerStateValues.TorrentSetup
+                Return CObj("Torrent setup")
+            Case Constants.PlayerStateValues.SystemStorageSetup
+                Return CObj("System storage setup")
+            Case Constants.PlayerStateValues.FirmwareUpgradeSetup
+                Return CObj("Firmware upgrade setup")
+            Case Constants.PlayerStateValues.SystemInformation
+                Return CObj("System information")
             Case Else
                 Return MyBase.ConvertTo(context, culture, value, destinationType)
         End Select

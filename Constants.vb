@@ -338,6 +338,16 @@ Public NotInheritable Class Constants
         Public Const Upgrade As String = "upgrade"
         Public Const BlackScreen As String = "black_screen"
         Public Const TorrentDownloads As String = "torrent_downloads"
+        ' The constants below this line only apply to firmwares running version 1
+        Public Const IndexSetup As String = "index_setup"
+        Public Const SystemStorageSetup As String = "sysstor_setup"
+        Public Const FirmwareUpgradeSetup As String = "fw_upgrade_setup"
+        Public Const GenericSetup As String = "generic_setup"
+        Public Const SystemInformation As String = "sysinfo"
+        Public Const NetworkSetup As String = "network_setup"
+        Public Const TorrentSetup As String = "torrent_setup"
+        Public Const VideoSetup As String = "video_setup"
+
     End Class
 
     ''' <summary>

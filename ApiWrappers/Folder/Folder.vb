@@ -33,7 +33,6 @@ Namespace DuneUtilities.ApiWrappers
         ' TODO: implement dune_folder.txt functionallity
         ' http://dune-hd.com/firmware/misc/dune_folder_howto.txt
 
-        Private _location As Uri
         Private _directoryInfo As DirectoryInfo
         Private _mediaUrl As String
 
@@ -42,8 +41,9 @@ Namespace DuneUtilities.ApiWrappers
         End Sub
 
         Public Sub New(location As Uri)
-            _location = location
-            If location.IsUnc Then
+            If Not location.IsUnc Then
+                Throw New ArgumentException("Non-UNC paths are not supported.")
+            Else
                 _directoryInfo = New DirectoryInfo(location.AbsolutePath)
             End If
         End Sub
@@ -53,32 +53,18 @@ Namespace DuneUtilities.ApiWrappers
         End Sub
 
         Public Overrides Sub Delete()
-            If Location.IsUnc Then
-                Directory.Delete(Me.FullName)
-            Else
-                Throw New NotImplementedException("Can't delete non-UNC location.")
-            End If
+            Directory.Delete(Me.FullName)
         End Sub
 
         Public Overrides ReadOnly Property Exists As Boolean
             Get
-                If Location.IsUnc Then
-                    Return Directory.Exists(Me.FullName)
-                Else
-                    Throw New NotImplementedException("Can't check if non-UNC location exists.")
-                End If
+                Return Directory.Exists(Me.FullName)
             End Get
         End Property
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return Path.GetDirectoryName(Location.LocalPath)
-            End Get
-        End Property
-
-        Public ReadOnly Property Location As Uri
-            Get
-                Return _location
+                Return _directoryInfo.Name
             End Get
         End Property
 
@@ -87,7 +73,6 @@ Namespace DuneUtilities.ApiWrappers
                 Return _mediaUrl
             End Get
         End Property
-
 
         Public Shared Function GetDuneFolderSettings(path As Uri) As NameValueCollection
             Dim settings As New NameValueCollection
