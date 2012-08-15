@@ -225,8 +225,13 @@ Namespace DuneUtilities
                     For Each update As String In updates
                         RaisePropertyChanged(update)
                     Next
+
+                    If updates.Contains(Constants.CommandResultParameterNames.PlaybackState) Then
+                        RaiseEvent PlaybackStateChanged(Me, New PlaybackStateChangedEventArgs(value.PlaybackState, value.PreviousPlaybackState))
+                    End If
+
+                    RaisePropertyChanged("Status")
                 End If
-                RaisePropertyChanged("Status")
             End Set
         End Property
 
@@ -2065,6 +2070,12 @@ Namespace DuneUtilities
         End Function
 
 #End Region ' Methods v3
+
+#Region "Events"
+
+        Public Event PlaybackStateChanged(ByVal sender As Object, ByVal e As PlaybackStateChangedEventArgs)
+
+#End Region
 
 #Region "IPropertyChanging Support"
 

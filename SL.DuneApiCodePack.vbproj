@@ -119,6 +119,7 @@
     <Compile Include="FtpClient.vb" />
     <Compile Include="Networking\HttpQuery.vb" />
     <Compile Include="Networking\NetworkDevice.vb" />
+    <Compile Include="EventArgs\PlaybackStateChangedEventArgs.vb" />
     <Compile Include="RemoteControl.vb" />
     <Compile Include="Extensions\IPAddressExtensions.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
