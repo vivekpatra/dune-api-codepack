@@ -745,11 +745,12 @@ Public NotInheritable Class Constants
         End Sub
 
         Public Const Playing As String = "playing"
-        Public Const Stopped As String = "stopped"
-        Public Const Buffering As String = "buffering"
         Public Const Initializing As String = "initializing"
-        Public Const Deinitializing As String = "deinitializing"
+        Public Const Paused As String = "paused"
         Public Const Seeking As String = "seeking"
+        Public Const Stopped As String = "stopped"
+        Public Const Deinitializing As String = "deinitializing"
+        Public Const Buffering As String = "buffering"
     End Class
 
     ''' <summary>Contains constants for each possible 'last_playback_event' value.</summary>
@@ -757,10 +758,23 @@ Public NotInheritable Class Constants
         Private Sub New()
         End Sub
 
+        Public Const MediaDescriptionChanged As String = "media_description_changed"
         Public Const NoEvent As String = "no_event"
+        Public Const MediaReadStalled As String = "media_read_stalled"
+        Public Const EndOfMedia As String = "end_of_media"
         Public Const ExternalAction As String = "external_action"
-        Public Const MediaOpenFailed As String = "media_open_failed"
         Public Const MediaFormatNotSupported As String = "media_format_not_supported"
+        Public Const MediaOpenFailed As String = "media_open_failed"
+        Public Const MediaReadFailed As String = "media_read_failed"
+        Public Const MediaProtocolNotSupported As String = "media_protocol_not_supported"
+        Public Const MediaPermissionDenied As String = "media_permission_denied"
+        Public Const InternalError As String = "internal_error"
+        Public Const PlaylistChanged As String = "playlist_changed"
+        Public Const MediaChanged As String = "media_changed"
+        Public Const AudioStreamChanged As String = "audio_stream_changed"
+        Public Const SubtitleStreamChanged As String = "subtitle_stream_changed"
+        ''' <summary>If the difference between two consecutive PCR (Primary Clock Reference) values is outside the range of 100ms, this error can occur.</summary>
+        Public Const PcrDiscontinuity As String = "pcr_discontinuity"
     End Class
 
     ''' <summary>Contains constants for each possible parameter that you can specify in a 'set_text' command.</summary>
