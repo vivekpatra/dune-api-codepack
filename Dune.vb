@@ -226,7 +226,7 @@ Namespace DuneUtilities
                         RaisePropertyChanged(update)
                     Next
 
-                    If updates.Contains(Constants.CommandResultParameterNames.PlaybackState) Then
+                    If updates.Contains("PlaybackState") Then
                         RaiseEvent PlaybackStateChanged(Me, New PlaybackStateChangedEventArgs(value.PlaybackState, value.PreviousPlaybackState))
                     End If
 
