@@ -681,163 +681,98 @@ Namespace DuneUtilities.ApiWrappers
         ''' <summary>
         ''' Gets a string array of the names of properties that are not equal.
         ''' </summary>
-        ''' <param name="result">The command results to compare with this instance.</param>
+        ''' <param name="values">The values to compare.</param>
+        ''' <param name="oldValues">The old values to compare with.</param>
         ''' <returns>String array containing the names of properties that are different.</returns>
         ''' <remarks>This is intended as a helper function for implementing INotifyPropertyUpdated.</remarks>
-        Public Function GetDifferences(result As CommandResult) As IList(Of String)
+        Public Shared Function GetDifferences(values As CommandResult, oldValues As CommandResult) As IList(Of String)
             Dim differences As New List(Of String)
 
-            If ProtocolVersion <> result.ProtocolVersion Then
-                differences.Add("ProtocolVersion")
-            End If
+            If values.ProtocolVersion <> oldValues.ProtocolVersion Then differences.Add("ProtocolVersion")
 
-            If result.CommandStatus.IsNotNullOrEmpty Then ' command status is always unique (and so is the command error)
+            If oldValues.CommandStatus.IsNotNullOrEmpty Then ' command status is always unique (and so is the command error)
                 differences.Add("CommandStatus")
-                If result.ErrorKind.IsNotNullOrEmpty Then
+                If oldValues.ErrorKind.IsNotNullOrEmpty Then
                     differences.Add("ErrorKind")
                     differences.Add("ErrorDescription")
                 End If
             End If
 
-            If PlayerState <> result.PlayerState Then
-                differences.Add("PlayerState")
-            End If
+            If values.PlayerState <> oldValues.PlayerState Then differences.Add("PlayerState")
 
-            If PlaybackState <> result.PlaybackState Then
-                differences.Add("PlaybackState")
-            End If
+            If values.PlaybackState <> oldValues.PlaybackState Then differences.Add("PlaybackState")
 
-            If PreviousPlaybackState <> result.PreviousPlaybackState Then
-                differences.Add("PreviousPlaybackState")
-            End If
+            If values.PreviousPlaybackState <> oldValues.PreviousPlaybackState Then differences.Add("PreviousPlaybackState")
 
-            If LastPlaybackEvent <> result.LastPlaybackEvent Then
-                differences.Add("LastPlaybackEvent")
-            End If
+            If values.LastPlaybackEvent <> oldValues.LastPlaybackEvent Then differences.Add("LastPlaybackEvent")
 
-            If PlaybackUrl <> result.PlaybackUrl Then
-                differences.Add("PlaybackUrl")
-            End If
+            If values.PlaybackUrl <> oldValues.PlaybackUrl Then differences.Add("PlaybackUrl")
 
-            If Not Nullable.Equals(PlaybackSpeed, result.PlaybackSpeed) Then
-                differences.Add("PlaybackSpeed")
-            End If
+            If Not Nullable.Equals(values.PlaybackSpeed, oldValues.PlaybackSpeed) Then differences.Add("PlaybackSpeed")
 
-            If Not Nullable.Equals(PlaybackDuration, result.PlaybackDuration) Then
-                differences.Add("PlaybackDuration")
-            End If
+            If Not Nullable.Equals(values.PlaybackDuration, oldValues.PlaybackDuration) Then differences.Add("PlaybackDuration")
 
-            If Not Nullable.Equals(PlaybackPosition, result.PlaybackPosition) Then
+            If Not Nullable.Equals(values.PlaybackPosition, oldValues.PlaybackPosition) Then
                 differences.Add("PlaybackPosition")
                 differences.Add("PlaybackTimeRemaining")
             End If
 
-            If Not Nullable.Equals(PlaybackIsBuffering, result.PlaybackIsBuffering) Then
-                differences.Add("PlaybackIsBuffering")
-            End If
+            If Not Nullable.Equals(values.PlaybackIsBuffering, oldValues.PlaybackIsBuffering) Then differences.Add("PlaybackIsBuffering")
 
-            If Not Nullable.Equals(PlaybackVolume, result.PlaybackVolume) Then
-                differences.Add("PlaybackVolume")
-            End If
+            If Not Nullable.Equals(values.PlaybackVolume, oldValues.PlaybackVolume) Then differences.Add("PlaybackVolume")
 
-            If Not Nullable.Equals(PlaybackMute, result.PlaybackMute) Then
-                differences.Add("PlaybackMute")
-            End If
+            If Not Nullable.Equals(values.PlaybackMute, oldValues.PlaybackMute) Then differences.Add("PlaybackMute")
 
-            If Not Nullable.Equals(PlaybackVideoWidth, result.PlaybackVideoWidth) Then
-                differences.Add("PlaybackVideoWidth")
-            End If
+            If Not Nullable.Equals(values.PlaybackVideoWidth, oldValues.PlaybackVideoWidth) Then differences.Add("PlaybackVideoWidth")
 
-            If Not Nullable.Equals(PlaybackVideoHeight, result.PlaybackVideoHeight) Then
-                differences.Add("PlaybackVideoHeight")
-            End If
+            If Not Nullable.Equals(values.PlaybackVideoHeight, oldValues.PlaybackVideoHeight) Then differences.Add("PlaybackVideoHeight")
 
-            If Not Nullable.Equals(AudioTrack, result.AudioTrack) Then
-                differences.Add("AudioTrack")
-            End If
+            If Not Nullable.Equals(values.AudioTrack, oldValues.AudioTrack) Then differences.Add("AudioTrack")
 
-            If Not Nullable.Equals(SubtitlesTrack, result.SubtitlesTrack) Then
-                differences.Add("SubtitlesTrack")
-            End If
+            If Not Nullable.Equals(values.SubtitlesTrack, oldValues.SubtitlesTrack) Then differences.Add("SubtitlesTrack")
 
-            If Not Nullable.Equals(PlaybackWindowFullscreen, result.PlaybackWindowFullscreen) Then
-                differences.Add("PlaybackWindowFullscreen")
-            End If
+            If Not Nullable.Equals(values.PlaybackWindowFullscreen, oldValues.PlaybackWindowFullscreen) Then differences.Add("PlaybackWindowFullscreen")
 
-            If Not Nullable.Equals(PlaybackWindowRectangleHorizontalOffset, result.PlaybackWindowRectangleHorizontalOffset) Then
-                differences.Add("PlaybackWindowRectangleHorizontalOffset")
-            End If
+            If Not Nullable.Equals(values.PlaybackWindowRectangleHorizontalOffset, oldValues.PlaybackWindowRectangleHorizontalOffset) Then differences.Add("PlaybackWindowRectangleHorizontalOffset")
 
-            If Not Nullable.Equals(PlaybackWindowRectangleVerticalOffset, result.PlaybackWindowRectangleVerticalOffset) Then
-                differences.Add("PlaybackWindowRectangleVerticalOffset")
-            End If
+            If Not Nullable.Equals(values.PlaybackWindowRectangleVerticalOffset, oldValues.PlaybackWindowRectangleVerticalOffset) Then differences.Add("PlaybackWindowRectangleVerticalOffset")
 
-            If Not Nullable.Equals(PlaybackWindowRectangleWidth, result.PlaybackWindowRectangleWidth) Then
-                differences.Add("PlaybackWindowRectangleWidth")
-            End If
+            If Not Nullable.Equals(values.PlaybackWindowRectangleWidth, oldValues.PlaybackWindowRectangleWidth) Then differences.Add("PlaybackWindowRectangleWidth")
 
-            If Not Nullable.Equals(PlaybackWindowRectangleHeight, result.PlaybackWindowRectangleHeight) Then
-                differences.Add("PlaybackWindowRectangleHeight")
-            End If
+            If Not Nullable.Equals(values.PlaybackWindowRectangleHeight, oldValues.PlaybackWindowRectangleHeight) Then differences.Add("PlaybackWindowRectangleHeight")
 
-            If Not Nullable.Equals(PlaybackClipRectangleHorizontalOffset, result.PlaybackClipRectangleHorizontalOffset) Then
-                differences.Add("PlaybackClipRectangleHorizontalOffset")
-            End If
+            If Not Nullable.Equals(values.PlaybackClipRectangleHorizontalOffset, oldValues.PlaybackClipRectangleHorizontalOffset) Then differences.Add("PlaybackClipRectangleHorizontalOffset")
 
-            If Not Nullable.Equals(PlaybackClipRectangleVerticalOffset, result.PlaybackClipRectangleVerticalOffset) Then
-                differences.Add("PlaybackClipRectangleVerticalOffset")
-            End If
+            If Not Nullable.Equals(values.PlaybackClipRectangleVerticalOffset, oldValues.PlaybackClipRectangleVerticalOffset) Then differences.Add("PlaybackClipRectangleVerticalOffset")
 
-            If Not Nullable.Equals(PlaybackClipRectangleWidth, result.PlaybackClipRectangleWidth) Then
-                differences.Add("PlaybackClipRectangleWidth")
-            End If
+            If Not Nullable.Equals(values.PlaybackClipRectangleWidth, oldValues.PlaybackClipRectangleWidth) Then differences.Add("PlaybackClipRectangleWidth")
 
-            If Not Nullable.Equals(PlaybackClipRectangleHeight, result.PlaybackClipRectangleHeight) Then
-                differences.Add("PlaybackClipRectangleHeight")
-            End If
+            If Not Nullable.Equals(values.PlaybackClipRectangleHeight, oldValues.PlaybackClipRectangleHeight) Then differences.Add("PlaybackClipRectangleHeight")
 
-            If Not Nullable.Equals(OnScreenDisplayWidth, result.OnScreenDisplayWidth) Then
-                differences.Add("OnScreenDisplayWidth")
-            End If
+            If Not Nullable.Equals(values.OnScreenDisplayWidth, oldValues.OnScreenDisplayWidth) Then differences.Add("OnScreenDisplayWidth")
 
-            If Not Nullable.Equals(OnScreenDisplayHeight, result.OnScreenDisplayHeight) Then
-                differences.Add("OnScreenDisplayHeight")
-            End If
+            If Not Nullable.Equals(values.OnScreenDisplayHeight, oldValues.OnScreenDisplayHeight) Then differences.Add("OnScreenDisplayHeight")
 
-            If Not Nullable.Equals(VideoEnabled, result.VideoEnabled) Then
-                differences.Add("VideoEnabled")
-            End If
+            If Not Nullable.Equals(values.VideoEnabled, oldValues.VideoEnabled) Then differences.Add("VideoEnabled")
 
-            If Not Nullable.Equals(VideoOnTop, result.VideoOnTop) Then
-                differences.Add("VideoOnTop")
-            End If
+            If Not Nullable.Equals(values.VideoOnTop, oldValues.VideoOnTop) Then differences.Add("VideoOnTop")
 
-            If VideoZoom <> result.VideoZoom Then
-                differences.Add("VideoZoom")
-            End If
+            If Not String.Equals(values.VideoZoom, oldValues.VideoZoom, StringComparison.InvariantCultureIgnoreCase) Then differences.Add("VideoZoom")
 
-            If Not Nullable.Equals(PlaybackDvdMenu, result.PlaybackDvdMenu) Then
-                differences.Add("PlaybackDvdMenu")
-            End If
+            If Not Nullable.Equals(values.PlaybackDvdMenu, oldValues.PlaybackDvdMenu) Then differences.Add("PlaybackDvdMenu")
 
-            If Not Nullable.Equals(PlaybackBlurayMenu, result.PlaybackBlurayMenu) Then
-                differences.Add("PlaybackBlurayMenu")
-            End If
+            If Not Nullable.Equals(values.PlaybackBlurayMenu, oldValues.PlaybackBlurayMenu) Then differences.Add("PlaybackBlurayMenu")
 
-            If Not AudioTracks.SequenceEqual(result.AudioTracks) Then
-                differences.Add("AudioTracks")
-            End If
+            If Not values.AudioTracks.SequenceEqual(oldValues.AudioTracks) Then differences.Add("AudioTracks")
 
-            If Not Subtitles.SequenceEqual(result.Subtitles) Then
-                differences.Add("Subtitles")
-            End If
+            If Not values.Subtitles.SequenceEqual(oldValues.Subtitles) Then differences.Add("Subtitles")
 
-            If TextAvailable.HasValue AndAlso result.TextAvailable.HasValue Then
-                If Not Nullable.Equals(TextAvailable, result.TextAvailable) Then
+            If values.TextAvailable.HasValue AndAlso oldValues.TextAvailable.HasValue Then
+                If Not Nullable.Equals(values.TextAvailable, oldValues.TextAvailable) Then
                     differences.Add("TextAvailable")
                 End If
 
-                If Text <> result.Text Then
+                If Not String.Equals(values.Text, oldValues.Text, StringComparison.CurrentCulture) Then
                     differences.Add("Text")
                 End If
             End If

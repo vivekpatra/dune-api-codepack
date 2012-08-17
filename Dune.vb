@@ -215,14 +215,17 @@ Namespace DuneUtilities
                 RaisePropertyChanging("Status")
                 If Status Is Nothing Then
                     _status = value
-                Else
-                    Dim updates = Status.GetDifferences(value)
+                Else ' notify updated values
+                    Dim updates = CommandResult.GetDifferences(value, _status)
 
-                    For Each update As String In updates
+                    For Each update As String In updates ' notify changing values
                         RaisePropertyChanging(update)
                     Next
+
+                    ' set the new values
                     _status = value
-                    For Each update As String In updates
+
+                    For Each update As String In updates ' notify changed values
                         RaisePropertyChanged(update)
                     Next
 
@@ -1507,6 +1510,7 @@ Namespace DuneUtilities
         <DisplayName("Last playback event")>
         <Description("Indicates the last playback event.")>
         <Category("Player information")>
+        <TypeConverter(GetType(PlaybackEventConverter))>
         Public ReadOnly Property LastPlaybackEvent As String
             Get
                 If IsConnected Then
