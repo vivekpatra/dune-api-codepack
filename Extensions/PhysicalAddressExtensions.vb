@@ -32,5 +32,11 @@ Namespace Extensions
             Return BitConverterExtensions.ToString(address, delimiter)
         End Function
 
+
+        <Extension()>
+        Public Function GetVendorInfo(value As PhysicalAddress) As DuneApiCodePack.Networking.NetworkCardVendorInfo
+            Return New DuneApiCodePack.Networking.NetworkCardVendorInfo(value)
+        End Function
+
     End Module
 End Namespace

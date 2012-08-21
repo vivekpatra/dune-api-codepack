@@ -32,7 +32,7 @@ Namespace Networking
 
         Private _ipAddress As IPAddress
         Private _physicalAddress As PhysicalAddress
-        Private _vendor As NetworkCardVendor
+        Private _vendor As NetworkCardVendorInfo
 
 
         Public Sub New(address As IPAddress)
@@ -70,10 +70,10 @@ Namespace Networking
         ''' <summary>
         ''' Gets information about the network card's vendor.
         ''' </summary>
-        Public ReadOnly Property Vendor As NetworkCardVendor
+        Public ReadOnly Property Vendor As NetworkCardVendorInfo
             Get
                 If _vendor Is Nothing Then
-                    _vendor = New NetworkCardVendor(_physicalAddress)
+                    _vendor = New NetworkCardVendorInfo(_physicalAddress)
                 End If
                 Return _vendor
             End Get

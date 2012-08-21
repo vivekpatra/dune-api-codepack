@@ -23,7 +23,7 @@ Imports System.IO
 
 Namespace Networking
 
-    Public Class NetworkCardVendor
+    Public Class NetworkCardVendorInfo
 
         Private Const ApiBaseUri As String = "http://www.macvendorlookup.com/api/"
         Private Const ApiKey As String = "BOWGGVM" ' get your own damn key if you want to use this API outside this class!
@@ -39,7 +39,7 @@ Namespace Networking
         End Sub
 
         ''' <summary>
-        ''' Gets vendor information from the OUI database based on the supplied hardware address.
+        ''' Gets vendor information from the OUI database based on the specified hardware address.
         ''' </summary>
         ''' <param name="physicalAddress">The MAC address to look up.</param>
         Private Sub GetResults(physicalAddress As PhysicalAddress)
@@ -48,17 +48,16 @@ Namespace Networking
             Try
                 Using client As New WebClient()
                     Dim request As New Uri(ApiBaseUri + ApiKey + "/" + physicalAddress.ToString)
+                    Dim results() As String = client.DownloadString(request).Split("|"c)
 
-                    Dim results As String = client.DownloadString(request)
-
-                    _company = results.Split(delimiter).GetValue(0).ToString
-                    _department = results.Split(delimiter).GetValue(1).ToString
-                    _address1 = results.Split(delimiter).GetValue(2).ToString
-                    _address2 = results.Split(delimiter).GetValue(3).ToString
-                    _country = results.Split(delimiter).GetValue(4).ToString
+                    _company = results(0)
+                    _department = results(1)
+                    _address1 = results(2)
+                    _address2 = results(3)
+                    _country = results(4)
                 End Using
-            Catch ex As Exception
-                Console.WriteLine("Couldn't get information from the OUI database: " + ex.Message)
+            Catch ex As WebException
+                Console.WriteLine("macvendorlookup: " + ex.Message)
             End Try
         End Sub
 

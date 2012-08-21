@@ -141,7 +141,7 @@
     <Compile Include="NativeMethods\NativeMethods.vb" />
     <Compile Include="Dune.vb" />
     <Compile Include="Networking\NetworkAdapterInfo.vb" />
-    <Compile Include="Networking\NetworkCardVendor.vb" />
+    <Compile Include="Networking\NetworkCardVendorInfo.vb" />
     <Compile Include="Playlist.vb" />
     <Compile Include="Telnet\TelnetClient.vb" />
   </ItemGroup>

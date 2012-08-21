@@ -2115,9 +2115,9 @@ Namespace DuneUtilities
         Protected Overridable Sub Dispose(disposing As Boolean)
             If Not Me.disposedValue Then
                 If disposing Then
-                    _telnetClient.Dispose()
-                    _statusUpdater.Dispose()
-                    _textUpdater.Dispose()
+                    If _telnetClient IsNot Nothing Then _telnetClient.Dispose()
+                    If _statusUpdater IsNot Nothing Then _statusUpdater.Dispose()
+                    If _textUpdater IsNot Nothing Then _textUpdater.Dispose()
                 End If
 
                 _telnetClient = Nothing
