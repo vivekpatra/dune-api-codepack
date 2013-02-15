@@ -1,5 +1,5 @@
 ﻿#Region "License"
-' Copyright 2012 Steven Liekens
+' Copyright 2012-2013 Steven Liekens
 ' Contact: steven.liekens@gmail.com
 
 ' This file is part of DuneApiCodepack.
@@ -43,32 +43,32 @@ Namespace Sources
         ''' This constructor tries to derive the storage name, storage caption and storage UUID from the specified path.
         ''' The path does not have to be existent so it can be spoofed.
         ''' </remarks>
-        Public Sub New(host As IPHostEntry, path As FileSystemInfo)
+        Public Sub New(host As IPAddress, path As IO.FileSystemInfo)
             MyBase.New(host)
-            Dim root As DirectoryInfo = path.GetRoot
+            Dim root As IO.DirectoryInfo = path.GetRoot
             _name = root.Name
 
             ParseStorageDetails(root)
         End Sub
 
         Public Sub New(host As Dune, storageName As String)
-            MyBase.New(host.HostEntry)
+            MyBase.New(host.EndPoint.Address)
 
             _name = storageName
 
             Dim hostNameOrAddress As String
-            If host.Address IsNot Nothing Then
-                hostNameOrAddress = host.Address.ToString
+            If host.EndPoint IsNot Nothing Then
+                hostNameOrAddress = host.EndPoint.Address.ToString
             Else
                 hostNameOrAddress = host.HostName
             End If
 
-            Dim root As New DirectoryInfo(String.Concat("\\", hostNameOrAddress, "\", storageName))
+            Dim root As New IO.DirectoryInfo(String.Concat("\\", hostNameOrAddress, "\", storageName))
 
             ParseStorageDetails(Root)
         End Sub
 
-        Private Sub ParseStorageDetails(root As FileSystemInfo)
+        Private Sub ParseStorageDetails(root As IO.FileSystemInfo)
             _root = root.ToDirectoryInfo
             If _root.Exists Then
                 Dim settings As Dictionary(Of String, String) = GetDuneFolderSettings()
@@ -87,7 +87,7 @@ Namespace Sources
                 Dim uuidIndex As Integer
                 Dim pieces() As String = _name.Split("_"c)
 
-                If IsNumeric(pieces(2)) Then ' this is not the first usb_storage or optical_drive without a label
+                If Double.TryParse(pieces(2), New Double) Then ' this is not the first usb_storage or optical_drive without a label
                     uuidIndex = pieces(0).Length + pieces(1).Length + pieces(2).Length + 3
                 Else ' everything after the second underscore is a UUID
                     uuidIndex = pieces(0).Length + pieces(1).Length + 2
@@ -160,11 +160,11 @@ Namespace Sources
         ''' </summary>
         ''' <param name="path">The UNC path which needs to be converted.</param>
         ''' <returns>The media URL in 'storage_name://actual_value/path[/file[.extension]]' format.</returns>
-        Public Function GetMediaUrlFromStorageName(path As FileSystemInfo) As String
+        Public Function GetMediaUrlFromStorageName(path As IO.FileSystemInfo) As String
             If String.IsNullOrWhiteSpace(StorageName) Then
                 Throw New System.Configuration.ConfigurationErrorsException("Storage name is not specified!")
             Else
-                Dim container As New DirectoryInfo(path.FullName)
+                Dim container As New IO.DirectoryInfo(path.FullName)
 
                 Dim prefix As String = "storage_name://" + StorageName
                 Dim suffix As String = path.FullName.Replace(container.Root.FullName, String.Empty).Replace("\"c, "/"c)
@@ -192,11 +192,11 @@ Namespace Sources
         ''' </summary>
         ''' <param name="path">The UNC path which needs to be converted.</param>
         ''' <returns>The media URL in 'storage_label://actual_value/path[/file[.extension]]' format.</returns>
-        Public Function GetMediaUrlFromStorageLabel(path As FileSystemInfo) As String
+        Public Function GetMediaUrlFromStorageLabel(path As IO.FileSystemInfo) As String
             If String.IsNullOrWhiteSpace(StorageLabel) Then
                 Throw New System.Configuration.ConfigurationErrorsException("Storage label is not specified!")
             Else
-                Dim container As New DirectoryInfo(path.FullName)
+                Dim container As New IO.DirectoryInfo(path.FullName)
 
                 Dim prefix As String = "storage_label://" + StorageLabel
                 Dim suffix As String = path.FullName.Replace(container.Root.FullName, String.Empty).Replace("\"c, "/"c)
@@ -210,7 +210,7 @@ Namespace Sources
         ''' <param name="path">The UNC path which needs to be converted.</param>
         ''' <param name="mediaUrl">The string variable that will contain the media URL if the method call is successful.</param>
         ''' <returns>True if the call was successful; otherwise false.</returns>
-        Public Function TryGetMediaUrlFromStorageLabel(path As FileSystemInfo, ByRef mediaUrl As String) As Boolean
+        Public Function TryGetMediaUrlFromStorageLabel(path As IO.FileSystemInfo, ByRef mediaUrl As String) As Boolean
             If String.IsNullOrWhiteSpace(StorageLabel) Then
                 Return False
             Else
@@ -224,11 +224,11 @@ Namespace Sources
         ''' </summary>
         ''' <param name="path">The UNC path which needs to be converted.</param>
         ''' <returns>The media URL in 'storage_uuid://actual_value/path[/file[.extension]]' format.</returns>
-        Public Function GetMediaUrlFromStorageUuid(path As FileSystemInfo) As String
+        Public Function GetMediaUrlFromStorageUuid(path As IO.FileSystemInfo) As String
             If String.IsNullOrWhiteSpace(StorageUuid) Then
                 Throw New System.Configuration.ConfigurationErrorsException("Storage UUID is not specified!")
             Else
-                Dim container As New DirectoryInfo(path.FullName)
+                Dim container As New IO.DirectoryInfo(path.FullName)
 
                 Dim prefix As String = "storage_uuid://" + StorageUuid
                 Dim suffix As String = path.FullName.Replace(container.Root.FullName, String.Empty).Replace("\"c, "/"c)
@@ -264,7 +264,7 @@ Namespace Sources
                 settings = New Dictionary(Of String, String)
 
                 Do Until reader.EndOfStream
-                    If ChrW(reader.Peek) = "#"c Then ' ignore comment
+                    If Convert.ToChar(reader.Peek) = "#"c Then ' ignore comment
                         reader.ReadLine()
                     Else ' get name=value pair
                         Dim nameValuePair As String = reader.ReadLine
@@ -282,7 +282,7 @@ Namespace Sources
             Return settings
         End Function
 
-        Public Shared Iterator Function FromHost(host As DuneApiCodePack.DuneUtilities.Dune) As IEnumerable(Of LocalStorage)
+        Public Shared Iterator Function FromHost(host As Dune) As IEnumerable(Of LocalStorage)
             Dim client As New FtpClient(host)
             Dim shares() As String = client.ListDirectory(client.Root)
 

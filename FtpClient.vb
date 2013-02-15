@@ -1,5 +1,5 @@
 ﻿#Region "License"
-' Copyright 2012 Steven Liekens
+' Copyright 2012-2013 Steven Liekens
 ' Contact: steven.liekens@gmail.com
 
 ' This file is part of DuneApiCodepack.
@@ -29,8 +29,8 @@ Public Class FtpClient
 
     Public Sub New(target As Dune)
         _target = target
-        If target.Address IsNot Nothing Then
-            _root = New Uri("ftp://" + target.Address.ToString + "/")
+        If target.EndPoint IsNot Nothing Then
+            _root = New Uri("ftp://" + target.EndPoint.Address.ToString + "/")
         Else
             _root = New Uri("ftp://" + target.HostName + "/")
         End If

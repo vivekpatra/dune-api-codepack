@@ -1,5 +1,5 @@
 ﻿#Region "License"
-' Copyright 2012 Steven Liekens
+' Copyright 2012-2013 Steven Liekens
 ' Contact: steven.liekens@gmail.com
 
 ' This file is part of DuneApiCodepack.
@@ -36,7 +36,7 @@ Imports System.Runtime.InteropServices
 <Assembly: AssemblyCopyright("steven.liekens@gmail.com")> 
 <Assembly: AssemblyTrademark("")> 
 
-<Assembly: ComVisible(False)> 
+<Assembly: ComVisible(True)> 
 
 'The following GUID is for the ID of the typelib if this project is exposed to COM
 <Assembly: Guid("cb93143f-3054-46cb-b350-ed2a0377b68c")> 

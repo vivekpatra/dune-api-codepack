@@ -1,5 +1,5 @@
 ﻿#Region "License"
-' Copyright 2012 Steven Liekens
+' Copyright 2012-2013 Steven Liekens
 ' Contact: steven.liekens@gmail.com
 
 ' This file is part of DuneApiCodepack.
@@ -65,6 +65,54 @@ Namespace Extensions
             Dim networkAddress2 As IPAddress = address2.GetNetworkAddress(subnetMask)
 
             Return networkAddress1.Equals(networkAddress2)
+        End Function
+
+        <Extension>
+        Public Function GetFirstUsableAddress(address As IPAddress, subnetMask As IPAddress) As IPAddress
+            If address.AddressFamily <> Sockets.AddressFamily.InterNetwork Then
+                Throw New NotSupportedException
+            End If
+
+            Dim networkAddress As IPAddress = GetNetworkAddress(address, subnetMask)
+            Dim bytes = networkAddress.GetAddressBytes
+
+            If BitConverter.IsLittleEndian Then
+                Array.Reverse(bytes)
+            End If
+
+            Dim firstUseable As UInt32 = CUInt(BitConverter.ToUInt32(bytes, 0) + 1)
+            bytes = BitConverter.GetBytes(firstUseable)
+
+            If BitConverter.IsLittleEndian Then
+                Array.Reverse(bytes)
+            End If
+
+
+            Return New IPAddress(bytes)
+        End Function
+
+        <Extension>
+        Public Function GetLastUsableAddress(address As IPAddress, subnetMask As IPAddress) As IPAddress
+            If address.AddressFamily <> Sockets.AddressFamily.InterNetwork Then
+                Throw New NotSupportedException
+            End If
+
+            Dim broadcastAddress As IPAddress = GetBroadcastAddress(address, subnetMask)
+            Dim bytes = broadcastAddress.GetAddressBytes
+
+            If BitConverter.IsLittleEndian Then
+                Array.Reverse(bytes)
+            End If
+
+            Dim lastUseable As UInt32 = CUInt(BitConverter.ToUInt32(bytes, 0) - 1)
+            bytes = BitConverter.GetBytes(lastUseable)
+
+            If BitConverter.IsLittleEndian Then
+                Array.Reverse(bytes)
+            End If
+
+
+            Return New IPAddress(bytes)
         End Function
 
         ''' <summary>

@@ -1,14 +1,7 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2012 for Windows Desktop
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SL.DuneApiCodePack", "SL.DuneApiCodePack.vbproj", "{E050ED85-7292-4DF2-9C6A-B4C476F16AD3}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FDD3518F-ACF3-4770-8DC4-57F319A4E2C5}"
-	ProjectSection(SolutionItems) = preProject
-		DuneApiCodePack.vsmdi = DuneApiCodePack.vsmdi
-		Local.testsettings = Local.testsettings
-		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution

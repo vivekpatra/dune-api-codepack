@@ -1,5 +1,5 @@
 ﻿#Region "License"
-' Copyright 2012 Steven Liekens
+' Copyright 2012-2013 Steven Liekens
 ' Contact: steven.liekens@gmail.com
 
 ' This file is part of DuneApiCodepack.
@@ -21,6 +21,7 @@ Imports System.Runtime.CompilerServices
 Imports System.Net.NetworkInformation
 
 Namespace Extensions
+
     ''' <summary>
     ''' Extensions for the <see cref="PhysicalAddress"/> type.
     ''' </summary>
@@ -29,13 +30,23 @@ Namespace Extensions
         <Extension()>
         Public Function ToString(value As PhysicalAddress, delimiter As Char) As String
             Dim address() As Byte = value.GetAddressBytes
-            Return BitConverterExtensions.ToString(address, delimiter)
+            Return BitConverter.ToString(address).Replace("-"c, delimiter)
         End Function
 
+        <Extension()>
+        Public Function GetOrganizationallyUniqueIdentifier(value As PhysicalAddress) As Byte()
+            Dim address = value.GetAddressBytes
+            ReDim Preserve address(2)
+            Return address
+        End Function
 
         <Extension()>
-        Public Function GetVendorInfo(value As PhysicalAddress) As DuneApiCodePack.Networking.NetworkCardVendorInfo
-            Return New DuneApiCodePack.Networking.NetworkCardVendorInfo(value)
+        Public Function GetVendorInfo(value As PhysicalAddress) As DuneApiCodePack.Networking.NetworkInterfaceVendorInfo
+            Try
+                Return Networking.NetworkInterfaceVendorInfo.GetVendorInformationAsync(value).Result
+            Catch ex As AggregateException
+                Throw ex.InnerException
+            End Try
         End Function
 
     End Module

@@ -1,0 +1,74 @@
+﻿#Region "License"
+' Copyright 2012-2013 Steven Liekens
+' Contact: steven.liekens@gmail.com
+
+' This file is part of DuneApiCodepack.
+
+' DuneApiCodepack is free software: you can redistribute it and/or modify
+' it under the terms of the GNU Lesser General Public License as published by
+' the Free Software Foundation, either version 3 of the License, or
+' (at your option) any later version.
+
+' DuneApiCodepack is distributed in the hope that it will be useful,
+' but WITHOUT ANY WARRANTY; without even the implied warranty of
+' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+' GNU Lesser General Public License for more details.
+
+' You should have received a copy of the GNU Lesser General Public License
+' along with DuneApiCodepack.  If not, see <http://www.gnu.org/licenses/>.
+#End Region ' License
+Imports SL.DuneApiCodePack.Networking
+
+Namespace IPControl
+
+    ''' <summary>This command is used to set the player state.</summary>
+    Public Class SetPlayerStateCommand : Inherits Command
+
+        Private Shared _requiredVersion As Version = New Version(1, 0)
+        Private _state As PlayerState
+
+        ''' <param name="state">The requested player state.</param>
+        Public Sub New(state As PlayerState)
+            MyBase.New(Nothing)
+            Me.State = state
+        End Sub
+
+        Public Overrides ReadOnly Property RequiredVersion As Version
+            Get
+                Return _requiredVersion
+            End Get
+        End Property
+
+        Public Property State As PlayerState
+            Get
+                Return _state
+            End Get
+            Set(value As PlayerState)
+                _state = value
+
+                Select Case value
+                    Case Nothing
+                        Me.Command = Nothing
+                    Case PlayerState.Navigator
+                        Me.Command = CommandValue.MainScreen
+                    Case PlayerState.BlackScreen
+                        Me.Command = CommandValue.BlackScreen
+                    Case PlayerState.Standby
+                        Me.Command = CommandValue.Standby
+                    Case Else
+                        Throw New ArgumentException(String.Format("Player state '{0}' can not be set directly.", value.Value))
+                End Select
+            End Set
+        End Property
+
+        Public Overrides Function GetRequestMessage(target As Dune) As Net.Http.HttpRequestMessage
+            Return MyBase.GetRequestMessage(target, HttpMethod.Post, target.GetBaseAddress.Uri)
+        End Function
+
+        Protected Overrides Function InitializeCommandResult(input As XDocument, requestDateTime As DateTimeOffset) As IIPCommandResult
+            Return New StatusCommandResult(Me, input, requestDateTime)
+        End Function
+
+    End Class
+
+End Namespace

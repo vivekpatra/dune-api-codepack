@@ -1,5 +1,5 @@
 ﻿#Region "License"
-' Copyright 2012 Steven Liekens
+' Copyright 2012-2013 Steven Liekens
 ' Contact: steven.liekens@gmail.com
 
 ' This file is part of DuneApiCodepack.
@@ -22,13 +22,16 @@ Imports System.IO
 
 Namespace Extensions
 
+    ''' <summary>
+    ''' Extensions for the FileSystemInfo type.
+    ''' </summary>
     Public Module FileSystemInfoExtensions
 
         ''' <summary>
         ''' Gets a <see cref="System.Uri"/> instance for the specified path.
         ''' </summary>
         <Extension()>
-        Public Function GetUri(entry As FileSystemInfo) As Uri
+        Public Function GetUri(entry As IO.FileSystemInfo) As Uri
             Return New Uri(entry.FullName)
         End Function
 
@@ -36,24 +39,24 @@ Namespace Extensions
         ''' Gets the root directory of this instance.
         ''' </summary>
         <Extension()>
-        Public Function GetRoot(entry As FileSystemInfo) As DirectoryInfo
-            Return New DirectoryInfo(entry.FullName).Root
+        Public Function GetRoot(entry As IO.FileSystemInfo) As IO.DirectoryInfo
+            Return New IO.DirectoryInfo(entry.FullName).Root
         End Function
 
         ''' <summary>
-        ''' Creates a new instance of <see cref="DirectoryInfo"/>.
+        ''' Creates a new instance of <see cref="IO.DirectoryInfo"/>.
         ''' </summary>
         <Extension()>
-        Public Function ToDirectoryInfo(entry As FileSystemInfo) As DirectoryInfo
-            Return New DirectoryInfo(entry.FullName)
+        Public Function ToDirectoryInfo(entry As IO.FileSystemInfo) As IO.DirectoryInfo
+            Return New IO.DirectoryInfo(entry.FullName)
         End Function
 
         ''' <summary>
-        ''' Creates a new instance of <see cref="FileInfo"/>.
+        ''' Creates a new instance of <see cref="IO.FileInfo"/>.
         ''' </summary>
         <Extension()>
-        Public Function ToFileInfo(entry As FileSystemInfo) As FileInfo
-            Return New FileInfo(entry.FullName)
+        Public Function ToFileInfo(entry As IO.FileSystemInfo) As IO.FileInfo
+            Return New IO.FileInfo(entry.FullName)
         End Function
 
     End Module

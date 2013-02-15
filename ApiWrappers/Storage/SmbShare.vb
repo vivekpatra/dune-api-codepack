@@ -1,5 +1,5 @@
 ﻿#Region "License"
-' Copyright 2012 Steven Liekens
+' Copyright 2012-2013 Steven Liekens
 ' Contact: steven.liekens@gmail.com
 
 ' This file is part of DuneApiCodepack.
@@ -31,7 +31,7 @@ Namespace Sources
         Private _diskInfo As ShareInfo
 
         Public Sub New(uncPath As Uri)
-            MyBase.New(Dns.GetHostEntry(uncPath.Host.ToUpperInvariant))
+            MyBase.New(Dns.GetHostEntry(uncPath.Host.ToUpperInvariant).AddressList.GetIPv4Addresses.Single)
             _root = New IO.DirectoryInfo(uncPath.OriginalString).Root
             _credentials = New NetworkCredential
         End Sub
@@ -88,7 +88,7 @@ Namespace Sources
                 End If
                 mediaUrl.Append("@")
             End If
-            mediaUrl.Append(Host.HostName)
+            mediaUrl.Append(Me.Host.ToString)
             mediaUrl.Append("/")
             mediaUrl.Append(Root.Name)
 
@@ -125,7 +125,7 @@ Namespace Sources
         ''' <param name="mediaUrl">The string variable that will contain the media URL if the method call is successful.</param>
         ''' <returns>True if the call was successful; otherwise false.</returns>
         Public Function TryGetMediaUrl(path As IO.FileSystemInfo, ByRef mediaUrl As String) As Boolean
-            If New IO.DirectoryInfo(path.FullName).Root.FullName <> Root.FullName Or path.GetUri.IsUnc.IsFalse Then
+            If New IO.DirectoryInfo(path.FullName).Root.FullName <> Root.FullName Or Not path.GetUri.IsUnc Then
                 Return False
             Else
                 mediaUrl = GetMediaUrl(path)
@@ -154,7 +154,7 @@ Namespace Sources
 
             If path.Contains("@") Then 'get credentials
                 credentials = path.Split("@"c).First.Substring(2)
-                If credentials.Contains("/").IsFalse Then 'temporarily remove credentials so the URI can be parsed
+                If Not credentials.Contains("/") Then 'temporarily remove credentials so the URI can be parsed
                     path = path.Replace(String.Format(Globalization.CultureInfo.InvariantCulture, "{0}@", credentials), Nothing)
                 End If
             End If

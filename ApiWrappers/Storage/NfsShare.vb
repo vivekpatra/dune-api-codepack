@@ -1,5 +1,5 @@
 ﻿#Region "License"
-' Copyright 2012 Steven Liekens
+' Copyright 2012-2013 Steven Liekens
 ' Contact: steven.liekens@gmail.com
 
 ' This file is part of DuneApiCodepack.
@@ -32,7 +32,7 @@ Namespace Sources
 
         ''' <param name="host">The NFS server.</param>
         ''' <param name="exportPath">The export path as defined in the NFS exports file on the NFS server.</param>
-        Public Sub New(host As IPHostEntry, exportPath As String)
+        Public Sub New(host As IPAddress, exportPath As String)
             MyBase.New(host)
             exportPath = exportPath.Trim("/"c)
         End Sub
@@ -72,12 +72,9 @@ Namespace Sources
             Dim mediaUrl As New Text.StringBuilder
 
             mediaUrl.Append("nfs://")
-            Dim host As IPAddress = Me.Host.AddressList.GetIPv4Addresses.First(Function(address) Not IPAddress.IsLoopback(address))
-            If host IsNot Nothing Then ' use IPv4 address
-                mediaUrl.Append(host.ToString)
-            Else ' use hostname
-                mediaUrl.Append(Me.Host.HostName)
-            End If
+
+            mediaUrl.Append(Me.Host.ToString)
+
             If Not String.IsNullOrWhiteSpace(ExportPath) Then
                 mediaUrl.Append(":/")
                 mediaUrl.Append(ExportPath)

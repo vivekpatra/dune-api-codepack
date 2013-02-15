@@ -1,5 +1,5 @@
 ﻿#Region "License"
-' Copyright 2012 Steven Liekens
+' Copyright 2012-2013 Steven Liekens
 ' Contact: steven.liekens@gmail.com
 
 ' This file is part of DuneApiCodepack.
@@ -23,6 +23,7 @@ Imports System.Threading.Tasks
 Imports System.Text
 Imports System.Text.RegularExpressions
 Imports System.IO
+Imports System.Threading
 
 Namespace Networking
 
@@ -32,62 +33,50 @@ Namespace Networking
     Public Class TelnetClient
         Implements IDisposable
 
-        Private _client As TcpClient
-        Private _telnetLock As Object
+        Private Shared Instances As Hashtable
+        Friend Shared LogOnRegex As Regex
+        Friend Shared PromptRegex As Regex
+        Public Property EndPoint As IPEndPoint
+        Friend Property State As TelnetState
+        Private Property host As Dune
 
-        Private _logOnRegex As Regex
-        Private _promptRegex As Regex
-
-
-#Region "Constructors"
-
-        Public Sub New(address As IPAddress)
-            Me.New(address, 23)
+        Shared Sub New()
+            Instances = New Hashtable
+            TelnetClient.LogOnRegex = New Regex("\r\ntango3 login: ", RegexOptions.Singleline)
+            TelnetClient.PromptRegex = New Regex("\r\ntango3\[.*\]# ", RegexOptions.Singleline)
         End Sub
 
-        Public Sub New(address As IPAddress, port As Integer)
-            _telnetLock = New Object
-            _logOnRegex = New Regex("^tango3 login: $", RegexOptions.Multiline)
-            _promptRegex = New Regex("^tango3.*# $", RegexOptions.Multiline)
-            _client = New TcpClient
-
-            Try
-                Client.Connect(address, port)
-            Catch ex As SocketException
-                Console.WriteLine("Telnet is not accessible on port " + port.ToString)
-            Catch ex As ArgumentException
-                Console.WriteLine(ex.Message)
-            End Try
+        Private Sub New(host As Dune)
+            Me.New(host, 23)
         End Sub
 
-#End Region ' Constructors
+        Private Sub New(host As Dune, port As Integer)
+            If host Is Nothing Then
+                Throw New ArgumentNullException("host")
+            End If
+            If port < IPEndPoint.MinPort Or port > IPEndPoint.MaxPort Then
+                Throw New ArgumentOutOfRangeException("port", "Port is outside the allowed range")
+            End If
+            Me.host = host
+            Me.EndPoint = New IPEndPoint(host.EndPoint.Address, port)
+            Me.State = New TelnetStateDisconnected(Me)
+        End Sub
+
+        Public Shared Function GetInstance(host As Dune) As TelnetClient
+            If Not Instances.ContainsKey(host) Then
+                Instances.Add(host, New TelnetClient(host))
+            End If
+            Return DirectCast(Instances.Item(host), TelnetClient)
+        End Function
 
 #Region "Properties"
 
         ''' <summary>
-        ''' Gets the underlying TcpClient instance.
-        ''' </summary>
-        Private ReadOnly Property Client As TcpClient
-            Get
-                Return _client
-            End Get
-        End Property
-
-        ''' <summary>
         ''' Gets whether the client is connected to a remote host.
         ''' </summary>
-        Public ReadOnly Property Connected As Boolean
+        Public ReadOnly Property IsConnected As Boolean
             Get
-                Return Client.Connected
-            End Get
-        End Property
-
-        ''' <summary>
-        ''' Convenience property that returns <see cref="Environment.NewLine"/>.
-        ''' </summary>
-        Private Shared ReadOnly Property CrLf As String
-            Get
-                Return Environment.NewLine
+                Return Me.State.IsConnected
             End Get
         End Property
 
@@ -95,108 +84,94 @@ Namespace Networking
 
 #Region "Methods"
 
-        ''' <summary>
-        ''' Blocks until the host asks for login and responds with the specified username.
-        ''' </summary>
-        Public Sub LogOn(userName As String)
-            If Connected Then
-                ReadUntilRegex(_logOnRegex)
-                ExecuteCommand(userName)
-            End If
+        Public Sub Connect()
+            Me.State.Connect()
         End Sub
 
-        ''' <summary>
-        ''' Reads bytes from the network stream until a match is found.
-        ''' </summary>
-        ''' <param name="expression"></param>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        Public Function ReadUntilRegex(expression As Regex) As String
-            Dim prompt As String = String.Empty
-
-            For retries As Integer = 1 To 5
-                prompt += ReadAndNegotiate()
-                If expression.IsMatch(prompt) Then
-                    Return expression.Replace(prompt, String.Empty)
-                End If
-                Threading.Thread.Sleep(100)
-            Next
-
-            Return Nothing
+        Public Function ConnectAsync() As Task
+            Return Me.State.ConnectAsync
         End Function
 
-        ''' <summary>
-        ''' Returns plain text from the stream and also takes care of option negotiations.
-        ''' </summary>
-        Public Function ReadAndNegotiate() As String
-            Dim text As New StringBuilder
-
-            Do
-                If Client.Available > 0 Then
-                    Dim read As Integer = Client.GetStream.ReadByte
-
-                    If read > -1 Then
-                        Select Case read
-                            Case OptionCodes.IAC ' first 3 bytes represents a negotiation
-                                Dim request As Short = CByte(Client.GetStream.ReadByte)
-                                Dim action As Byte = CByte(Client.GetStream.ReadByte)
-
-                                Dim response As Byte
-
-                                If action = TelnetOptions.SuppressGoAhead Then ' WILL / DO
-                                    If request = OptionCodes.DO Then
-                                        response = OptionCodes.WILL
-                                    Else
-                                        response = OptionCodes.DO
-                                    End If
-                                Else ' WON'T / DON'T
-                                    If request = OptionCodes.DO Then
-                                        response = OptionCodes.WONT
-                                    Else
-                                        response = OptionCodes.DONT
-                                    End If
-                                End If
-
-                                Dim sendData() As Byte = {OptionCodes.IAC, response, action}
-
-                                Client.GetStream.Write(sendData, 0, sendData.Length)
-                            Case Else ' plain text
-                                text.Append(ChrW(read))
-                        End Select
-                    Else
-                        Exit Do
-                    End If
-                Else
-                    Exit Do
-                End If
-            Loop
-
-
-            Return text.ToString
-        End Function
-
-        ''' <summary>
-        ''' Sends the specified command.
-        ''' </summary>
-        Public Sub Write(command As String)
-            Dim sendData() As Byte = Encoding.ASCII.GetBytes(command + CrLf)
-            Client.GetStream.Write(sendData, 0, sendData.Length)
+        Public Sub Disconnect()
+            Me.State.Disconnect()
         End Sub
 
-        ''' <summary>
-        ''' Sends the specified command and returns the response.
-        ''' </summary>
         Public Function ExecuteCommand(command As String) As String
-            SyncLock _telnetLock
-                Write(command)
-                Dim response As String = ReadUntilRegex(_promptRegex)
+            Return Me.State.ExecuteCommandAsync(command).Result
+        End Function
 
-                If response.Length > command.Length Then
-                    Return response.Substring(command.Length).TrimStart
-                Else
-                    Return response
-                End If
-            End SyncLock
+        Public Async Function ExecuteCommandAsync(command As String) As Task(Of String)
+            Return Await Me.State.ExecuteCommandAsync(command).ConfigureAwait(False)
+        End Function
+
+        Public Function GetProductIdAsync() As Task(Of String)
+            Return Me.ExecuteCommandAsync("cat /firmware/config/product_id.txt")
+        End Function
+
+        Public Function GetFirmwareVersionAsync() As Task(Of String)
+            Return Me.ExecuteCommandAsync("cat /firmware/config/firmware_version.txt")
+        End Function
+
+        Public Function GetSerialNumberAsync() As Task(Of String)
+            Return Me.ExecuteCommandAsync("grep serial_number /tmp/sysinfo.txt | awk '{print $2}'")
+        End Function
+
+        ''' <summary>
+        ''' Get the current state of video and audio decoders.
+        ''' </summary>
+        Public Function GetDecoderStatusAsync() As Task(Of String)
+            Return Me.ExecuteCommandAsync("/firmware/bin/dump_decoder_status.sh")
+        End Function
+
+        Public Function GetKernelMessagesAsync() As Task(Of String)
+            Return Me.ExecuteCommandAsync("dmesg")
+        End Function
+
+        Public Function GetProcesses() As Task(Of String)
+            Return Me.ExecuteCommandAsync("ps")
+        End Function
+
+        Public Function GetStartFirmwareLogsAsync() As Task(Of String)
+            Return Me.ExecuteCommandAsync("cat /tmp/run/start_firmware.log")
+        End Function
+
+        Public Function GetPlaybackLogsAsync() As Task(Of String)
+            Return Me.ExecuteCommandAsync("cat /tmp/run/play.log*")
+        End Function
+
+        Public Function GetRootLogsAsync() As Task(Of String)
+            Return Me.ExecuteCommandAsync("cat /tmp/run/root.log*")
+        End Function
+
+        Public Function GetMemoryUsageStatisticsAsync() As Task(Of String)
+            Return Me.ExecuteCommandAsync("cat /proc/meminfo")
+        End Function
+
+        Public Async Function RebootAsync() As Task
+            Await Me.ExecuteCommandAsync("sync;reboot").ConfigureAwait(False)
+            Me.Disconnect()
+        End Function
+
+        Public Async Function GetBootTimeAsync() As Task(Of DateTime)
+            Dim separator As String = Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator
+
+            Dim source = Await Me.ExecuteCommandAsync("cat /proc/uptime").ConfigureAwait(False)
+            If IsNullOrWhiteSpace(source) Then
+                Return DateTime.Now
+            End If
+
+            source = source.Split.First.Replace(".", separator)
+            Dim uptime = TimeSpan.FromSeconds(Double.Parse(source))
+
+            Return Date.Now.Subtract(uptime)
+        End Function
+
+        Public Function CloseDiscTrayAsync() As Task
+            Return Me.ExecuteCommandAsync("eject -t /dev/sr0")
+        End Function
+
+        Public Function ToggleDiscTrayAsync() As Task
+            Return Me.ExecuteCommandAsync("eject -T /dev/sr0")
         End Function
 
 #End Region ' Methods
@@ -208,11 +183,13 @@ Namespace Networking
         Protected Overridable Sub Dispose(disposing As Boolean)
             If Not Me.disposedValue Then
                 If disposing Then
-                    _client.Close()
+                    If TelnetClient.Instances.ContainsValue(Me) Then
+                        TelnetClient.Instances.Remove(Me.host)
+                    End If
+                    If Me.IsConnected Then
+                        Me.State.Disconnect()
+                    End If
                 End If
-
-                _telnetLock = Nothing
-                _logOnRegex = Nothing
             End If
             Me.disposedValue = True
         End Sub

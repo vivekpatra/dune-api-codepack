@@ -1,5 +1,5 @@
 ﻿#Region "License"
-' Copyright 2012 Steven Liekens
+' Copyright 2012-2013 Steven Liekens
 ' Contact: steven.liekens@gmail.com
 
 ' This file is part of DuneApiCodepack.
@@ -30,53 +30,35 @@ Public NotInheritable Class NativeMethods
     Private Sub New()
     End Sub
 
-    Public NotInheritable Class Networking
+    Friend NotInheritable Class IPHelper
         Private Sub New()
         End Sub
 
-#Region "MAC Addresses"
+        Friend Enum ReturnValue
+            NO_ERROR = 0
+            ERROR_BAD_NET_NAME = 67
+            ERROR_BUFFER_OVERFLOW = 111
+            ERROR_GEN_FAILURE = 31
+            ERROR_INVALID_PARAMETER = 87
+            ERROR_INVALID_USER_BUFFER = 1784
+            ERROR_NOT_FOUND = 1168
+            ERROR_NOT_SUPPORTED = 50
+        End Enum
 
-        ''' <summary>
-        ''' API function declaration.
-        ''' </summary>
+        ' API function declaration.
         <DllImport("iphlpapi.dll", SetLastError:=True)>
-        Private Shared Function SendARP(
-         DestIP As UInt32,
-         SrcIP As UInt32,
-         pMacAddr() As Byte,
-         ByRef PhyAddrLen As Int32) As UInt32
+        Friend Shared Function SendARP(
+             DestIP As UInt32,
+             SrcIP As UInt32,
+             pMacAddr() As Byte,
+             ByRef PhyAddrLen As Int32) As UInt32
         End Function
 
-        ' Return values
-        Private Const NO_ERROR As Integer = 0
-        Private Const ERROR_BAD_NET_NAME As Integer = 67
-        Private Const ERROR_BUFFER_OVERFLOW As Integer = 111
-        Private Const ERROR_GEN_FAILURE As Integer = 31
-        Private Const ERROR_INVALID_PARAMETER As Integer = 87
-        Private Const ERROR_INVALID_USER_BUFFER As Integer = 1784
-        Private Const ERROR_NOT_FOUND As Integer = 1168
-        Private Const ERROR_NOT_SUPPORTED As Integer = 50
+    End Class
 
-        ''' <summary>
-        ''' Gets the MAC address that belongs to the specified IP address.
-        ''' </summary>
-        ''' <remarks>This uses a native method and should be replaced when a managed alternative becomes available.</remarks>
-        Public Shared Function GetMacAddress(address As IPAddress) As PhysicalAddress
-            Dim IP As UInteger = BitConverter.ToUInt32(address.GetAddressBytes(), 0)
-            Dim mac() As Byte = New Byte(5) {}
-
-            Dim ReturnValue As Integer = CInt(SendARP(CUInt(IP), 0, mac, mac.Length))
-
-            If ReturnValue = NO_ERROR Then
-                Return New PhysicalAddress(mac)
-            Else
-                ' TODO: handle various SendARP errors
-                ' http://msdn.microsoft.com/en-us/library/windows/desktop/aa366358(v=vs.85).aspx
-                Throw New Win32Exception(CInt(ReturnValue))
-            End If
-        End Function
-
-#End Region ' MAC Addresses
+    Public NotInheritable Class Networking
+        Private Sub New()
+        End Sub
 
 #Region "Network disk space"
         ''' <summary>
@@ -110,7 +92,7 @@ Public NotInheritable Class NativeMethods
             Dim ReturnValue As Boolean = GetDiskFreeSpace(uncPath.LocalPath, CUInt(sectorsPerCluster), CUInt(bytesPerSector), CUInt(numberOfFreeClusters), CUInt(totalNumberOfClusters))
             Dim lastError As Integer = Marshal.GetLastWin32Error
 
-            If ReturnValue.IsTrue Then ' create a dictionary of the returned values
+            If ReturnValue Then ' create a dictionary of the returned values
                 info = New ShareInfo(sectorsPerCluster, bytesPerSector, numberOfFreeClusters, totalNumberOfClusters)
             Else
                 Throw New Win32Exception(lastError)
@@ -159,7 +141,7 @@ Public NotInheritable Class NativeMethods
             Public Overrides Function ToString() As String
                 Dim total As ULong = CULng(TotalNumberOfClusters) * CULng(SectorsPerCluster) * CULng(BytesPerSector)
 
-                Return Math.Round(total / 1024 ^ 3, 2).ToString(Constants.FormatProvider) + " GiB (" + Math.Round(total / 1000 ^ 3, 2).ToString(Constants.FormatProvider) + " GB)"
+                Return Math.Round(total / 1024 ^ 3, 2).ToString(Globalization.CultureInfo.InvariantCulture) + " GiB (" + Math.Round(total / 1000 ^ 3, 2).ToString(Globalization.CultureInfo.InvariantCulture) + " GB)"
             End Function
 
         End Structure
@@ -298,17 +280,17 @@ Public NotInheritable Class NativeMethods
             ''' <summary>
             ''' Get the root of a disk-based share.
             ''' </summary>
-            Public ReadOnly Property Root() As DirectoryInfo
+            Public ReadOnly Property Root() As IO.DirectoryInfo
                 Get
                     If IsFileSystem Then
                         If _server Is Nothing OrElse 0 = _server.Length Then
                             If _path Is Nothing OrElse 0 = _path.Length Then
-                                Return New DirectoryInfo(ToString())
+                                Return New IO.DirectoryInfo(ToString())
                             Else
-                                Return New DirectoryInfo(_path)
+                                Return New IO.DirectoryInfo(_path)
                             End If
                         Else
-                            Return New DirectoryInfo(ToString())
+                            Return New IO.DirectoryInfo(ToString())
                         End If
                     Else
                         Return Nothing
@@ -323,9 +305,9 @@ Public NotInheritable Class NativeMethods
             ''' </summary>
             Public Overrides Function ToString() As String
                 If _server Is Nothing OrElse 0 = _server.Length Then
-                    Return String.Format(Constants.FormatProvider, "\\{0}\{1}", Environment.MachineName, _netName)
+                    Return String.Format(Globalization.CultureInfo.InvariantCulture, "\\{0}\{1}", Environment.MachineName, _netName)
                 Else
-                    Return String.Format(Constants.FormatProvider, "\\{0}\{1}", _server, _netName)
+                    Return String.Format(Globalization.CultureInfo.InvariantCulture, "\\{0}\{1}", _server, _netName)
                 End If
             End Function
 
@@ -452,8 +434,8 @@ Public NotInheritable Class NativeMethods
                 <MarshalAs(UnmanagedType.ByValTStr, SizeConst:=13)> _
                 Public NetName As String
 
-                Public bShareType As Short
-                Public Flags As Short
+                Public bShareType As Integer
+                Public Flags As Integer
 
                 <MarshalAs(UnmanagedType.LPTStr)> _
                 Public Remark As String
@@ -477,9 +459,9 @@ Public NotInheritable Class NativeMethods
             Private Structure SHARE_INFO_1_9x
                 <MarshalAs(UnmanagedType.ByValTStr, SizeConst:=13)> _
                 Public NetName As String
-                Public Padding As Short
+                Public Padding As Integer
 
-                Public bShareType As Short
+                Public bShareType As Integer
 
                 <MarshalAs(UnmanagedType.LPTStr)> _
                 Public Remark As String
@@ -513,7 +495,7 @@ Public NotInheritable Class NativeMethods
 
             ''' <summary>Enumerate shares (9x)</summary>
             <DllImport("svrapi", CharSet:=CharSet.Ansi)> _
-            Private Shared Function NetShareEnum(<MarshalAs(UnmanagedType.LPTStr)> lpServerName As String, dwLevel As Integer, lpBuffer As IntPtr, cbBuffer As Short, ByRef entriesRead As Short, ByRef totalEntries As Short) As Integer
+            Private Shared Function NetShareEnum(<MarshalAs(UnmanagedType.LPTStr)> lpServerName As String, dwLevel As Integer, lpBuffer As IntPtr, cbBuffer As Integer, ByRef entriesRead As Integer, ByRef totalEntries As Integer) As Integer
             End Function
 
             ''' <summary>Free the buffer (NT)</summary>
@@ -581,11 +563,11 @@ Public NotInheritable Class NativeMethods
             Private Shared Sub EnumerateShares9x(server As String, shares As ShareCollection)
                 Dim level As Integer = 50
                 Dim nRet As Integer = 0
-                Dim entriesRead As Short, totalEntries As Short
+                Dim entriesRead As Integer, totalEntries As Integer
 
                 Dim t As Type = GetType(SHARE_INFO_50)
                 Dim size As Integer = Marshal.SizeOf(t)
-                Dim cbBuffer As Short = CShort(MAX_SI50_ENTRIES * size)
+                Dim cbBuffer As Integer = cint(MAX_SI50_ENTRIES * size)
                 'On Win9x, must allocate buffer before calling API
                 Dim pBuffer As IntPtr = Marshal.AllocHGlobal(cbBuffer)
 

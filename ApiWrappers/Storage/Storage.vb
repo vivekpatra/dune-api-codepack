@@ -1,5 +1,5 @@
 ﻿#Region "License"
-' Copyright 2012 Steven Liekens
+' Copyright 2012-2013 Steven Liekens
 ' Contact: steven.liekens@gmail.com
 
 ' This file is part of DuneApiCodepack.
@@ -27,20 +27,20 @@ Namespace Sources
     ''' This class cannot be instantiated directly.
     ''' </summary>
     Public MustInherit Class StorageDevice
-        Friend _host As IPHostEntry
-        Friend _root As DirectoryInfo
+        Friend _host As IPAddress
+        Friend _root As IO.DirectoryInfo
 
-        Protected Sub New(host As IPHostEntry)
+        Protected Sub New(host As IPAddress)
             _host = host
         End Sub
 
-        Public ReadOnly Property Host As IPHostEntry
+        Public ReadOnly Property Host As IPAddress
             Get
                 Return _host
             End Get
         End Property
 
-        Public ReadOnly Property Root As DirectoryInfo
+        Public ReadOnly Property Root As IO.DirectoryInfo
             Get
                 Return _root
             End Get

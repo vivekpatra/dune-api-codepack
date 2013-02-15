@@ -13,12 +13,13 @@
     <AssemblyName>SL.DuneApiCodePack</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <MyType>Windows</MyType>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
+    <DebugType>Full</DebugType>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
     <OutputPath>bin\Debug\</OutputPath>
@@ -26,6 +27,10 @@
     <NoWarn>
     </NoWarn>
     <WarningsAsErrors>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</WarningsAsErrors>
+    <Prefer32Bit>false</Prefer32Bit>
+    <WarningLevel>1</WarningLevel>
+    <RegisterForComInterop>false</RegisterForComInterop>
+    <Optimize>true</Optimize>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -37,6 +42,9 @@
     <NoWarn>
     </NoWarn>
     <WarningsAsErrors>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</WarningsAsErrors>
+    <Prefer32Bit>false</Prefer32Bit>
+    <WarningLevel>1</WarningLevel>
+    <RegisterForComInterop>false</RegisterForComInterop>
   </PropertyGroup>
   <PropertyGroup>
     <OptionExplicit>On</OptionExplicit>
@@ -61,7 +69,8 @@
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.DirectoryServices" />
-    <Reference Include="System.Net" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -69,31 +78,87 @@
   <ItemGroup>
     <Import Include="Microsoft.VisualBasic" />
     <Import Include="SL.DuneApiCodePack.Extensions" />
+    <Import Include="SL.DuneApiCodePack.IPControl" />
     <Import Include="System" />
     <Import Include="System.Collections" />
     <Import Include="System.Collections.Generic" />
     <Import Include="System.Collections.ObjectModel" />
     <Import Include="System.Diagnostics" />
     <Import Include="System.Linq" />
+    <Import Include="System.Net" />
+    <Import Include="System.Net.Http" />
+    <Import Include="System.Threading.Tasks" />
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ApiWrappers\DuneCommands\GetTextCommand.vb" />
-    <Compile Include="ApiWrappers\DuneCommands\LaunchFlashLiteCommand.vb" />
-    <Compile Include="ApiWrappers\DuneCommands\LaunchWebsiteCommand.vb" />
-    <Compile Include="ApiWrappers\DuneCommands\SetTextCommand.vb" />
-    <Compile Include="ApiWrappers\LanguageTrack.vb" />
-    <Compile Include="ApiWrappers\DuneCommands\Command.vb" />
-    <Compile Include="ApiWrappers\DuneCommands\CommandException.vb" />
-    <Compile Include="ApiWrappers\DuneCommands\CommandResult.vb" />
-    <Compile Include="ApiWrappers\DuneCommands\NavigationCommand.vb" />
-    <Compile Include="ApiWrappers\DuneCommands\GetStatusCommand.vb" />
-    <Compile Include="ApiWrappers\DuneCommands\RemoteControlCommand.vb" />
-    <Compile Include="ApiWrappers\DuneCommands\SetKeyframeCommand.vb" />
-    <Compile Include="ApiWrappers\DuneCommands\SetPlaybackClipZoomCommand.vb" />
-    <Compile Include="ApiWrappers\DuneCommands\SetPlaybackStateCommand.vb" />
-    <Compile Include="ApiWrappers\DuneCommands\SetPlayerStateCommand.vb" />
-    <Compile Include="ApiWrappers\DuneCommands\SetPlaybackWindowZoomCommand.vb" />
+    <Compile Include="ApiWrappers\Converters\ProductConverter.vb" />
+    <Compile Include="EventArgs\ClientStateChangedEventArgs.vb" />
+    <Compile Include="EventArgs\PlayerStateChangedEventArgs.vb" />
+    <Compile Include="Extensions\RectangleExtensions.vb" />
+    <Compile Include="Extensions\XDocumentExtensions.vb" />
+    <Compile Include="IO\MediaSource.vb" />
+    <Compile Include="IO\IMediaSource.vb" />
+    <Compile Include="IO\UnixPath.vb" />
+    <Compile Include="IPControl\Command Results\FileSystemCommandResult.vb" />
+    <Compile Include="IPControl\Command Results\TextCommandResult.vb" />
+    <Compile Include="IPControl\Command Results\IPCommandResult.vb" />
+    <Compile Include="IPControl\Command Results\original IPCommandResult.vb" />
+    <Compile Include="IPControl\Command Results\IIPCommandResult.vb" />
+    <Compile Include="IPControl\Commands\ListCommand.vb" />
+    <Compile Include="IPControl\Commands\SetPlaybackVideoZoomCommand.vb" />
+    <Compile Include="IPControl\Parameters\ProductID.vb" />
+    <Compile Include="IPControl\Parameters\OnScreenDisplaySize.vb" />
+    <Compile Include="IPControl\Parameters\ListType.vb" />
+    <Compile Include="IPControl\States\IPControlStateUnknown.vb" />
+    <Compile Include="IPControl\States\IPControlStateVersion3.vb" />
+    <Compile Include="IPControl\States\IPControlStateVersion2.vb" />
+    <Compile Include="IPControl\States\IPControlStateVersion1.vb" />
+    <Compile Include="IPControl\States\IPControlStateDisconnected.vb" />
+    <Compile Include="IPControl\States\IPControlState.vb" />
+    <Compile Include="IPControl\States\IIPControlState.vb" />
+    <Compile Include="IPControl\Parameters\ActionOnFinish.vb" />
+    <Compile Include="IPControl\Parameters\ActionOnExit.vb" />
+    <Compile Include="IPControl\Parameters\CommandStatus.vb" />
+    <Compile Include="IPControl\Parameters\Output.vb" />
+    <Compile Include="IPControl\Parameters\Input.vb" />
+    <Compile Include="IPControl\Parameters\Parameter.vb" />
+    <Compile Include="IPControl\Parameters\ErrorKind.vb" />
+    <Compile Include="IPControl\Parameters\SkipFrames.vb" />
+    <Compile Include="IPControl\Parameters\PlaybackSpeed.vb" />
+    <Compile Include="IPControl\Parameters\NameValuePair.vb" />
+    <Compile Include="IPControl\Parameters\IParameter.vb" />
+    <Compile Include="EventArgs\PlaybackStateChangedEventArgs.vb" />
+    <Compile Include="Extensions\MathSpecialized.vb" />
+    <Compile Include="Extensions\ObservableCollectionExtensions.vb" />
+    <Compile Include="Extensions\EnumerableExtensions.vb" />
+    <Compile Include="Extensions\NetworkInterfaceExtensions.vb" />
+    <Compile Include="Extensions\CollectionExtensions.vb" />
+    <Compile Include="IPControl\Parameters\CommandValue.vb" />
+    <Compile Include="IPControl\Parameters\PlaybackState.vb" />
+    <Compile Include="IPControl\Parameters\PlaybackEvent.vb" />
+    <Compile Include="IPControl\Parameters\RemoteControlKey.vb" />
+    <Compile Include="IPControl\Parameters\PlayerState.vb" />
+    <Compile Include="IPControl\PlaybackCommand.vb" />
+    <Compile Include="IPControl\Parameters\VideoZoom.vb" />
+    <Compile Include="IPControl\Factories\CommandFactory.vb" />
+    <Compile Include="IPControl\IPControlClient.vb" />
+    <Compile Include="IPControl\Commands\GetTextCommand.vb" />
+    <Compile Include="IPControl\IIPCommand.vb" />
+    <Compile Include="IPControl\Commands\LaunchFlashLiteCommand.vb" />
+    <Compile Include="IPControl\Commands\LaunchWebsiteCommand.vb" />
+    <Compile Include="IPControl\Commands\SetTextCommand.vb" />
+    <Compile Include="IPControl\MediaStream.vb" />
+    <Compile Include="IPControl\Command.vb" />
+    <Compile Include="IPControl\CommandException.vb" />
+    <Compile Include="IPControl\Command Results\StatusCommandResult.vb" />
+    <Compile Include="IPControl\Commands\NavigationCommand.vb" />
+    <Compile Include="IPControl\Commands\GetStatusCommand.vb" />
+    <Compile Include="IPControl\Commands\RemoteControlCommand.vb" />
+    <Compile Include="IPControl\Commands\SetKeyframeCommand.vb" />
+    <Compile Include="IPControl\Commands\SetPlaybackClipZoomCommand.vb" />
+    <Compile Include="IPControl\Commands\SetPlaybackStateCommand.vb" />
+    <Compile Include="IPControl\Commands\SetPlayerStateCommand.vb" />
+    <Compile Include="IPControl\Commands\SetPlaybackWindowZoomCommand.vb" />
     <Compile Include="ApiWrappers\FirmwareProperties.vb" />
     <Compile Include="ApiWrappers\Folder\Folder.vb" />
     <Compile Include="ApiWrappers\Storage\LocalStorage.vb" />
@@ -102,26 +167,25 @@
     <Compile Include="ApiWrappers\Storage\SmbShare.vb" />
     <Compile Include="ApiWrappers\Storage\Storage.vb" />
     <Compile Include="ApiWrappers\SystemInformation.vb" />
-    <Compile Include="Converters\PlaybackEventConverter.vb" />
-    <Compile Include="Converters\PhysicalAddressConverter.vb" />
-    <Compile Include="Converters\PlaybackSpeedConverter.vb" />
-    <Compile Include="Converters\PlayerStateConverter.vb" />
-    <Compile Include="Converters\ZoomConverter.vb" />
-    <Compile Include="Extensions\BitConverterExtensions.vb" />
+    <Compile Include="ApiWrappers\Converters\PlaybackEventConverter.vb" />
+    <Compile Include="ApiWrappers\Converters\PhysicalAddressConverter.vb" />
+    <Compile Include="ApiWrappers\Converters\PlaybackSpeedConverter.vb" />
+    <Compile Include="ApiWrappers\Converters\PlayerStateConverter.vb" />
+    <Compile Include="ApiWrappers\Converters\ZoomConverter.vb" />
     <Compile Include="Extensions\BooleanExtensions.vb" />
     <Compile Include="Extensions\FileSystemInfoExtensions.vb" />
-    <Compile Include="Extensions\IntegerExtensions.vb" />
     <Compile Include="Extensions\PhysicalAddressExtensions.vb" />
     <Compile Include="Extensions\StringExtensions.vb" />
-    <Compile Include="Constants.vb" />
-    <Compile Include="ApiWrappers\DuneCommands\StartPlaybackCommand.vb" />
+    <Compile Include="IPControl\Commands\StartPlaybackCommand.vb" />
+    <Compile Include="Extensions\TaskExtensions.vb" />
     <Compile Include="Extensions\TimeSpanExtensions.vb" />
-    <Compile Include="Extensions\VersionExtensions.vb" />
     <Compile Include="FtpClient.vb" />
+    <Compile Include="IPControl\Parameters\NavigationAction.vb" />
+    <Compile Include="Networking\ArpRequest.vb" />
+    <Compile Include="Networking\IPv4Network.vb" />
+    <Compile Include="Networking\Network.vb" />
     <Compile Include="Networking\HttpQuery.vb" />
-    <Compile Include="Networking\NetworkDevice.vb" />
-    <Compile Include="EventArgs\PlaybackStateChangedEventArgs.vb" />
-    <Compile Include="RemoteControl.vb" />
+    <Compile Include="Display.vb" />
     <Compile Include="Extensions\IPAddressExtensions.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
@@ -140,9 +204,12 @@
     </Compile>
     <Compile Include="NativeMethods\NativeMethods.vb" />
     <Compile Include="Dune.vb" />
-    <Compile Include="Networking\NetworkAdapterInfo.vb" />
-    <Compile Include="Networking\NetworkCardVendorInfo.vb" />
+    <Compile Include="Networking\NetworkInterfaceInfo.vb" />
+    <Compile Include="Networking\NetworkInterfaceVendorInfo.vb" />
     <Compile Include="Playlist.vb" />
+    <Compile Include="Telnet\TelnetStateConnected.vb" />
+    <Compile Include="Telnet\TelnetStateDisconnected.vb" />
+    <Compile Include="Telnet\TelnetState.vb" />
     <Compile Include="Telnet\TelnetClient.vb" />
   </ItemGroup>
   <ItemGroup>
@@ -164,6 +231,9 @@
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
     <None Include="SL.DuneApiCodePack.licenseheader" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />

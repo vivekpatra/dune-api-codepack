@@ -1,5 +1,5 @@
 ﻿#Region "License"
-' Copyright 2012 Steven Liekens
+' Copyright 2012-2013 Steven Liekens
 ' Contact: steven.liekens@gmail.com
 
 ' This file is part of DuneApiCodepack.
@@ -31,7 +31,7 @@ Namespace Sources
         ''' <param name="name">The name of the network folder as defined on the Dune device.</param>
         ''' <param name="path">The path to the named network folder.</param>
         ''' <remarks></remarks>
-        Public Sub New(host As IPHostEntry, name As String, path As IO.FileSystemInfo)
+        Public Sub New(host As IPAddress, name As String, path As IO.FileSystemInfo)
             MyBase.New(host)
             _name = name
             _share = path.ToDirectoryInfo

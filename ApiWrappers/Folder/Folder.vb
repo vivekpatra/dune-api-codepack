@@ -1,5 +1,5 @@
 ﻿#Region "License"
-' Copyright 2012 Steven Liekens
+' Copyright 2012-2013 Steven Liekens
 ' Contact: steven.liekens@gmail.com
 
 ' This file is part of DuneApiCodepack.
@@ -33,7 +33,7 @@ Namespace DuneUtilities.ApiWrappers
         ' TODO: implement dune_folder.txt functionallity
         ' http://dune-hd.com/firmware/misc/dune_folder_howto.txt
 
-        Private _directoryInfo As DirectoryInfo
+        Private _directoryInfo As IO.DirectoryInfo
         Private _mediaUrl As String
 
         Public Sub New()
@@ -44,7 +44,7 @@ Namespace DuneUtilities.ApiWrappers
             If Not location.IsUnc Then
                 Throw New ArgumentException("Non-UNC paths are not supported.")
             Else
-                _directoryInfo = New DirectoryInfo(location.AbsolutePath)
+                _directoryInfo = New IO.DirectoryInfo(location.AbsolutePath)
             End If
         End Sub
 
@@ -94,7 +94,7 @@ Namespace DuneUtilities.ApiWrappers
 
                 Using reader As New StreamReader(duneFolderTxt)
                     Do Until reader.EndOfStream
-                        If ChrW(reader.Peek) = "#"c Then ' ignore comment
+                        If Convert.ToChar(reader.Peek) = "#"c Then ' ignore comment
                             reader.ReadLine()
                         Else ' get name=value pair
                             Dim nameValuePair As String = reader.ReadLine
@@ -109,7 +109,7 @@ Namespace DuneUtilities.ApiWrappers
 
                 duneFolderTxt.Dispose()
             Catch ex As IOException
-                MsgBox(ex.Message)
+                Console.WriteLine(ex.Message)
             End Try
 
             Return settings
